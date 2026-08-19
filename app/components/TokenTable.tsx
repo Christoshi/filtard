@@ -489,4 +489,20 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
 
       {/* Mobile search bar above bottom nav */}
       {showSearch && (
-        <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 px-3 pb
+        <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 px-3 pb-2 bg-[#07080a]/95 backdrop-blur-md border-t border-[#1c1f26]">
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search name, ticker or CA..."
+            className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
