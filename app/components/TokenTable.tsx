@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 
 type TokenWithStats = {
@@ -41,6 +41,21 @@ function formatUsd(n: number | null) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
   if (n >= 1) return `$${n.toFixed(4)}`;
+  if (n >= 0.0001) return `$${n.toFixed(6)}`;
+
+  // Subscript style for very small prices
+  const s = n.toFixed(12);
+  const match = s.match(/^0\.(0+)(\d+)/);
+  if (match) {
+    const zeros = match[1].length;
+    const digits = match[2].replace(/0+$/, "").slice(0, 4) || "0";
+    const sub = "₀₁₂₃₄₅₆₇₈₉";
+    const zeroStr = String(zeros)
+      .split("")
+      .map((d) => sub[Number(d)])
+      .join("");
+    return `$0.0${zeroStr}${digits}`;
+  }
   return `$${n.toPrecision(4)}`;
 }
 
@@ -86,6 +101,9 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("filtard-watchlist");
@@ -94,6 +112,31 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         setWatchlist(JSON.parse(saved));
       } catch {}
     }
+  }, []);
+
+  useEffect(() => {
+    function onToggleSearch() {
+      setShowSearch((prev) => {
+        const next = !prev;
+        if (next) setTimeout(() => searchInputRef.current?.focus(), 50);
+        return next;
+      });
+      setShowWatchlistOnly(false);
+    }
+
+    function onToggleWatchlist() {
+      setShowWatchlistOnly((prev) => !prev);
+      setShowSearch(false);
+      setPage(1);
+    }
+
+    window.addEventListener("filtard-toggle-search", onToggleSearch);
+    window.addEventListener("filtard-toggle-watchlist", onToggleWatchlist);
+
+    return () => {
+      window.removeEventListener("filtard-toggle-search", onToggleSearch);
+      window.removeEventListener("filtard-toggle-watchlist", onToggleWatchlist);
+    };
   }, []);
 
   function toggleWatchlist(e: React.MouseEvent, tokenId: string) {
@@ -121,6 +164,10 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
 
   const filteredAndSorted = useMemo(() => {
     let list = [...tokens];
+
+    if (showWatchlistOnly) {
+      list = list.filter((t) => watchlist.includes(t.id));
+    }
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -179,16 +226,16 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
     });
 
     return list;
-  }, [tokens, search, sortKey, sortDir]);
+  }, [tokens, search, sortKey, sortDir, showWatchlistOnly, watchlist]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
   const startIndex = (page - 1) * PAGE_SIZE;
   const pageTokens = filteredAndSorted.slice(startIndex, startIndex + PAGE_SIZE);
 
   return (
-    <div>
-      {/* Search */}
-      <div id="search" className="mb-4">
+    <div className="w-full">
+      {/* Desktop search */}
+      <div className="hidden md:block mb-4">
         <input
           type="text"
           value={search}
@@ -201,6 +248,18 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         />
       </div>
 
+      {showWatchlistOnly && (
+        <div className="mb-3 flex items-center justify-between text-sm">
+          <span className="text-[#b8ff3d]">★ Showing watchlist only</span>
+          <button
+            onClick={() => setShowWatchlistOnly(false)}
+            className="text-[#8b93a1] hover:text-white"
+          >
+            Show all
+          </button>
+        </div>
+      )}
+
       {/* ===== DESKTOP TABLE ===== */}
       <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
         <div className="grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs text-[#8b93a1] uppercase tracking-wider border-b border-[#1c1f26] bg-[#0c0d10]">
@@ -212,22 +271,40 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           >
             Token <SortIcon active={sortKey === "symbol"} direction={sortDir} />
           </div>
-          <div className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1" onClick={() => handleSort("marketCap")}>
+          <div
+            className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+            onClick={() => handleSort("marketCap")}
+          >
             Mcap <SortIcon active={sortKey === "marketCap"} direction={sortDir} />
           </div>
-          <div className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1" onClick={() => handleSort("priceUsd")}>
+          <div
+            className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+            onClick={() => handleSort("priceUsd")}
+          >
             Price <SortIcon active={sortKey === "priceUsd"} direction={sortDir} />
           </div>
-          <div className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1" onClick={() => handleSort("change24h")}>
+          <div
+            className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+            onClick={() => handleSort("change24h")}
+          >
             24h <SortIcon active={sortKey === "change24h"} direction={sortDir} />
           </div>
-          <div className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1" onClick={() => handleSort("volume24h")}>
+          <div
+            className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+            onClick={() => handleSort("volume24h")}
+          >
             Volume <SortIcon active={sortKey === "volume24h"} direction={sortDir} />
           </div>
-          <div className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1" onClick={() => handleSort("liquidity")}>
+          <div
+            className="px-3 py-3 text-right border-r border-[#1c1f26] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+            onClick={() => handleSort("liquidity")}
+          >
             Liq <SortIcon active={sortKey === "liquidity"} direction={sortDir} />
           </div>
-          <div className="px-3 py-3 text-right cursor-pointer select-none hover:text-white flex items-center justify-end gap-1" onClick={() => handleSort("age")}>
+          <div
+            className="px-3 py-3 text-right cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+            onClick={() => handleSort("age")}
+          >
             Age <SortIcon active={sortKey === "age"} direction={sortDir} />
           </div>
         </div>
@@ -262,13 +339,19 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
 
                 <div className="px-3 py-3 border-r border-[#1c1f26] flex items-center gap-3 min-w-0">
                   {token.image_url ? (
-                    <img src={token.image_url} alt="" className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
+                    <img
+                      src={token.image_url}
+                      alt=""
+                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                    />
                   ) : (
                     <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
                   )}
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-[15px] truncate">{token.symbol || "???"}</span>
+                      <span className="font-medium text-[15px] truncate">
+                        {token.symbol || "???"}
+                      </span>
                       <span className="text-[11px] text-[#8b93a1] border border-[#1c1f26] px-1.5 rounded">
                         {token.chain}
                       </span>
@@ -285,9 +368,11 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
                 <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-[15px] font-medium">
                   {formatUsd(token.stats?.priceUsd ?? null)}
                 </div>
-                <div className={`px-3 py-3 text-right border-r border-[#1c1f26] text-[15px] ${
-                  (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
-                }`}>
+                <div
+                  className={`px-3 py-3 text-right border-r border-[#1c1f26] text-[15px] ${
+                    (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
+                  }`}
+                >
                   {formatPct(token.stats?.change24h ?? null)}
                 </div>
                 <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-[15px]">
@@ -305,16 +390,8 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         )}
       </div>
 
-      {/* ===== MOBILE COMPACT TABLE ===== */}
+      {/* ===== MOBILE DOUBLE-ROW TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
-        {/* Header */}
-        <div className="grid grid-cols-[28px_1fr_70px_60px] gap-0 text-[11px] text-[#8b93a1] uppercase tracking-wider border-b border-[#1c1f26] bg-[#0c0d10]">
-          <div className="px-1 py-2.5"></div>
-          <div className="px-2 py-2.5">Token</div>
-          <div className="px-2 py-2.5 text-right">Price</div>
-          <div className="px-2 py-2.5 text-right">24h</div>
-        </div>
-
         {pageTokens.length === 0 ? (
           <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
         ) : (
@@ -324,60 +401,63 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
               <Link
                 key={token.id}
                 href={`/token/${token.chain}/${token.address}`}
-                className={`grid grid-cols-[28px_1fr_70px_60px] gap-0 items-center hover:bg-[#14171d] transition ${
+                className={`block hover:bg-[#14171d] transition ${
                   index !== pageTokens.length - 1 ? "border-b border-[#1c1f26]" : ""
                 }`}
               >
-                {/* Star */}
-                <div className="px-1 py-3 flex justify-center">
+                <div className="flex items-center gap-2.5 px-3 py-2.5">
                   <button
                     onClick={(e) => toggleWatchlist(e, token.id)}
-                    className={`text-base leading-none ${
+                    className={`text-lg leading-none flex-shrink-0 ${
                       isWatched ? "text-[#b8ff3d]" : "text-[#3a3f4b]"
                     }`}
                   >
                     {isWatched ? "★" : "☆"}
                   </button>
-                </div>
 
-                {/* Token info */}
-                <div className="px-2 py-3 flex items-center gap-2.5 min-w-0">
                   {token.image_url ? (
                     <img
                       src={token.image_url}
                       alt=""
-                      className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="h-8 w-8 rounded-full bg-[#1c1f26] flex-shrink-0" />
+                    <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
                   )}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-[13px] truncate">
-                        {token.symbol || "???"}
-                      </span>
-                      <span className="text-[10px] text-[#8b93a1] border border-[#1c1f26] px-1 rounded">
-                        {token.chain}
-                      </span>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-[14px] truncate">
+                      {token.symbol || "???"}
                     </div>
-                    <div className="text-[11px] text-[#8b93a1] truncate">
-                      {formatUsd(token.stats?.marketCap ?? null)} mcap
+                    <div className="text-[12px] text-[#8b93a1] truncate">
+                      {token.name || token.address.slice(0, 10) + "…"}
+                    </div>
+                  </div>
+
+                  <div className="text-right flex-shrink-0">
+                    <div className="font-medium text-[14px]">
+                      {formatUsd(token.stats?.priceUsd ?? null)}
+                    </div>
+                    <div
+                      className={`text-[12px] ${
+                        (token.stats?.change24h ?? 0) < 0
+                          ? "text-red-400"
+                          : "text-green-400"
+                      }`}
+                    >
+                      {formatPct(token.stats?.change24h ?? null)}
                     </div>
                   </div>
                 </div>
 
-                {/* Price */}
-                <div className="px-2 py-3 text-right text-[13px] font-medium">
-                  {formatUsd(token.stats?.priceUsd ?? null)}
-                </div>
-
-                {/* 24h */}
-                <div
-                  className={`px-2 py-3 text-right text-[13px] font-medium ${
-                    (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
-                  }`}
-                >
-                  {formatPct(token.stats?.change24h ?? null)}
+                <div className="flex items-center gap-3 px-3 pb-2.5 pl-[52px] text-[11px] text-[#8b93a1]">
+                  <span>Mcap {formatUsd(token.stats?.marketCap ?? null)}</span>
+                  <span>·</span>
+                  <span>Vol {formatUsd(token.stats?.volume24h ?? null)}</span>
+                  <span>·</span>
+                  <span>Liq {formatUsd(token.stats?.liquidity ?? null)}</span>
+                  <span>·</span>
+                  <span>{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
                 </div>
               </Link>
             );
@@ -385,7 +465,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-5 text-sm">
           <button
@@ -407,6 +486,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           </button>
         </div>
       )}
-    </div>
-  );
-}
+
+      {/* Mobile search bar above bottom nav */}
+      {showSearch && (
+        <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 px-3 pb

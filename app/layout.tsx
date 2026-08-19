@@ -56,10 +56,8 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-[#07080a] text-[#f4f6f8] pb-20 md:pb-0">
-        {/* ===== TOP HEADER ===== */}
         <header className="sticky top-0 z-50 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
-          <div className="flex items-center px-4 py-3 lg:px-6 gap-4">
-            {/* Logo - hidden on mobile (moved to bottom nav) */}
+          <div className="flex items-center px-3 py-2.5 md:px-6 md:py-3 gap-3">
             <Link
               href="/"
               className="hidden md:flex items-center gap-2 font-semibold tracking-tight flex-shrink-0"
@@ -70,7 +68,6 @@ export default async function RootLayout({
               Filtard
             </Link>
 
-            {/* Ticker - gets more room on mobile */}
             <div className="flex-1 overflow-hidden min-w-0">
               {topTokens.length > 0 ? (
                 <div className="marquee-track">
@@ -99,19 +96,17 @@ export default async function RootLayout({
               )}
             </div>
 
-            {/* Auth - hidden on mobile */}
             <div className="hidden md:block">
               <HeaderAuth />
             </div>
           </div>
         </header>
 
-        <main className="px-4 py-6 lg:px-6">{children}</main>
+        <main className="px-3 py-4 md:px-6 md:py-6">{children}</main>
 
-        {/* ===== MOBILE BOTTOM NAV ===== */}
+        {/* Mobile Bottom Nav */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
           <div className="flex items-center justify-around h-16">
-            {/* Logo / Home */}
             <Link
               href="/"
               className="flex flex-col items-center gap-1 text-[#8b93a1] hover:text-white transition"
@@ -121,9 +116,8 @@ export default async function RootLayout({
               </span>
             </Link>
 
-            {/* Search */}
-            <Link
-              href="/#search"
+            <button
+              onClick={() => window.dispatchEvent(new Event("filtard-toggle-search"))}
               className="flex flex-col items-center gap-1 text-[#8b93a1] hover:text-white transition"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -131,20 +125,18 @@ export default async function RootLayout({
                 <path d="M21 21l-4.35-4.35" />
               </svg>
               <span className="text-[10px]">Search</span>
-            </Link>
+            </button>
 
-            {/* Watchlist */}
-            <Link
-              href="/#watchlist"
+            <button
+              onClick={() => window.dispatchEvent(new Event("filtard-toggle-watchlist"))}
               className="flex flex-col items-center gap-1 text-[#8b93a1] hover:text-white transition"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
               <span className="text-[10px]">Watchlist</span>
-            </Link>
+            </button>
 
-            {/* Submit */}
             <Link
               href="/login"
               className="flex flex-col items-center gap-1 text-[#8b93a1] hover:text-white transition"
