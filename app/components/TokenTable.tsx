@@ -118,12 +118,13 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
       setShowSearch((prev) => {
         const next = !prev;
         if (next) {
+          // Jump once to the very top
+          window.scrollTo(0, 0);
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+
           setTimeout(() => {
             searchInputRef.current?.focus();
-            // Force absolute top
-            window.scrollTo(0, 0);
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
           }, 50);
         }
         return next;
@@ -147,6 +148,15 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
     };
   }, []);
 
+  // Keep the page locked at the top while searching / filtering
+  useEffect(() => {
+    if (showSearch || showWatchlistOnly) {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [search, showSearch, showWatchlistOnly]);
+
   function toggleWatchlist(e: React.MouseEvent, tokenId: string) {
     e.preventDefault();
     e.stopPropagation();
@@ -169,13 +179,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
     }
     setPage(1);
   }
-
-  // Force scroll to absolute top whenever search changes
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }, [search, showWatchlistOnly]);
 
   const filteredAndSorted = useMemo(() => {
     let list = [...tokens];
@@ -275,7 +278,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         </div>
       )}
 
-      {/* ===== DESKTOP TABLE ===== */}
+      {/* DESKTOP TABLE */}
       <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
         <div className="grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs text-[#8b93a1] uppercase tracking-wider border-b border-[#1c1f26] bg-[#0c0d10]">
           <div className="px-2 py-3"></div>
@@ -405,7 +408,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         )}
       </div>
 
-      {/* ===== MOBILE DOUBLE-ROW TABLE ===== */}
+      {/* MOBILE DOUBLE-ROW TABLE */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
         {pageTokens.length === 0 ? (
           <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
@@ -502,7 +505,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         </div>
       )}
 
-      {/* Mobile search bar above bottom nav */}
+      {/* Mobile search bar */}
       {showSearch && (
         <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 px-3 pb-2 bg-[#07080a]/95 backdrop-blur-md border-t border-[#1c1f26]">
           <input

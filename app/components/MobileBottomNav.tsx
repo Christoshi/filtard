@@ -9,7 +9,6 @@ export default function MobileBottomNav() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
       <div className="flex items-center justify-around h-16 px-1">
-        {/* Home / Logo + Brand - now equal weight */}
         <button
           onClick={() => router.push("/")}
           className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-white transition active:scale-95 w-16"
@@ -20,7 +19,6 @@ export default function MobileBottomNav() {
           <span className="text-[10px] font-medium leading-tight">Filtard</span>
         </button>
 
-        {/* Search */}
         <button
           onClick={() => window.dispatchEvent(new Event("filtard-toggle-search"))}
           className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-white transition active:scale-95 w-16"
@@ -32,7 +30,6 @@ export default function MobileBottomNav() {
           <span className="text-[10px] font-medium leading-tight">Search</span>
         </button>
 
-        {/* Watchlist */}
         <button
           onClick={() => window.dispatchEvent(new Event("filtard-toggle-watchlist"))}
           className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-white transition active:scale-95 w-16"
@@ -43,7 +40,6 @@ export default function MobileBottomNav() {
           <span className="text-[10px] font-medium leading-tight">Watchlist</span>
         </button>
 
-        {/* Submit */}
         <Link
           href="/login"
           className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-white transition active:scale-95 w-16"
