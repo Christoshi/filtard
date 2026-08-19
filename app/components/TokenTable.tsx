@@ -188,7 +188,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
   return (
     <div>
       {/* Search */}
-      <div className="mb-4">
+      <div id="search" className="mb-4">
         <input
           type="text"
           value={search}
@@ -245,7 +245,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
                   index !== pageTokens.length - 1 ? "border-b border-[#1c1f26]" : ""
                 }`}
               >
-                {/* Star */}
                 <div className="px-2 py-3 flex justify-center">
                   <button
                     onClick={(e) => toggleWatchlist(e, token.id)}
@@ -257,12 +256,10 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
                   </button>
                 </div>
 
-                {/* Rank number */}
                 <div className="px-1 py-3 text-center text-sm text-[#8b93a1]">
                   {startIndex + index + 1}
                 </div>
 
-                {/* Token */}
                 <div className="px-3 py-3 border-r border-[#1c1f26] flex items-center gap-3 min-w-0">
                   {token.image_url ? (
                     <img src={token.image_url} alt="" className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
@@ -308,44 +305,34 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         )}
       </div>
 
-      {/* ===== MOBILE CARDS ===== */}
-      <div className="md:hidden space-y-3">
+      {/* ===== MOBILE COMPACT TABLE ===== */}
+      <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
+        {/* Header */}
+        <div className="grid grid-cols-[28px_1fr_70px_60px] gap-0 text-[11px] text-[#8b93a1] uppercase tracking-wider border-b border-[#1c1f26] bg-[#0c0d10]">
+          <div className="px-1 py-2.5"></div>
+          <div className="px-2 py-2.5">Token</div>
+          <div className="px-2 py-2.5 text-right">Price</div>
+          <div className="px-2 py-2.5 text-right">24h</div>
+        </div>
+
         {pageTokens.length === 0 ? (
-          <div className="p-10 text-center text-[#8b93a1] border border-[#1c1f26] rounded-xl">
-            No tokens found.
-          </div>
+          <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
         ) : (
-          pageTokens.map((token) => {
+          pageTokens.map((token, index) => {
             const isWatched = watchlist.includes(token.id);
             return (
               <Link
                 key={token.id}
                 href={`/token/${token.chain}/${token.address}`}
-                className="block border border-[#1c1f26] rounded-xl p-4 bg-[#101215] hover:bg-[#14171d] transition"
+                className={`grid grid-cols-[28px_1fr_70px_60px] gap-0 items-center hover:bg-[#14171d] transition ${
+                  index !== pageTokens.length - 1 ? "border-b border-[#1c1f26]" : ""
+                }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {token.image_url ? (
-                      <img src={token.image_url} alt="" className="h-11 w-11 rounded-full object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="h-11 w-11 rounded-full bg-[#1c1f26] flex-shrink-0" />
-                    )}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-medium truncate">{token.symbol || "???"}</span>
-                        <span className="text-[11px] text-[#8b93a1] border border-[#1c1f26] px-1.5 rounded">
-                          {token.chain}
-                        </span>
-                      </div>
-                      <div className="text-sm text-[#8b93a1] truncate">
-                        {token.name || token.address.slice(0, 10) + "…"}
-                      </div>
-                    </div>
-                  </div>
-
+                {/* Star */}
+                <div className="px-1 py-3 flex justify-center">
                   <button
                     onClick={(e) => toggleWatchlist(e, token.id)}
-                    className={`text-xl leading-none flex-shrink-0 ${
+                    className={`text-base leading-none ${
                       isWatched ? "text-[#b8ff3d]" : "text-[#3a3f4b]"
                     }`}
                   >
@@ -353,23 +340,44 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mt-4 text-sm">
-                  <div>
-                    <div className="text-[11px] text-[#8b93a1]">Price</div>
-                    <div className="font-medium">{formatUsd(token.stats?.priceUsd ?? null)}</div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-[#8b93a1]">24h</div>
-                    <div className={`font-medium ${
-                      (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
-                    }`}>
-                      {formatPct(token.stats?.change24h ?? null)}
+                {/* Token info */}
+                <div className="px-2 py-3 flex items-center gap-2.5 min-w-0">
+                  {token.image_url ? (
+                    <img
+                      src={token.image_url}
+                      alt=""
+                      className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-[#1c1f26] flex-shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-[13px] truncate">
+                        {token.symbol || "???"}
+                      </span>
+                      <span className="text-[10px] text-[#8b93a1] border border-[#1c1f26] px-1 rounded">
+                        {token.chain}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#8b93a1] truncate">
+                      {formatUsd(token.stats?.marketCap ?? null)} mcap
                     </div>
                   </div>
-                  <div>
-                    <div className="text-[11px] text-[#8b93a1]">Mcap</div>
-                    <div className="font-medium">{formatUsd(token.stats?.marketCap ?? null)}</div>
-                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="px-2 py-3 text-right text-[13px] font-medium">
+                  {formatUsd(token.stats?.priceUsd ?? null)}
+                </div>
+
+                {/* 24h */}
+                <div
+                  className={`px-2 py-3 text-right text-[13px] font-medium ${
+                    (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
+                  }`}
+                >
+                  {formatPct(token.stats?.change24h ?? null)}
                 </div>
               </Link>
             );

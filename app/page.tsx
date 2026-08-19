@@ -14,7 +14,7 @@ type Token = {
 };
 
 const CHAINS = [
-  { id: "all", label: "All" },
+  { id: "all", label: "All Chains" },
   { id: "solana", label: "Solana" },
   { id: "base", label: "Base" },
   { id: "ethereum", label: "Ethereum" },
@@ -93,33 +93,57 @@ export default async function Home({
     return str ? `/?${str}` : "/";
   };
 
+  const currentChainLabel =
+    CHAINS.find((c) => c.id === chain)?.label || "All Chains";
+
   return (
     <div className="w-full">
-      <div className="mb-6">
+      <div className="mb-5">
         <p className="text-base text-[#8b93a1]">
           Community-curated memecoins screener
         </p>
       </div>
 
-      {/* Chain filters + New button */}
-      <div className="flex flex-wrap gap-2 items-center mb-5">
-        {CHAINS.map((c) => (
-          <Link
-            key={c.id}
-            href={buildUrl({ chain: c.id, new: onlyNew })}
-            className={`px-3.5 py-1.5 rounded-full text-sm border transition ${
-              chain === c.id
-                ? "bg-[#b8ff3d] text-black border-[#b8ff3d] font-medium"
-                : "border-[#1c1f26] text-[#8b93a1] hover:border-[#3a3f4b]"
-            }`}
-          >
-            {c.label}
-          </Link>
-        ))}
+      {/* Chain selector + New button */}
+      <div className="flex flex-wrap items-center gap-3 mb-5">
+        {/* Chain Dropdown */}
+        <div className="relative">
+          <details className="group">
+            <summary className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1c1f26] bg-[#101215] text-sm cursor-pointer list-none hover:border-[#3a3f4b] transition">
+              <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
+              <svg
+                className="w-4 h-4 text-[#8b93a1] group-open:rotate-180 transition"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </summary>
 
+            <div className="absolute left-0 mt-2 w-48 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
+              {CHAINS.map((c) => (
+                <Link
+                  key={c.id}
+                  href={buildUrl({ chain: c.id, new: onlyNew })}
+                  className={`block px-4 py-2.5 text-sm transition ${
+                    chain === c.id
+                      ? "bg-[#b8ff3d]/10 text-[#b8ff3d]"
+                      : "text-[#f4f6f8] hover:bg-[#1c1f26]"
+                  }`}
+                >
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+        </div>
+
+        {/* New button */}
         <Link
           href={buildUrl({ chain, new: !onlyNew })}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium border transition ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
             onlyNew
               ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
               : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
@@ -142,7 +166,7 @@ export default async function Home({
         </Link>
       </div>
 
-      {/* Table with live search */}
+      {/* Table */}
       <TokenTable tokens={finalTokens} />
     </div>
   );
