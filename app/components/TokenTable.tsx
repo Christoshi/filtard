@@ -118,14 +118,10 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
       setShowSearch((prev) => {
         const next = !prev;
         if (next) {
-          // Jump once to the very top
-          window.scrollTo(0, 0);
-          document.documentElement.scrollTop = 0;
-          document.body.scrollTop = 0;
-
+          window.scrollTo({ top: 0, behavior: "instant" });
           setTimeout(() => {
             searchInputRef.current?.focus();
-          }, 50);
+          }, 100);
         }
         return next;
       });
@@ -136,26 +132,33 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
       setShowWatchlistOnly((prev) => !prev);
       setShowSearch(false);
       setPage(1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+
+    function onCloseAll() {
+      setShowSearch(false);
+      setShowWatchlistOnly(false);
+      setSearch("");
+      setPage(1);
     }
 
     window.addEventListener("filtard-toggle-search", onToggleSearch);
     window.addEventListener("filtard-toggle-watchlist", onToggleWatchlist);
+    window.addEventListener("filtard-close-all", onCloseAll);
 
     return () => {
       window.removeEventListener("filtard-toggle-search", onToggleSearch);
       window.removeEventListener("filtard-toggle-watchlist", onToggleWatchlist);
+      window.removeEventListener("filtard-close-all", onCloseAll);
     };
   }, []);
 
-  // Keep the page locked at the top while searching / filtering
+  // Only force top when the search panel is first opened (not on every keystroke)
   useEffect(() => {
-    if (showSearch || showWatchlistOnly) {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+    if (showSearch) {
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
-  }, [search, showSearch, showWatchlistOnly]);
+  }, [showSearch]);
 
   function toggleWatchlist(e: React.MouseEvent, tokenId: string) {
     e.preventDefault();
@@ -268,7 +271,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
 
       {showWatchlistOnly && (
         <div className="mb-3 flex items-center justify-between text-sm">
-          <span className="text-[#b8ff3d]">★ Showing watchlist only</span>
+          <span className="text-[#b8ff3d]">Showing watchlist only</span>
           <button
             onClick={() => setShowWatchlistOnly(false)}
             className="text-[#8b93a1] hover:text-white"
@@ -278,7 +281,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         </div>
       )}
 
-      {/* DESKTOP TABLE */}
+      {/* ===== DESKTOP TABLE ===== */}
       <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
         <div className="grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs text-[#8b93a1] uppercase tracking-wider border-b border-[#1c1f26] bg-[#0c0d10]">
           <div className="px-2 py-3"></div>
@@ -408,7 +411,10 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         )}
       </div>
 
-      {/* MOBILE DOUBLE-ROW TABLE */}
+      {/* Spacer so mobile table is not hidden under the fixed top search */}
+      {showSearch && <div className="md:hidden h-[56px]" aria-hidden="true" />}
+
+      {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
         {pageTokens.length === 0 ? (
           <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
@@ -458,9 +464,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
                     </div>
                     <div
                       className={`text-[12px] ${
-                        (token.stats?.change24h ?? 0) < 0
-                          ? "text-red-400"
-                          : "text-green-400"
+                        (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
                       }`}
                     >
                       {formatPct(token.stats?.change24h ?? null)}
@@ -483,6 +487,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         )}
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-5 text-sm">
           <button
@@ -505,20 +510,34 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         </div>
       )}
 
-      {/* Mobile search bar */}
+      {/* ===== MOBILE SEARCH BAR (FIXED TOP) ===== */}
       {showSearch && (
-        <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 px-3 pb-2 bg-[#07080a]/95 backdrop-blur-md border-t border-[#1c1f26]">
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search name, ticker or CA..."
-            className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
-          />
+        <div className="md:hidden fixed top-[52px] left-0 right-0 z-40 px-3 py-2.5 bg-[#07080a]/95 backdrop-blur-md border-b border-[#1c1f26]">
+          <div className="flex items-center gap-2">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search name, ticker or CA..."
+              className="flex-1 rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
+              autoFocus
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setShowSearch(false);
+                setSearch("");
+                setPage(1);
+              }}
+              className="shrink-0 text-sm text-[#8b93a1] hover:text-white px-2 py-1"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>
