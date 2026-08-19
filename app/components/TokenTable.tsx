@@ -43,7 +43,6 @@ function formatUsd(n: number | null) {
   if (n >= 1) return `$${n.toFixed(4)}`;
   if (n >= 0.0001) return `$${n.toFixed(6)}`;
 
-  // Subscript style for very small prices
   const s = n.toFixed(12);
   const match = s.match(/^0\.(0+)(\d+)/);
   if (match) {
@@ -118,7 +117,15 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
     function onToggleSearch() {
       setShowSearch((prev) => {
         const next = !prev;
-        if (next) setTimeout(() => searchInputRef.current?.focus(), 50);
+        if (next) {
+          setTimeout(() => {
+            searchInputRef.current?.focus();
+            // Force absolute top
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+          }, 50);
+        }
         return next;
       });
       setShowWatchlistOnly(false);
@@ -128,6 +135,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
       setShowWatchlistOnly((prev) => !prev);
       setShowSearch(false);
       setPage(1);
+      window.scrollTo(0, 0);
     }
 
     window.addEventListener("filtard-toggle-search", onToggleSearch);
@@ -161,6 +169,13 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
     }
     setPage(1);
   }
+
+  // Force scroll to absolute top whenever search changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [search, showWatchlistOnly]);
 
   const filteredAndSorted = useMemo(() => {
     let list = [...tokens];
@@ -242,7 +257,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(1);
-            window.scrollTo({ top: 0, behavior: "instant" });
           }}
           placeholder="Search name, ticker or CA..."
           className="w-full max-w-sm rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
@@ -498,7 +512,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
-              window.scrollTo({ top: 0, behavior: "instant" });
             }}
             placeholder="Search name, ticker or CA..."
             className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
