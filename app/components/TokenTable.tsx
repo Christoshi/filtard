@@ -119,9 +119,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         const next = !prev;
         if (next) {
           window.scrollTo({ top: 0, behavior: "instant" });
-          setTimeout(() => {
-            searchInputRef.current?.focus();
-          }, 100);
+          setTimeout(() => searchInputRef.current?.focus(), 80);
         }
         return next;
       });
@@ -152,13 +150,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
       window.removeEventListener("filtard-close-all", onCloseAll);
     };
   }, []);
-
-  // Only force top when the search panel is first opened (not on every keystroke)
-  useEffect(() => {
-    if (showSearch) {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
-  }, [showSearch]);
 
   function toggleWatchlist(e: React.MouseEvent, tokenId: string) {
     e.preventDefault();
@@ -257,16 +248,42 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
     <div className="w-full">
       {/* Desktop search */}
       <div className="hidden md:block mb-4">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Search name, ticker or CA..."
-          className="w-full max-w-sm rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
-        />
+        <div className="relative max-w-sm">
+          <svg
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search name, ticker or CA..."
+            className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/50 focus:ring-1 focus:ring-[#b8ff3d]/20 transition"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setPage(1);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {showWatchlistOnly && (
@@ -411,8 +428,66 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         )}
       </div>
 
-      {/* Spacer so mobile table is not hidden under the fixed top search */}
-      {showSearch && <div className="md:hidden h-[56px]" aria-hidden="true" />}
+      {/* ===== MOBILE SEARCH (directly above the table) ===== */}
+      {showSearch && (
+        <div className="md:hidden mb-3">
+          <div className="relative flex items-center gap-2">
+            <div className="relative flex-1">
+              <svg
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search name, ticker or CA..."
+                className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
+                autoFocus
+              />
+
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setPage(1);
+                    searchInputRef.current?.focus();
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowSearch(false);
+                setSearch("");
+                setPage(1);
+              }}
+              className="shrink-0 text-sm font-medium text-[#8b93a1] hover:text-white px-2 py-2 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
@@ -507,37 +582,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           >
             Next →
           </button>
-        </div>
-      )}
-
-      {/* ===== MOBILE SEARCH BAR (FIXED TOP) ===== */}
-      {showSearch && (
-        <div className="md:hidden fixed top-[52px] left-0 right-0 z-40 px-3 py-2.5 bg-[#07080a]/95 backdrop-blur-md border-b border-[#1c1f26]">
-          <div className="flex items-center gap-2">
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search name, ticker or CA..."
-              className="flex-1 rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setShowSearch(false);
-                setSearch("");
-                setPage(1);
-              }}
-              className="shrink-0 text-sm text-[#8b93a1] hover:text-white px-2 py-1"
-            >
-              Cancel
-            </button>
-          </div>
         </div>
       )}
     </div>
