@@ -242,6 +242,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(1);
+            window.scrollTo({ top: 0, behavior: "instant" });
           }}
           placeholder="Search name, ticker or CA..."
           className="w-full max-w-sm rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
@@ -497,6 +498,7 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
+              window.scrollTo({ top: 0, behavior: "instant" });
             }}
             placeholder="Search name, ticker or CA..."
             className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3.5 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
