@@ -153,7 +153,10 @@ export default async function TokenPage({
     });
   }
 
-  const curator = dbToken?.profiles;
+  // Fix: Supabase can return profiles as object or array
+  const curator = Array.isArray(dbToken?.profiles)
+    ? dbToken.profiles[0]
+    : dbToken?.profiles;
 
   return (
     <div className="max-w-6xl mx-auto">
