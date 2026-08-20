@@ -155,19 +155,39 @@ const mutedBtnActive =
 
 type FilterState = {
   age: string;
+  ageMin: string;
+  ageMax: string;
   mcap: string;
+  mcapMin: string;
+  mcapMax: string;
   liq: string;
+  liqMin: string;
+  liqMax: string;
   vol: string;
+  volMin: string;
+  volMax: string;
   txns: string;
+  txnsMin: string;
+  txnsMax: string;
   changeMin: string;
 };
 
 const DEFAULT_FILTERS: FilterState = {
   age: "any",
+  ageMin: "",
+  ageMax: "",
   mcap: "any",
+  mcapMin: "",
+  mcapMax: "",
   liq: "any",
+  liqMin: "",
+  liqMax: "",
   vol: "any",
+  volMin: "",
+  volMax: "",
   txns: "any",
+  txnsMin: "",
+  txnsMax: "",
   changeMin: "",
 };
 
@@ -190,9 +210,7 @@ export default function TokenTable({
   const [showFilters, setShowFilters] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Applied filters (what the table uses when modal is closed)
   const [applied, setApplied] = useState<FilterState>(DEFAULT_FILTERS);
-  // Draft filters (live preview while modal is open)
   const [draft, setDraft] = useState<FilterState>(DEFAULT_FILTERS);
 
   useEffect(() => {
@@ -204,7 +222,6 @@ export default function TokenTable({
     }
   }, []);
 
-  // Escape key closes (same as Cancel)
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape" && showFilters) {
@@ -219,7 +236,7 @@ export default function TokenTable({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [showFilters, applied]);
+  }, [showFilters]);
 
   useEffect(() => {
     function onToggleSearch() {
@@ -275,11 +292,13 @@ export default function TokenTable({
 
   function handleCancel() {
     setShowFilters(false);
-    // draft is discarded; table reverts to applied
   }
 
-  function clearDraft() {
+  // Clear all is permanent — clears both draft and applied immediately
+  function clearAll() {
     setDraft({ ...DEFAULT_FILTERS });
+    setApplied({ ...DEFAULT_FILTERS });
+    setPage(1);
   }
 
   function toggleWatchlist(e: React.MouseEvent, tokenId: string) {
@@ -305,15 +324,14 @@ export default function TokenTable({
     setPage(1);
   }
 
-  // While modal is open we preview with draft; otherwise use applied
   const activeFilters = showFilters ? draft : applied;
 
   const activeFilterCount = [
-    activeFilters.age !== "any",
-    activeFilters.mcap !== "any",
-    activeFilters.liq !== "any",
-    activeFilters.vol !== "any",
-    activeFilters.txns !== "any",
+    activeFilters.age !== "any" || activeFilters.ageMin !== "" || activeFilters.ageMax !== "",
+    activeFilters.mcap !== "any" || activeFilters.mcapMin !== "" || activeFilters.mcapMax !== "",
+    activeFilters.liq !== "any" || activeFilters.liqMin !== "" || activeFilters.liqMax !== "",
+    activeFilters.vol !== "any" || activeFilters.volMin !== "" || activeFilters.volMax !== "",
+    activeFilters.txns !== "any" || activeFilters.txnsMin !== "" || activeFilters.txnsMax !== "",
     activeFilters.changeMin !== "",
   ].filter(Boolean).length;
 
@@ -334,74 +352,129 @@ export default function TokenTable({
       );
     }
 
-    // Age
-    if (activeFilters.age !== "any") {
-      const now = Date.now();
-      list = list.filter((t) => {
-        const ts = t.stats?.pairCreatedAt;
-        if (!ts) return false;
-        const hours = (now - ts) / (1000 * 60 * 60);
-        if (activeFilters.age === "24h") return hours <= 24;
-        if (activeFilters.age === "7d") return hours <= 24 * 7;
-        if (activeFilters.age === "30d") return hours <= 24 * 30;
-        return true;
-      });
+    // Age (custom hours take priority, otherwise preset)
+    {
+      const hasCustom = activeFilters.ageMin !== "" || activeFilters.ageMax !== "";
+      if (hasCustom || activeFilters.age !== "any") {
+        const now = Date.now();
+        list = list.filter((t) => {
+          const ts = t.stats?.pairCreatedAt;
+          if (!ts) return false;
+          const hours = (now - ts) / (1000 * 60 * 60);
+
+          if (hasCustom) {
+            const min = activeFilters.ageMin !== "" ? Number(activeFilters.ageMin) : 0;
+            const max = activeFilters.ageMax !== "" ? Number(activeFilters.ageMax) : Infinity;
+            if (isNaN(min) || isNaN(max)) return true;
+            return hours >= min && hours <= max;
+          }
+
+          if (activeFilters.age === "24h") return hours <= 24;
+          if (activeFilters.age === "7d") return hours <= 24 * 7;
+          if (activeFilters.age === "30d") return hours <= 24 * 30;
+          return true;
+        });
+      }
     }
 
     // Market Cap
-    if (activeFilters.mcap !== "any") {
-      list = list.filter((t) => {
-        const m = t.stats?.marketCap;
-        if (m == null) return false;
-        if (activeFilters.mcap === "lt10k") return m < 10_000;
-        if (activeFilters.mcap === "10k-100k") return m >= 10_000 && m < 100_000;
-        if (activeFilters.mcap === "100k-1m") return m >= 100_000 && m < 1_000_000;
-        if (activeFilters.mcap === "1m-10m") return m >= 1_000_000 && m < 10_000_000;
-        if (activeFilters.mcap === "gt10m") return m >= 10_000_000;
-        return true;
-      });
+    {
+      const hasCustom = activeFilters.mcapMin !== "" || activeFilters.mcapMax !== "";
+      if (hasCustom || activeFilters.mcap !== "any") {
+        list = list.filter((t) => {
+          const m = t.stats?.marketCap;
+          if (m == null) return false;
+
+          if (hasCustom) {
+            const min = activeFilters.mcapMin !== "" ? Number(activeFilters.mcapMin) : 0;
+            const max = activeFilters.mcapMax !== "" ? Number(activeFilters.mcapMax) : Infinity;
+            if (isNaN(min) || isNaN(max)) return true;
+            return m >= min && m <= max;
+          }
+
+          if (activeFilters.mcap === "lt10k") return m < 10_000;
+          if (activeFilters.mcap === "10k-100k") return m >= 10_000 && m < 100_000;
+          if (activeFilters.mcap === "100k-1m") return m >= 100_000 && m < 1_000_000;
+          if (activeFilters.mcap === "1m-10m") return m >= 1_000_000 && m < 10_000_000;
+          if (activeFilters.mcap === "gt10m") return m >= 10_000_000;
+          return true;
+        });
+      }
     }
 
     // Liquidity
-    if (activeFilters.liq !== "any") {
-      list = list.filter((t) => {
-        const l = t.stats?.liquidity;
-        if (l == null) return false;
-        if (activeFilters.liq === "gt1k") return l >= 1_000;
-        if (activeFilters.liq === "gt5k") return l >= 5_000;
-        if (activeFilters.liq === "gt10k") return l >= 10_000;
-        if (activeFilters.liq === "gt50k") return l >= 50_000;
-        if (activeFilters.liq === "gt100k") return l >= 100_000;
-        return true;
-      });
+    {
+      const hasCustom = activeFilters.liqMin !== "" || activeFilters.liqMax !== "";
+      if (hasCustom || activeFilters.liq !== "any") {
+        list = list.filter((t) => {
+          const l = t.stats?.liquidity;
+          if (l == null) return false;
+
+          if (hasCustom) {
+            const min = activeFilters.liqMin !== "" ? Number(activeFilters.liqMin) : 0;
+            const max = activeFilters.liqMax !== "" ? Number(activeFilters.liqMax) : Infinity;
+            if (isNaN(min) || isNaN(max)) return true;
+            return l >= min && l <= max;
+          }
+
+          if (activeFilters.liq === "gt1k") return l >= 1_000;
+          if (activeFilters.liq === "gt5k") return l >= 5_000;
+          if (activeFilters.liq === "gt10k") return l >= 10_000;
+          if (activeFilters.liq === "gt50k") return l >= 50_000;
+          if (activeFilters.liq === "gt100k") return l >= 100_000;
+          return true;
+        });
+      }
     }
 
     // Volume 24h
-    if (activeFilters.vol !== "any") {
-      list = list.filter((t) => {
-        const v = t.stats?.volume24h;
-        if (v == null) return false;
-        if (activeFilters.vol === "gt1k") return v >= 1_000;
-        if (activeFilters.vol === "gt5k") return v >= 5_000;
-        if (activeFilters.vol === "gt10k") return v >= 10_000;
-        if (activeFilters.vol === "gt50k") return v >= 50_000;
-        if (activeFilters.vol === "gt100k") return v >= 100_000;
-        return true;
-      });
+    {
+      const hasCustom = activeFilters.volMin !== "" || activeFilters.volMax !== "";
+      if (hasCustom || activeFilters.vol !== "any") {
+        list = list.filter((t) => {
+          const v = t.stats?.volume24h;
+          if (v == null) return false;
+
+          if (hasCustom) {
+            const min = activeFilters.volMin !== "" ? Number(activeFilters.volMin) : 0;
+            const max = activeFilters.volMax !== "" ? Number(activeFilters.volMax) : Infinity;
+            if (isNaN(min) || isNaN(max)) return true;
+            return v >= min && v <= max;
+          }
+
+          if (activeFilters.vol === "gt1k") return v >= 1_000;
+          if (activeFilters.vol === "gt5k") return v >= 5_000;
+          if (activeFilters.vol === "gt10k") return v >= 10_000;
+          if (activeFilters.vol === "gt50k") return v >= 50_000;
+          if (activeFilters.vol === "gt100k") return v >= 100_000;
+          return true;
+        });
+      }
     }
 
     // Txns 24h
-    if (activeFilters.txns !== "any") {
-      list = list.filter((t) => {
-        const tx = t.stats?.txns24h;
-        if (tx == null) return false;
-        if (activeFilters.txns === "gt10") return tx >= 10;
-        if (activeFilters.txns === "gt50") return tx >= 50;
-        if (activeFilters.txns === "gt100") return tx >= 100;
-        if (activeFilters.txns === "gt500") return tx >= 500;
-        if (activeFilters.txns === "gt1000") return tx >= 1000;
-        return true;
-      });
+    {
+      const hasCustom = activeFilters.txnsMin !== "" || activeFilters.txnsMax !== "";
+      if (hasCustom || activeFilters.txns !== "any") {
+        list = list.filter((t) => {
+          const tx = t.stats?.txns24h;
+          if (tx == null) return false;
+
+          if (hasCustom) {
+            const min = activeFilters.txnsMin !== "" ? Number(activeFilters.txnsMin) : 0;
+            const max = activeFilters.txnsMax !== "" ? Number(activeFilters.txnsMax) : Infinity;
+            if (isNaN(min) || isNaN(max)) return true;
+            return tx >= min && tx <= max;
+          }
+
+          if (activeFilters.txns === "gt10") return tx >= 10;
+          if (activeFilters.txns === "gt50") return tx >= 50;
+          if (activeFilters.txns === "gt100") return tx >= 100;
+          if (activeFilters.txns === "gt500") return tx >= 500;
+          if (activeFilters.txns === "gt1000") return tx >= 1000;
+          return true;
+        });
+      }
     }
 
     // Min 24h Change %
@@ -412,7 +485,6 @@ export default function TokenTable({
       }
     }
 
-    // Keep pinned on top
     const pinned = list.filter((t) => t.is_pinned);
     const rest = list.filter((t) => !t.is_pinned);
 
@@ -463,15 +535,7 @@ export default function TokenTable({
     });
 
     return [...pinned, ...rest];
-  }, [
-    tokens,
-    search,
-    sortKey,
-    sortDir,
-    showWatchlistOnly,
-    watchlist,
-    activeFilters,
-  ]);
+  }, [tokens, search, sortKey, sortDir, showWatchlistOnly, watchlist, activeFilters]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
   const startIndex = (page - 1) * PAGE_SIZE;
@@ -495,11 +559,13 @@ export default function TokenTable({
         : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
     }`;
 
+  const inputClass =
+    "w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-1.5 text-sm text-[#f4f6f8] placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/40";
+
   return (
     <div className="w-full">
       {/* ===== DESKTOP CONTROLS ===== */}
       <div className="hidden md:flex flex-wrap items-center gap-3 mb-5">
-        {/* Chain */}
         <div className="relative">
           <details className="group">
             <summary className={`${mutedBtn} cursor-pointer list-none`}>
@@ -532,7 +598,6 @@ export default function TokenTable({
           </details>
         </div>
 
-        {/* New */}
         <Link
           href={buildUrl({ chain: currentChain, new: !onlyNew })}
           className={onlyNew ? mutedBtnActive : mutedBtn}
@@ -553,7 +618,6 @@ export default function TokenTable({
           New
         </Link>
 
-        {/* Watchlist */}
         <button
           onClick={() => {
             setShowWatchlistOnly((prev) => !prev);
@@ -567,7 +631,6 @@ export default function TokenTable({
           Watchlist
         </button>
 
-        {/* Filters */}
         <button onClick={openFilters} className={activeFilterCount > 0 ? mutedBtnActive : mutedBtn}>
           <svg
             width="14"
@@ -592,7 +655,6 @@ export default function TokenTable({
           )}
         </button>
 
-        {/* Search */}
         <div className="relative flex-1 min-w-[240px] max-w-sm">
           <svg
             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
@@ -724,125 +786,308 @@ export default function TokenTable({
             {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active ·{" "}
             {filteredAndSorted.length} tokens
           </span>
-          <button
-            onClick={() => {
-              setApplied({ ...DEFAULT_FILTERS });
-              setDraft({ ...DEFAULT_FILTERS });
-              setPage(1);
-            }}
-            className="text-[#8b93a1] hover:text-[#b8ff3d]"
-          >
+          <button onClick={clearAll} className="text-[#8b93a1] hover:text-[#b8ff3d]">
             Clear filters
           </button>
         </div>
       )}
 
-      {/* ===== FILTERS MODAL (centered) ===== */}
+      {/* ===== FILTERS MODAL ===== */}
       {showFilters && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={handleCancel}
         >
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-          {/* Panel */}
           <div
-            className="relative w-full max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl"
+            className="relative flex flex-col w-full max-w-lg md:max-w-2xl max-h-[85vh] rounded-2xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26] bg-[#0c0d10]">
+            {/* Sticky header */}
+            <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
               <h2 className="text-base font-medium text-[#f4f6f8]">Filters</h2>
               <button
-                onClick={clearDraft}
+                onClick={clearAll}
                 className="text-xs text-[#8b93a1] hover:text-[#b8ff3d] transition"
               >
                 Clear all
               </button>
             </div>
 
-            <div className="p-5 space-y-5">
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
               {/* Age */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Age</div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-2">
                   {AGE_OPTIONS.map((o) => (
                     <button
                       key={o.id}
-                      onClick={() => setDraft((d) => ({ ...d, age: o.id }))}
-                      className={chipClass(draft.age === o.id)}
+                      onClick={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          age: o.id,
+                          ageMin: "",
+                          ageMax: "",
+                        }))
+                      }
+                      className={chipClass(
+                        draft.age === o.id && draft.ageMin === "" && draft.ageMax === ""
+                      )}
                     >
                       {o.label}
                     </button>
                   ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min hours"
+                    value={draft.ageMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        ageMin: e.target.value,
+                        age: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                  <span className="text-[#5c6573] text-xs">to</span>
+                  <input
+                    type="number"
+                    placeholder="Max hours"
+                    value={draft.ageMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        ageMax: e.target.value,
+                        age: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
                 </div>
               </div>
 
               {/* Market Cap */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Market Cap</div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-2">
                   {MCAP_OPTIONS.map((o) => (
                     <button
                       key={o.id}
-                      onClick={() => setDraft((d) => ({ ...d, mcap: o.id }))}
-                      className={chipClass(draft.mcap === o.id)}
+                      onClick={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          mcap: o.id,
+                          mcapMin: "",
+                          mcapMax: "",
+                        }))
+                      }
+                      className={chipClass(
+                        draft.mcap === o.id && draft.mcapMin === "" && draft.mcapMax === ""
+                      )}
                     >
                       {o.label}
                     </button>
                   ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min $"
+                    value={draft.mcapMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        mcapMin: e.target.value,
+                        mcap: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                  <span className="text-[#5c6573] text-xs">to</span>
+                  <input
+                    type="number"
+                    placeholder="Max $"
+                    value={draft.mcapMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        mcapMax: e.target.value,
+                        mcap: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
                 </div>
               </div>
 
               {/* Liquidity */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Liquidity</div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-2">
                   {LIQ_OPTIONS.map((o) => (
                     <button
                       key={o.id}
-                      onClick={() => setDraft((d) => ({ ...d, liq: o.id }))}
-                      className={chipClass(draft.liq === o.id)}
+                      onClick={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          liq: o.id,
+                          liqMin: "",
+                          liqMax: "",
+                        }))
+                      }
+                      className={chipClass(
+                        draft.liq === o.id && draft.liqMin === "" && draft.liqMax === ""
+                      )}
                     >
                       {o.label}
                     </button>
                   ))}
                 </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min $"
+                    value={draft.liqMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        liqMin: e.target.value,
+                        liq: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                  <span className="text-[#5c6573] text-xs">to</span>
+                  <input
+                    type="number"
+                    placeholder="Max $"
+                    value={draft.liqMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        liqMax: e.target.value,
+                        liq: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                </div>
               </div>
 
-              {/* Volume */}
+              {/* Volume 24h */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Volume 24h</div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-2">
                   {VOL_OPTIONS.map((o) => (
                     <button
                       key={o.id}
-                      onClick={() => setDraft((d) => ({ ...d, vol: o.id }))}
-                      className={chipClass(draft.vol === o.id)}
+                      onClick={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          vol: o.id,
+                          volMin: "",
+                          volMax: "",
+                        }))
+                      }
+                      className={chipClass(
+                        draft.vol === o.id && draft.volMin === "" && draft.volMax === ""
+                      )}
                     >
                       {o.label}
                     </button>
                   ))}
                 </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min $"
+                    value={draft.volMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        volMin: e.target.value,
+                        vol: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                  <span className="text-[#5c6573] text-xs">to</span>
+                  <input
+                    type="number"
+                    placeholder="Max $"
+                    value={draft.volMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        volMax: e.target.value,
+                        vol: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                </div>
               </div>
 
-              {/* Txns */}
+              {/* Txns 24h */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Txns 24h</div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-2">
                   {TXNS_OPTIONS.map((o) => (
                     <button
                       key={o.id}
-                      onClick={() => setDraft((d) => ({ ...d, txns: o.id }))}
-                      className={chipClass(draft.txns === o.id)}
+                      onClick={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          txns: o.id,
+                          txnsMin: "",
+                          txnsMax: "",
+                        }))
+                      }
+                      className={chipClass(
+                        draft.txns === o.id && draft.txnsMin === "" && draft.txnsMax === ""
+                      )}
                     >
                       {o.label}
                     </button>
                   ))}
                 </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={draft.txnsMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        txnsMin: e.target.value,
+                        txns: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                  <span className="text-[#5c6573] text-xs">to</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={draft.txnsMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        txnsMax: e.target.value,
+                        txns: "any",
+                      }))
+                    }
+                    className={inputClass + " max-w-[120px]"}
+                  />
+                </div>
               </div>
 
-              {/* Min 24h Change */}
+              {/* Min 24h Change % */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Min 24h Change %</div>
                 <input
@@ -852,13 +1097,13 @@ export default function TokenTable({
                     setDraft((d) => ({ ...d, changeMin: e.target.value }))
                   }
                   placeholder="e.g. 10"
-                  className="w-full max-w-[180px] rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 text-sm text-[#f4f6f8] placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/40"
+                  className={inputClass + " max-w-[180px]"}
                 />
               </div>
             </div>
 
-            {/* Footer actions */}
-            <div className="sticky bottom-0 flex items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26] bg-[#0c0d10]">
+            {/* Sticky footer */}
+            <div className="flex-shrink-0 flex items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26]">
               <button
                 onClick={handleCancel}
                 className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
