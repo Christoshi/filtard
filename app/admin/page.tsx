@@ -97,12 +97,9 @@ export default function AdminPage() {
   return (
     <div className="flex items-center justify-center min-h-[70vh]">
       <div className="w-full max-w-md">
-        <h1 className="text-2xl font-semibold mb-2 text-center">
+        <h1 className="text-2xl font-semibold mb-6 text-center">
           Submit a token to curate
         </h1>
-        <p className="text-sm text-[#8b93a1] text-center mb-6">
-          Logged in as {user.email || "user"} ({user.role})
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

@@ -1,7 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
 import TokenTable from "./components/TokenTable";
-import ChainSelector from "./components/ChainSelector";
 
 export const revalidate = 30;
 
@@ -76,14 +74,6 @@ export default async function Home({
     ? tokensWithStats.filter((t) => isNewToken(t.stats?.pairCreatedAt ?? null))
     : tokensWithStats;
 
-  const buildUrl = (params: { chain?: string; new?: boolean }) => {
-    const search = new URLSearchParams();
-    if (params.chain && params.chain !== "all") search.set("chain", params.chain);
-    if (params.new) search.set("new", "true");
-    const str = search.toString();
-    return str ? `/?${str}` : "/";
-  };
-
   return (
     <div className="w-full">
       <div className="mb-5">
@@ -92,35 +82,7 @@ export default async function Home({
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <ChainSelector currentChain={chain} onlyNew={onlyNew} />
-
-        <Link
-          href={buildUrl({ chain, new: !onlyNew })}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
-            onlyNew
-              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
-              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
-          }`}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-          </svg>
-          New
-        </Link>
-      </div>
-
-      <TokenTable tokens={finalTokens} />
+      <TokenTable tokens={finalTokens} currentChain={chain} onlyNew={onlyNew} />
     </div>
   );
 }

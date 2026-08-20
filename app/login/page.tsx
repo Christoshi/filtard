@@ -20,9 +20,9 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-[70vh]">
       <div className="w-full max-w-sm space-y-4">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold">Login to Submit</h1>
+          <h1 className="text-2xl font-semibold">Login</h1>
           <p className="text-sm text-[#8b93a1] mt-2">
-            Only required if you want to submit tokens
+            Only required if you want to rate or submit a token
           </p>
         </div>
 

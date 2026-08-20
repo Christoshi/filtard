@@ -1,112 +1,78 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import HeaderAuth from "./components/HeaderAuth";
-import MobileBottomNav from "./components/MobileBottomNav";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Filtard",
-  description: "Community curated memecoin screener",
-};
+import { useState } from "react";
+import { signInWithGoogle, signInWithX } from "@/lib/auth";
 
-export const revalidate = 60;
+export default function LoginPage() {
+  const [loading, setLoading] = useState<"google" | "x" | null>(null);
 
-async function getTopTokens() {
-  const { data: tokens } = await supabase
-    .from("tokens")
-    .select("id, chain, address, symbol")
-    .eq("status", "approved")
-    .limit(40);
+  async function handleGoogle() {
+    setLoading("google");
+    await signInWithGoogle();
+  }
 
-  if (!tokens || tokens.length === 0) return [];
-
-  const withStats = await Promise.all(
-    tokens.map(async (token) => {
-      try {
-        const res = await fetch(
-          `https://api.dexscreener.com/latest/dex/tokens/${token.address}`,
-          { next: { revalidate: 60 } }
-        );
-        const data = await res.json();
-        const pair = data?.pairs?.[0];
-        return {
-          ...token,
-          volume24h: pair?.volume?.h24 ?? 0,
-          change24h: pair?.priceChange?.h24 ?? 0,
-        };
-      } catch {
-        return { ...token, volume24h: 0, change24h: 0 };
-      }
-    })
-  );
-
-  return withStats
-    .sort((a, b) => b.volume24h - a.volume24h)
-    .slice(0, 12);
-}
-
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const topTokens = await getTopTokens();
-  const tickerItems = [...topTokens, ...topTokens];
+  async function handleX() {
+    setLoading("x");
+    await signInWithX();
+  }
 
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#07080a] text-[#f4f6f8] pb-20 md:pb-0">
-        <header className="sticky top-0 z-50 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
-          <div className="flex items-center px-3 py-2.5 md:px-6 md:py-3 gap-3">
-            <Link
-              href="/"
-              className="hidden md:flex items-center gap-2 font-semibold tracking-tight flex-shrink-0"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#b8ff3d] text-sm font-bold text-black">
-                F
-              </span>
-              Filtard
-            </Link>
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <div className="w-full max-w-sm space-y-4">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold">Login</h1>
+          <p className="text-sm text-[#8b93a1] mt-2">
+            Only required if you want to rate or submit a token
+          </p>
+        </div>
 
-            <div className="flex-1 overflow-hidden min-w-0">
-              {topTokens.length > 0 ? (
-                <div className="marquee-track">
-                  {tickerItems.map((token, index) => (
-                    <Link
-                      key={`${token.id}-${index}`}
-                      href={`/token/${token.chain}/${token.address}`}
-                      className="mx-5 inline-flex items-center gap-1.5 text-sm whitespace-nowrap hover:text-white transition"
-                    >
-                      <span className="font-medium text-[#f4f6f8]">
-                        {token.symbol || "???"}
-                      </span>
-                      <span
-                        className={
-                          token.change24h >= 0 ? "text-green-400" : "text-red-400"
-                        }
-                      >
-                        {token.change24h >= 0 ? "+" : ""}
-                        {token.change24h.toFixed(1)}%
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <span className="text-sm text-[#8b93a1]">No tokens yet</span>
-              )}
-            </div>
+        {/* Google */}
+        <button
+          onClick={handleGoogle}
+          disabled={!!loading}
+          className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#1c1f26] bg-[#101215] py-3 hover:bg-[#1c1f26] transition disabled:opacity-50"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path
+              fill="#4285F4"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            />
+          </svg>
+          {loading === "google" ? "Connecting..." : "Continue with Google"}
+        </button>
 
-            <div className="hidden md:block">
-              <HeaderAuth />
-            </div>
-          </div>
-        </header>
+        {/* X */}
+        <button
+          onClick={handleX}
+          disabled={!!loading}
+          className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#1c1f26] bg-[#101215] py-3 hover:bg-[#1c1f26] transition disabled:opacity-50"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          {loading === "x" ? "Connecting..." : "Continue with X"}
+        </button>
 
-        <main className="px-3 py-4 md:px-6 md:py-6">{children}</main>
-
-        <MobileBottomNav />
-      </body>
-    </html>
+        {/* Wallet placeholder */}
+        <button
+          disabled
+          className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#1c1f26] bg-[#101215] py-3 opacity-50 cursor-not-allowed"
+        >
+          Connect Wallet (coming soon)
+        </button>
+      </div>
+    </div>
   );
 }

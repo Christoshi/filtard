@@ -35,6 +35,16 @@ type SortDirection = "asc" | "desc";
 
 const PAGE_SIZE = 50;
 
+const CHAINS = [
+  { id: "all", label: "All Chains" },
+  { id: "solana", label: "Solana" },
+  { id: "base", label: "Base" },
+  { id: "ethereum", label: "Ethereum" },
+  { id: "bsc", label: "BSC" },
+  { id: "arbitrum", label: "Arbitrum" },
+  { id: "robinhood", label: "Robinhood" },
+];
+
 function formatUsd(n: number | null) {
   if (n == null) return "—";
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
@@ -94,7 +104,15 @@ function SortIcon({ active, direction }: { active: boolean; direction: SortDirec
   );
 }
 
-export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
+export default function TokenTable({
+  tokens,
+  currentChain = "all",
+  onlyNew = false,
+}: {
+  tokens: TokenWithStats[];
+  currentChain?: string;
+  onlyNew?: boolean;
+}) {
   const [sortKey, setSortKey] = useState<SortKey>("volume24h");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
   const [page, setPage] = useState(1);
@@ -244,11 +262,100 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
   const startIndex = (page - 1) * PAGE_SIZE;
   const pageTokens = filteredAndSorted.slice(startIndex, startIndex + PAGE_SIZE);
 
+  const currentChainLabel =
+    CHAINS.find((c) => c.id === currentChain)?.label || "All Chains";
+
+  function buildUrl(params: { chain?: string; new?: boolean }) {
+    const search = new URLSearchParams();
+    if (params.chain && params.chain !== "all") search.set("chain", params.chain);
+    if (params.new) search.set("new", "true");
+    const str = search.toString();
+    return str ? `/?${str}` : "/";
+  }
+
   return (
     <div className="w-full">
-      {/* Desktop search */}
-      <div className="hidden md:block mb-4">
-        <div className="relative max-w-sm">
+      {/* ===== DESKTOP CONTROLS: All Chains | New | Watchlist | Search ===== */}
+      <div className="hidden md:flex flex-wrap items-center gap-3 mb-5">
+        {/* All Chains */}
+        <div className="relative">
+          <details className="group">
+            <summary className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1c1f26] bg-[#101215] text-sm cursor-pointer list-none hover:border-[#3a3f4b] transition">
+              <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
+              <svg
+                className="w-4 h-4 text-[#8b93a1] group-open:rotate-180 transition"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </summary>
+
+            <div className="absolute left-0 mt-2 w-48 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
+              {CHAINS.map((c) => (
+                <Link
+                  key={c.id}
+                  href={buildUrl({ chain: c.id, new: onlyNew })}
+                  className={`block px-4 py-2.5 text-sm transition ${
+                    currentChain === c.id
+                      ? "bg-[#b8ff3d]/10 text-[#b8ff3d]"
+                      : "text-[#f4f6f8] hover:bg-[#1c1f26]"
+                  }`}
+                >
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+        </div>
+
+        {/* New */}
+        <Link
+          href={buildUrl({ chain: currentChain, new: !onlyNew })}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
+            onlyNew
+              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
+              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
+          }`}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+          </svg>
+          New
+        </Link>
+
+        {/* Watchlist */}
+        <button
+          onClick={() => {
+            setShowWatchlistOnly((prev) => !prev);
+            setPage(1);
+          }}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
+            showWatchlistOnly
+              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
+              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
+          }`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          Watchlist
+        </button>
+
+        {/* Search bar */}
+        <div className="relative flex-1 min-w-[240px] max-w-sm">
           <svg
             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
             viewBox="0 0 24 24"
@@ -286,6 +393,56 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
         </div>
       </div>
 
+      {/* Mobile: keep the old Chain + New row */}
+      <div className="md:hidden flex flex-wrap items-center gap-3 mb-5">
+        <div className="relative">
+          <details className="group">
+            <summary className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1c1f26] bg-[#101215] text-sm cursor-pointer list-none hover:border-[#3a3f4b] transition">
+              <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
+              <svg
+                className="w-4 h-4 text-[#8b93a1] group-open:rotate-180 transition"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </summary>
+            <div className="absolute left-0 mt-2 w-48 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
+              {CHAINS.map((c) => (
+                <Link
+                  key={c.id}
+                  href={buildUrl({ chain: c.id, new: onlyNew })}
+                  className={`block px-4 py-2.5 text-sm transition ${
+                    currentChain === c.id
+                      ? "bg-[#b8ff3d]/10 text-[#b8ff3d]"
+                      : "text-[#f4f6f8] hover:bg-[#1c1f26]"
+                  }`}
+                >
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+        </div>
+
+        <Link
+          href={buildUrl({ chain: currentChain, new: !onlyNew })}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
+            onlyNew
+              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
+              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
+          }`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+          </svg>
+          New
+        </Link>
+      </div>
+
       {showWatchlistOnly && (
         <div className="mb-3 flex items-center justify-between text-sm">
           <span className="text-[#b8ff3d]">★ Showing watchlist only</span>
@@ -295,53 +452,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           >
             Show all
           </button>
-        </div>
-      )}
-
-      {/* ===== MOBILE SEARCH (directly above the table) ===== */}
-      {showSearch && (
-        <div className="md:hidden mb-3">
-          <div className="relative">
-            <svg
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search name, ticker or CA..."
-              className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
-              autoFocus
-            />
-
-            {search && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setPage(1);
-                  searchInputRef.current?.focus();
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
         </div>
       )}
 
@@ -474,6 +584,53 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           })
         )}
       </div>
+
+      {/* ===== MOBILE SEARCH ===== */}
+      {showSearch && (
+        <div className="md:hidden mb-3">
+          <div className="relative">
+            <svg
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search name, ticker or CA..."
+              className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
+              autoFocus
+            />
+
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setPage(1);
+                  searchInputRef.current?.focus();
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
