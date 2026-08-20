@@ -153,6 +153,24 @@ const mutedBtn =
 const mutedBtnActive =
   "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition bg-[#1c1f26] text-[#b8ff3d] border-[#b8ff3d]/30";
 
+type FilterState = {
+  age: string;
+  mcap: string;
+  liq: string;
+  vol: string;
+  txns: string;
+  changeMin: string;
+};
+
+const DEFAULT_FILTERS: FilterState = {
+  age: "any",
+  mcap: "any",
+  liq: "any",
+  vol: "any",
+  txns: "any",
+  changeMin: "",
+};
+
 export default function TokenTable({
   tokens,
   currentChain = "all",
@@ -171,15 +189,11 @@ export default function TokenTable({
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const filtersRef = useRef<HTMLDivElement>(null);
 
-  // Filter state (no partnership)
-  const [filterAge, setFilterAge] = useState("any");
-  const [filterMcap, setFilterMcap] = useState("any");
-  const [filterLiq, setFilterLiq] = useState("any");
-  const [filterVol, setFilterVol] = useState("any");
-  const [filterTxns, setFilterTxns] = useState("any");
-  const [filterChangeMin, setFilterChangeMin] = useState("");
+  // Applied filters (what the table uses when modal is closed)
+  const [applied, setApplied] = useState<FilterState>(DEFAULT_FILTERS);
+  // Draft filters (live preview while modal is open)
+  const [draft, setDraft] = useState<FilterState>(DEFAULT_FILTERS);
 
   useEffect(() => {
     const saved = localStorage.getItem("filtard-watchlist");
@@ -190,17 +204,22 @@ export default function TokenTable({
     }
   }, []);
 
+  // Escape key closes (same as Cancel)
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) {
-        setShowFilters(false);
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && showFilters) {
+        handleCancel();
       }
     }
     if (showFilters) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", onKey);
+      document.body.style.overflow = "hidden";
     }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showFilters]);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [showFilters, applied]);
 
   useEffect(() => {
     function onToggleSearch() {
@@ -243,6 +262,26 @@ export default function TokenTable({
     };
   }, []);
 
+  function openFilters() {
+    setDraft({ ...applied });
+    setShowFilters(true);
+  }
+
+  function handleApply() {
+    setApplied({ ...draft });
+    setShowFilters(false);
+    setPage(1);
+  }
+
+  function handleCancel() {
+    setShowFilters(false);
+    // draft is discarded; table reverts to applied
+  }
+
+  function clearDraft() {
+    setDraft({ ...DEFAULT_FILTERS });
+  }
+
   function toggleWatchlist(e: React.MouseEvent, tokenId: string) {
     e.preventDefault();
     e.stopPropagation();
@@ -266,23 +305,16 @@ export default function TokenTable({
     setPage(1);
   }
 
-  function clearFilters() {
-    setFilterAge("any");
-    setFilterMcap("any");
-    setFilterLiq("any");
-    setFilterVol("any");
-    setFilterTxns("any");
-    setFilterChangeMin("");
-    setPage(1);
-  }
+  // While modal is open we preview with draft; otherwise use applied
+  const activeFilters = showFilters ? draft : applied;
 
   const activeFilterCount = [
-    filterAge !== "any",
-    filterMcap !== "any",
-    filterLiq !== "any",
-    filterVol !== "any",
-    filterTxns !== "any",
-    filterChangeMin !== "",
+    activeFilters.age !== "any",
+    activeFilters.mcap !== "any",
+    activeFilters.liq !== "any",
+    activeFilters.vol !== "any",
+    activeFilters.txns !== "any",
+    activeFilters.changeMin !== "",
   ].filter(Boolean).length;
 
   const filteredAndSorted = useMemo(() => {
@@ -302,85 +334,85 @@ export default function TokenTable({
       );
     }
 
-    // Age filter
-    if (filterAge !== "any") {
+    // Age
+    if (activeFilters.age !== "any") {
       const now = Date.now();
       list = list.filter((t) => {
         const ts = t.stats?.pairCreatedAt;
         if (!ts) return false;
         const hours = (now - ts) / (1000 * 60 * 60);
-        if (filterAge === "24h") return hours <= 24;
-        if (filterAge === "7d") return hours <= 24 * 7;
-        if (filterAge === "30d") return hours <= 24 * 30;
+        if (activeFilters.age === "24h") return hours <= 24;
+        if (activeFilters.age === "7d") return hours <= 24 * 7;
+        if (activeFilters.age === "30d") return hours <= 24 * 30;
         return true;
       });
     }
 
-    // Market Cap filter
-    if (filterMcap !== "any") {
+    // Market Cap
+    if (activeFilters.mcap !== "any") {
       list = list.filter((t) => {
         const m = t.stats?.marketCap;
         if (m == null) return false;
-        if (filterMcap === "lt10k") return m < 10_000;
-        if (filterMcap === "10k-100k") return m >= 10_000 && m < 100_000;
-        if (filterMcap === "100k-1m") return m >= 100_000 && m < 1_000_000;
-        if (filterMcap === "1m-10m") return m >= 1_000_000 && m < 10_000_000;
-        if (filterMcap === "gt10m") return m >= 10_000_000;
+        if (activeFilters.mcap === "lt10k") return m < 10_000;
+        if (activeFilters.mcap === "10k-100k") return m >= 10_000 && m < 100_000;
+        if (activeFilters.mcap === "100k-1m") return m >= 100_000 && m < 1_000_000;
+        if (activeFilters.mcap === "1m-10m") return m >= 1_000_000 && m < 10_000_000;
+        if (activeFilters.mcap === "gt10m") return m >= 10_000_000;
         return true;
       });
     }
 
-    // Liquidity filter
-    if (filterLiq !== "any") {
+    // Liquidity
+    if (activeFilters.liq !== "any") {
       list = list.filter((t) => {
         const l = t.stats?.liquidity;
         if (l == null) return false;
-        if (filterLiq === "gt1k") return l >= 1_000;
-        if (filterLiq === "gt5k") return l >= 5_000;
-        if (filterLiq === "gt10k") return l >= 10_000;
-        if (filterLiq === "gt50k") return l >= 50_000;
-        if (filterLiq === "gt100k") return l >= 100_000;
+        if (activeFilters.liq === "gt1k") return l >= 1_000;
+        if (activeFilters.liq === "gt5k") return l >= 5_000;
+        if (activeFilters.liq === "gt10k") return l >= 10_000;
+        if (activeFilters.liq === "gt50k") return l >= 50_000;
+        if (activeFilters.liq === "gt100k") return l >= 100_000;
         return true;
       });
     }
 
-    // Volume 24h filter
-    if (filterVol !== "any") {
+    // Volume 24h
+    if (activeFilters.vol !== "any") {
       list = list.filter((t) => {
         const v = t.stats?.volume24h;
         if (v == null) return false;
-        if (filterVol === "gt1k") return v >= 1_000;
-        if (filterVol === "gt5k") return v >= 5_000;
-        if (filterVol === "gt10k") return v >= 10_000;
-        if (filterVol === "gt50k") return v >= 50_000;
-        if (filterVol === "gt100k") return v >= 100_000;
+        if (activeFilters.vol === "gt1k") return v >= 1_000;
+        if (activeFilters.vol === "gt5k") return v >= 5_000;
+        if (activeFilters.vol === "gt10k") return v >= 10_000;
+        if (activeFilters.vol === "gt50k") return v >= 50_000;
+        if (activeFilters.vol === "gt100k") return v >= 100_000;
         return true;
       });
     }
 
-    // Txns 24h filter
-    if (filterTxns !== "any") {
+    // Txns 24h
+    if (activeFilters.txns !== "any") {
       list = list.filter((t) => {
         const tx = t.stats?.txns24h;
         if (tx == null) return false;
-        if (filterTxns === "gt10") return tx >= 10;
-        if (filterTxns === "gt50") return tx >= 50;
-        if (filterTxns === "gt100") return tx >= 100;
-        if (filterTxns === "gt500") return tx >= 500;
-        if (filterTxns === "gt1000") return tx >= 1000;
+        if (activeFilters.txns === "gt10") return tx >= 10;
+        if (activeFilters.txns === "gt50") return tx >= 50;
+        if (activeFilters.txns === "gt100") return tx >= 100;
+        if (activeFilters.txns === "gt500") return tx >= 500;
+        if (activeFilters.txns === "gt1000") return tx >= 1000;
         return true;
       });
     }
 
     // Min 24h Change %
-    if (filterChangeMin !== "") {
-      const min = Number(filterChangeMin);
+    if (activeFilters.changeMin !== "") {
+      const min = Number(activeFilters.changeMin);
       if (!isNaN(min)) {
         list = list.filter((t) => (t.stats?.change24h ?? -999) >= min);
       }
     }
 
-    // Keep pinned token(s) on top
+    // Keep pinned on top
     const pinned = list.filter((t) => t.is_pinned);
     const rest = list.filter((t) => !t.is_pinned);
 
@@ -438,12 +470,7 @@ export default function TokenTable({
     sortDir,
     showWatchlistOnly,
     watchlist,
-    filterAge,
-    filterMcap,
-    filterLiq,
-    filterVol,
-    filterTxns,
-    filterChangeMin,
+    activeFilters,
   ]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
@@ -461,151 +488,12 @@ export default function TokenTable({
     return str ? `/?${str}` : "/";
   }
 
-  const FiltersPanel = (
-    <div className="p-4 space-y-4 min-w-[280px]">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-[#f4f6f8]">Filters</span>
-        {activeFilterCount > 0 && (
-          <button
-            onClick={clearFilters}
-            className="text-xs text-[#8b93a1] hover:text-[#b8ff3d] transition"
-          >
-            Clear all
-          </button>
-        )}
-      </div>
-
-      {/* Age */}
-      <div>
-        <div className="text-xs text-[#8b93a1] mb-1.5">Age</div>
-        <div className="flex flex-wrap gap-1.5">
-          {AGE_OPTIONS.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => {
-                setFilterAge(o.id);
-                setPage(1);
-              }}
-              className={`px-2.5 py-1 rounded-md text-xs border transition ${
-                filterAge === o.id
-                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
-                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Market Cap */}
-      <div>
-        <div className="text-xs text-[#8b93a1] mb-1.5">Market Cap</div>
-        <div className="flex flex-wrap gap-1.5">
-          {MCAP_OPTIONS.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => {
-                setFilterMcap(o.id);
-                setPage(1);
-              }}
-              className={`px-2.5 py-1 rounded-md text-xs border transition ${
-                filterMcap === o.id
-                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
-                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Liquidity */}
-      <div>
-        <div className="text-xs text-[#8b93a1] mb-1.5">Liquidity</div>
-        <div className="flex flex-wrap gap-1.5">
-          {LIQ_OPTIONS.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => {
-                setFilterLiq(o.id);
-                setPage(1);
-              }}
-              className={`px-2.5 py-1 rounded-md text-xs border transition ${
-                filterLiq === o.id
-                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
-                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Volume */}
-      <div>
-        <div className="text-xs text-[#8b93a1] mb-1.5">Volume 24h</div>
-        <div className="flex flex-wrap gap-1.5">
-          {VOL_OPTIONS.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => {
-                setFilterVol(o.id);
-                setPage(1);
-              }}
-              className={`px-2.5 py-1 rounded-md text-xs border transition ${
-                filterVol === o.id
-                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
-                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Txns */}
-      <div>
-        <div className="text-xs text-[#8b93a1] mb-1.5">Txns 24h</div>
-        <div className="flex flex-wrap gap-1.5">
-          {TXNS_OPTIONS.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => {
-                setFilterTxns(o.id);
-                setPage(1);
-              }}
-              className={`px-2.5 py-1 rounded-md text-xs border transition ${
-                filterTxns === o.id
-                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
-                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Min 24h Change % */}
-      <div>
-        <div className="text-xs text-[#8b93a1] mb-1.5">Min 24h Change %</div>
-        <input
-          type="number"
-          value={filterChangeMin}
-          onChange={(e) => {
-            setFilterChangeMin(e.target.value);
-            setPage(1);
-          }}
-          placeholder="e.g. 10"
-          className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-1.5 text-sm text-[#f4f6f8] placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/40"
-        />
-      </div>
-    </div>
-  );
+  const chipClass = (active: boolean) =>
+    `px-2.5 py-1 rounded-md text-xs border transition ${
+      active
+        ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
+        : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
+    }`;
 
   return (
     <div className="w-full">
@@ -680,40 +568,29 @@ export default function TokenTable({
         </button>
 
         {/* Filters */}
-        <div className="relative" ref={filtersRef}>
-          <button
-            onClick={() => setShowFilters((prev) => !prev)}
-            className={activeFilterCount > 0 || showFilters ? mutedBtnActive : mutedBtn}
+        <button onClick={openFilters} className={activeFilterCount > 0 ? mutedBtnActive : mutedBtn}>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="4" y1="8" x2="20" y2="8" />
-              <line x1="8" y1="4" x2="8" y2="12" />
-              <line x1="4" y1="16" x2="20" y2="16" />
-              <line x1="16" y1="12" x2="16" y2="20" />
-            </svg>
-            Filters
-            {activeFilterCount > 0 && (
-              <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#b8ff3d] text-[10px] font-bold text-black">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          {showFilters && (
-            <div className="absolute left-0 mt-2 rounded-xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl z-50 overflow-hidden">
-              {FiltersPanel}
-            </div>
+            <line x1="4" y1="8" x2="20" y2="8" />
+            <line x1="8" y1="4" x2="8" y2="12" />
+            <line x1="4" y1="16" x2="20" y2="16" />
+            <line x1="16" y1="12" x2="16" y2="20" />
+          </svg>
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#b8ff3d] text-[10px] font-bold text-black">
+              {activeFilterCount}
+            </span>
           )}
-        </div>
+        </button>
 
         {/* Search */}
         <div className="relative flex-1 min-w-[240px] max-w-sm">
@@ -799,43 +676,34 @@ export default function TokenTable({
           New
         </Link>
 
-        <div className="relative" ref={filtersRef}>
-          <button
-            onClick={() => setShowFilters((prev) => !prev)}
-            className={
-              (activeFilterCount > 0 || showFilters ? mutedBtnActive : mutedBtn) +
-              " text-xs px-3 py-1.5"
-            }
+        <button
+          onClick={openFilters}
+          className={
+            (activeFilterCount > 0 ? mutedBtnActive : mutedBtn) + " text-xs px-3 py-1.5"
+          }
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="4" y1="8" x2="20" y2="8" />
-              <line x1="8" y1="4" x2="8" y2="12" />
-              <line x1="4" y1="16" x2="20" y2="16" />
-              <line x1="16" y1="12" x2="16" y2="20" />
-            </svg>
-            Filters
-            {activeFilterCount > 0 && (
-              <span className="ml-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#b8ff3d] text-[9px] font-bold text-black">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          {showFilters && (
-            <div className="absolute left-0 mt-2 w-[min(92vw,320px)] rounded-xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl z-50 overflow-hidden">
-              {FiltersPanel}
-            </div>
+            <line x1="4" y1="8" x2="20" y2="8" />
+            <line x1="8" y1="4" x2="8" y2="12" />
+            <line x1="4" y1="16" x2="20" y2="16" />
+            <line x1="16" y1="12" x2="16" y2="20" />
+          </svg>
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="ml-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#b8ff3d] text-[9px] font-bold text-black">
+              {activeFilterCount}
+            </span>
           )}
-        </div>
+        </button>
       </div>
 
       {showWatchlistOnly && (
@@ -850,15 +718,161 @@ export default function TokenTable({
         </div>
       )}
 
-      {activeFilterCount > 0 && (
+      {!showFilters && activeFilterCount > 0 && (
         <div className="mb-3 flex items-center justify-between text-sm">
           <span className="text-[#8b93a1]">
             {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active ·{" "}
             {filteredAndSorted.length} tokens
           </span>
-          <button onClick={clearFilters} className="text-[#8b93a1] hover:text-[#b8ff3d]">
+          <button
+            onClick={() => {
+              setApplied({ ...DEFAULT_FILTERS });
+              setDraft({ ...DEFAULT_FILTERS });
+              setPage(1);
+            }}
+            className="text-[#8b93a1] hover:text-[#b8ff3d]"
+          >
             Clear filters
           </button>
+        </div>
+      )}
+
+      {/* ===== FILTERS MODAL (centered) ===== */}
+      {showFilters && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={handleCancel}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Panel */}
+          <div
+            className="relative w-full max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26] bg-[#0c0d10]">
+              <h2 className="text-base font-medium text-[#f4f6f8]">Filters</h2>
+              <button
+                onClick={clearDraft}
+                className="text-xs text-[#8b93a1] hover:text-[#b8ff3d] transition"
+              >
+                Clear all
+              </button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              {/* Age */}
+              <div>
+                <div className="text-xs text-[#8b93a1] mb-2">Age</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {AGE_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, age: o.id }))}
+                      className={chipClass(draft.age === o.id)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Market Cap */}
+              <div>
+                <div className="text-xs text-[#8b93a1] mb-2">Market Cap</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {MCAP_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, mcap: o.id }))}
+                      className={chipClass(draft.mcap === o.id)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Liquidity */}
+              <div>
+                <div className="text-xs text-[#8b93a1] mb-2">Liquidity</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {LIQ_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, liq: o.id }))}
+                      className={chipClass(draft.liq === o.id)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Volume */}
+              <div>
+                <div className="text-xs text-[#8b93a1] mb-2">Volume 24h</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {VOL_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, vol: o.id }))}
+                      className={chipClass(draft.vol === o.id)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Txns */}
+              <div>
+                <div className="text-xs text-[#8b93a1] mb-2">Txns 24h</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {TXNS_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, txns: o.id }))}
+                      className={chipClass(draft.txns === o.id)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Min 24h Change */}
+              <div>
+                <div className="text-xs text-[#8b93a1] mb-2">Min 24h Change %</div>
+                <input
+                  type="number"
+                  value={draft.changeMin}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, changeMin: e.target.value }))
+                  }
+                  placeholder="e.g. 10"
+                  className="w-full max-w-[180px] rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 text-sm text-[#f4f6f8] placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/40"
+                />
+              </div>
+            </div>
+
+            {/* Footer actions */}
+            <div className="sticky bottom-0 flex items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26] bg-[#0c0d10]">
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApply}
+                className="px-5 py-2 rounded-lg text-sm font-medium bg-[#b8ff3d] text-black hover:bg-[#c8ff5d] transition"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1049,7 +1063,7 @@ export default function TokenTable({
         </div>
       )}
 
-      {/* ===== MOBILE TABLE ===== */}
+      {/* ===== MOBILE TABLE (exact original layout) ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
         {pageTokens.length === 0 ? (
           <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
@@ -1094,19 +1108,19 @@ export default function TokenTable({
                         {token.symbol || "???"}
                       </span>
                       {isPinned && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1] font-medium">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
                           Partnership
                         </span>
                       )}
                     </div>
                     <div className="text-[12px] text-[#8b93a1] truncate">
-                      {token.name || token.address.slice(0, 8) + "…"}
+                      {token.name || token.address.slice(0, 10) + "…"}
                     </div>
                   </div>
 
                   <div className="text-right flex-shrink-0">
-                    <div className="text-[13px] font-medium">
-                      {formatUsd(token.stats?.marketCap ?? null)}
+                    <div className="font-medium text-[14px]">
+                      {formatUsd(token.stats?.priceUsd ?? null)}
                     </div>
                     <div
                       className={`text-[12px] ${
@@ -1117,6 +1131,16 @@ export default function TokenTable({
                     </div>
                   </div>
                 </div>
+
+                <div className="flex items-center gap-3 px-3 pb-2.5 pl-[52px] text-[11px] text-[#8b93a1]">
+                  <span>Mcap {formatUsd(token.stats?.marketCap ?? null)}</span>
+                  <span>·</span>
+                  <span>Vol {formatUsd(token.stats?.volume24h ?? null)}</span>
+                  <span>·</span>
+                  <span>Liq {formatUsd(token.stats?.liquidity ?? null)}</span>
+                  <span>·</span>
+                  <span>{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
+                </div>
               </Link>
             );
           })
@@ -1125,23 +1149,23 @@ export default function TokenTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-5">
+        <div className="flex items-center justify-between mt-5 text-sm">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 rounded-lg text-sm border border-[#1c1f26] bg-[#101215] text-[#8b93a1] disabled:opacity-40 hover:border-[#3a3f4b] transition"
+            className="px-4 py-2 rounded-lg border border-[#1c1f26] text-[#8b93a1] hover:text-white disabled:opacity-40 transition"
           >
-            Prev
+            ← Prev
           </button>
-          <span className="text-sm text-[#8b93a1]">
-            {page} / {totalPages}
+          <span className="text-[#8b93a1]">
+            Page {page} of {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1.5 rounded-lg text-sm border border-[#1c1f26] bg-[#101215] text-[#8b93a1] disabled:opacity-40 hover:border-[#3a3f4b] transition"
+            className="px-4 py-2 rounded-lg border border-[#1c1f26] text-[#8b93a1] hover:text-white disabled:opacity-40 transition"
           >
-            Next
+            Next →
           </button>
         </div>
       )}
