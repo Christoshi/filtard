@@ -13,7 +13,6 @@ type Token = {
   symbol: string | null;
   image_url: string | null;
   status: string;
-  is_pinned: boolean;
   created_at: string;
   submitted_by: string | null;
   profiles?: {
@@ -77,7 +76,6 @@ export default function DashboardPage() {
         symbol,
         image_url,
         status,
-        is_pinned,
         created_at,
         submitted_by,
         profiles!submitted_by (
@@ -85,7 +83,6 @@ export default function DashboardPage() {
           display_name
         )
       `)
-      .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -146,35 +143,33 @@ export default function DashboardPage() {
     }
   }
 
-  async function togglePin(tokenId: string, currentlyPinned: boolean) {
-    // First unpin any currently pinned token
-    if (!currentlyPinned) {
-      await supabase
-        .from("tokens")
-        .update({ is_pinned: false })
-        .eq("is_pinned", true);
-    }
-
-    const { error } = await supabase
-      .from("tokens")
-      .update({ is_pinned: !currentlyPinned })
-      .eq("id", tokenId);
-
-    if (error) {
-      setMessage("Error updating pin status");
-    } else {
-      setMessage(currentlyPinned ? "Token unpinned" : "Token pinned as Partnership");
-      await loadTokens();
+  // Helper: get current market cap from DexScreener
+  async function getCurrentMcap(address: string): Promise<number | null> {
+    try {
+      const res = await fetch(
+        `https://api.dexscreener.com/latest/dex/tokens/${address}`
+      );
+      const data = await res.json();
+      const pair = data?.pairs?.[0];
+      return pair?.marketCap ?? pair?.fdv ?? null;
+    } catch {
+      return null;
     }
   }
 
   async function approveToken(id: string) {
+    const token = tokens.find((t) => t.id === id);
+    if (!token) return;
+
+    const mcap = await getCurrentMcap(token.address);
+
     const { error } = await supabase
       .from("tokens")
       .update({
         status: "approved",
         approved_by: user?.id,
         approved_at: new Date().toISOString(),
+        initial_mcap: mcap,
       })
       .eq("id", id);
 
@@ -205,22 +200,28 @@ export default function DashboardPage() {
     if (selected.length === 0) return;
     if (!confirm(`Approve ${selected.length} tokens?`)) return;
 
-    const { error } = await supabase
-      .from("tokens")
-      .update({
-        status: "approved",
-        approved_by: user?.id,
-        approved_at: new Date().toISOString(),
-      })
-      .in("id", selected);
+    setMessage("Approving tokens...");
 
-    if (error) {
-      setMessage("Error bulk approving");
-    } else {
-      setMessage(`${selected.length} tokens approved`);
-      setSelected([]);
-      await loadTokens();
+    for (const id of selected) {
+      const token = tokens.find((t) => t.id === id);
+      if (!token) continue;
+
+      const mcap = await getCurrentMcap(token.address);
+
+      await supabase
+        .from("tokens")
+        .update({
+          status: "approved",
+          approved_by: user?.id,
+          approved_at: new Date().toISOString(),
+          initial_mcap: mcap,
+        })
+        .eq("id", id);
     }
+
+    setMessage(`${selected.length} tokens approved`);
+    setSelected([]);
+    await loadTokens();
   }
 
   async function bulkDelete() {
@@ -402,11 +403,7 @@ export default function DashboardPage() {
               {filteredTokens.map((token) => (
                 <div
                   key={token.id}
-                  className={`grid grid-cols-[auto_1fr_auto] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 transition ${
-                    token.is_pinned
-                      ? "bg-[#b8ff3d]/[0.04]"
-                      : "hover:bg-[#14171d]"
-                  }`}
+                  className="grid grid-cols-[auto_1fr_auto] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
                 >
                   <div className="w-5">
                     <input
@@ -448,11 +445,6 @@ export default function DashboardPage() {
                         >
                           {token.status}
                         </span>
-                        {token.is_pinned && (
-                          <span className="text-[11px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/15 text-[#b8ff3d]">
-                            Partnership
-                          </span>
-                        )}
                       </div>
 
                       <div className="text-sm text-[#8b93a1] truncate mt-0.5">
@@ -477,19 +469,6 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
-                    {token.status === "approved" && (
-                      <button
-                        onClick={() => togglePin(token.id, token.is_pinned)}
-                        className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition ${
-                          token.is_pinned
-                            ? "border border-[#b8ff3d]/50 text-[#b8ff3d] hover:bg-[#b8ff3d]/10"
-                            : "border border-[#1c1f26] text-[#8b93a1] hover:border-[#b8ff3d]/50 hover:text-[#b8ff3d]"
-                        }`}
-                      >
-                        {token.is_pinned ? "Unpin" : "Pin"}
-                      </button>
-                    )}
-
                     {token.status === "pending" && (
                       <button
                         onClick={() => approveToken(token.id)}
@@ -498,7 +477,6 @@ export default function DashboardPage() {
                         Approve
                       </button>
                     )}
-
                     <button
                       onClick={() => deleteToken(token.id)}
                       className="px-3.5 py-1.5 rounded-lg border border-red-500/40 text-red-400 text-sm hover:bg-red-500/10 transition"
@@ -516,118 +494,59 @@ export default function DashboardPage() {
       {/* ===================== CURATORS TAB ===================== */}
       {activeTab === "curators" && (
         <div className="border border-[#1c1f26] rounded-2xl overflow-hidden">
-          <div className="grid grid-cols-[1.4fr_0.7fr_0.5fr_0.5fr_1fr_1.2fr] gap-4 px-5 py-3.5 bg-[#0c0d10] border-b border-[#1c1f26] text-xs text-[#8b93a1] uppercase tracking-wider">
-            <div>Username</div>
-            <div className="text-center">#Tokens</div>
-            <div className="text-center">X</div>
-            <div className="text-center">TG</div>
-            <div>Role</div>
-            <div>Promote</div>
+          <div className="grid grid-cols-[1fr_120px_120px] gap-4 px-5 py-3.5 bg-[#0c0d10] border-b border-[#1c1f26] text-xs text-[#8b93a1] uppercase tracking-wider">
+            <div>Curator</div>
+            <div className="text-center">Tokens</div>
+            <div className="text-right">Role</div>
           </div>
 
           {profiles.length === 0 ? (
             <div className="p-16 text-center text-[#8b93a1]">
-              No curators with approved tokens yet
+              No curators yet
             </div>
           ) : (
             profiles.map((profile) => (
               <div
                 key={profile.id}
-                className="grid grid-cols-[1.4fr_0.7fr_0.5fr_0.5fr_1fr_1.2fr] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
+                className="grid grid-cols-[1fr_120px_120px] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   {profile.avatar_url ? (
                     <img
                       src={profile.avatar_url}
                       alt=""
-                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                      className="h-10 w-10 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex items-center justify-center text-sm font-medium flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-[#1c1f26] flex items-center justify-center text-sm font-medium flex-shrink-0">
                       {(profile.display_name || "U")[0].toUpperCase()}
                     </div>
                   )}
-                  <Link
-                    href={`/${profile.display_name}`}
-                    className="font-medium hover:text-[#b8ff3d] transition truncate"
-                  >
-                    {profile.display_name || "Unnamed"}
-                  </Link>
+                  <div className="min-w-0">
+                    <Link
+                      href={`/${profile.display_name}`}
+                      className="font-medium hover:text-[#b8ff3d] transition"
+                    >
+                      {profile.display_name || "Anonymous"}
+                    </Link>
+                  </div>
                 </div>
 
-                <div className="text-center text-sm text-[#f4f6f8]">
+                <div className="text-center font-medium">
                   {profile.token_count}
                 </div>
 
-                <div className="flex justify-center">
-                  {profile.twitter_url ? (
-                    <a
-                      href={profile.twitter_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#8b93a1] hover:text-white transition"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                      </svg>
-                    </a>
-                  ) : (
-                    <span className="text-[#3a3f4b]">—</span>
-                  )}
-                </div>
-
-                <div className="flex justify-center">
-                  {profile.telegram_url ? (
-                    <a
-                      href={profile.telegram_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#8b93a1] hover:text-white transition"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-                      </svg>
-                    </a>
-                  ) : (
-                    <span className="text-[#3a3f4b]">—</span>
-                  )}
-                </div>
-
-                <div>
-                  <span
-                    className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      profile.role === "super_admin"
-                        ? "bg-purple-500/15 text-purple-400"
-                        : profile.role === "admin"
-                        ? "bg-blue-500/15 text-blue-400"
-                        : profile.role === "curator"
-                        ? "bg-[#b8ff3d]/15 text-[#b8ff3d]"
-                        : "bg-[#1c1f26] text-[#8b93a1]"
-                    }`}
+                <div className="text-right">
+                  <select
+                    value={profile.role}
+                    onChange={(e) => updateRole(profile.id, e.target.value)}
+                    className="rounded-lg border border-[#1c1f26] bg-[#101215] px-2 py-1.5 text-sm focus:outline-none"
                   >
-                    {profile.role}
-                  </span>
-                </div>
-
-                <div>
-                  {profile.id === user.id ? (
-                    <span className="text-xs text-[#5c6573]">You</span>
-                  ) : (
-                    <select
-                      value={profile.role}
-                      onChange={(e) => updateRole(profile.id, e.target.value)}
-                      className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#b8ff3d]/50"
-                    >
-                      <option value="user">user</option>
-                      <option value="curator">curator</option>
-                      {user.role === "super_admin" && (
-                        <option value="admin">admin</option>
-                      )}
-                      {user.role === "super_admin" && (
-                        <option value="super_admin">super_admin</option>
-                      )}
-                    </select>
-                  )}
+                    <option value="user">user</option>
+                    <option value="curator">curator</option>
+                    <option value="admin">admin</option>
+                    <option value="super_admin">super_admin</option>
+                  </select>
                 </div>
               </div>
             ))
