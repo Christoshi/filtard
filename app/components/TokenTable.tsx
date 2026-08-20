@@ -288,13 +288,60 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
 
       {showWatchlistOnly && (
         <div className="mb-3 flex items-center justify-between text-sm">
-          <span className="text-[#b8ff3d]">Showing watchlist only</span>
+          <span className="text-[#b8ff3d]">★ Showing watchlist only</span>
           <button
             onClick={() => setShowWatchlistOnly(false)}
             className="text-[#8b93a1] hover:text-white"
           >
             Show all
           </button>
+        </div>
+      )}
+
+      {/* ===== MOBILE SEARCH (directly above the table) ===== */}
+      {showSearch && (
+        <div className="md:hidden mb-3">
+          <div className="relative">
+            <svg
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search name, ticker or CA..."
+              className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
+              autoFocus
+            />
+
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setPage(1);
+                  searchInputRef.current?.focus();
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -427,67 +474,6 @@ export default function TokenTable({ tokens }: { tokens: TokenWithStats[] }) {
           })
         )}
       </div>
-
-      {/* ===== MOBILE SEARCH (directly above the table) ===== */}
-      {showSearch && (
-        <div className="md:hidden mb-3">
-          <div className="relative flex items-center gap-2">
-            <div className="relative flex-1">
-              <svg
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Search name, ticker or CA..."
-                className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
-                autoFocus
-              />
-
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
-                    setPage(1);
-                    searchInputRef.current?.focus();
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowSearch(false);
-                setSearch("");
-                setPage(1);
-              }}
-              className="shrink-0 text-sm font-medium text-[#8b93a1] hover:text-white px-2 py-2 transition"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
