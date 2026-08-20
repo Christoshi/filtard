@@ -175,9 +175,6 @@ export default async function TokenPage({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-semibold truncate">{stats.symbol}</h1>
-              <span className="text-[10px] text-[#8b93a1] border border-[#1c1f26] px-1.5 py-0.5 rounded">
-                {chain}
-              </span>
             </div>
             <p className="text-sm text-[#8b93a1] truncate">{stats.name}</p>
 
@@ -297,14 +294,6 @@ export default async function TokenPage({
       {/* Chart */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
         <div className="absolute top-3 right-3 z-10 flex gap-2">
-          <a
-            href={`https://dexscreener.com/${chartChain}/${address}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md border border-[#1c1f26] bg-[#101215]/90 backdrop-blur px-3 py-1.5 text-xs hover:bg-[#1c1f26] transition"
-          >
-            DexScreener
-          </a>
           <a
             href="https://fomo.family/r/christoshi_"
             target="_blank"
