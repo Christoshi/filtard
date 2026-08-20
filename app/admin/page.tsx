@@ -106,19 +106,12 @@ export default function AdminPage() {
             Submit a Token
           </h1>
           <p className="mt-3 text-[#8b93a1] text-sm">
-            Only high-quality memes with real staying power are accepted.
+            We only approve tokens with strong memetics.
           </p>
         </div>
 
         {/* Checklist Card */}
         <div className="mb-8 rounded-2xl border border-[#1c1f26] bg-[#0c0d10] p-6">
-          <h2 className="text-sm font-medium text-[#b8ff3d] mb-4 tracking-wide uppercase">
-            Approval Checklist
-          </h2>
-          <p className="text-sm text-[#f4f6f8] mb-5">
-            We only approve tokens with strong memetics.
-          </p>
-
           <p className="text-sm text-[#8b93a1] mb-3">Must have:</p>
 
           <ul className="space-y-2.5 text-sm text-[#f4f6f8]">
@@ -143,6 +136,10 @@ export default function AdminPage() {
 
         {/* Form Card */}
         <div className="rounded-2xl border border-[#1c1f26] bg-[#0c0d10] p-6">
+          <h2 className="text-sm font-medium text-[#f4f6f8] mb-5">
+            Enter token details
+          </h2>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm text-[#8b93a1] mb-1.5">
