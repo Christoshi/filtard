@@ -47,10 +47,10 @@ export default function HeaderAuth() {
     router.refresh();
   }
 
-  // Filled premium trophy
+  // Proper filled trophy cup
   const TrophyIcon = (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C9.24 2 7 4.24 7 7v1H5c-1.1 0-2 .9-2 2v1c0 2.21 1.79 4 4 4h1v2c0 1.66 1.34 3 3 3h2c1.66 0 3-1.34 3-3v-2h1c2.21 0 4-1.79 4-4v-1c0-1.1-.9-2-2-2h-2V7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3v1H9V7c0-1.66 1.34-3 3-3zm-1 14v2h2v-2h-2z"/>
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5q0 .807-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33 33 0 0 1 2.5.5m.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935m10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935"/>
     </svg>
   );
 
@@ -77,7 +77,11 @@ export default function HeaderAuth() {
             className="flex items-center justify-center h-9 w-9 rounded-full overflow-hidden bg-[#1c1f26] hover:ring-2 hover:ring-[#b8ff3d]/40 transition"
           >
             {user.avatar_url ? (
-              <img src={user.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+              <img
+                src={user.avatar_url}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
             ) : (
               <span className="text-sm font-medium">{initial}</span>
             )}
@@ -86,16 +90,31 @@ export default function HeaderAuth() {
           {open && (
             <div className="absolute right-0 mt-2 w-52 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-50">
               <div className="py-1.5">
-                <Link href="/admin" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
+                >
                   Submit Token
                 </Link>
-                <Link href="/submissions" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
+                <Link
+                  href="/submissions"
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
+                >
                   My Submissions
                 </Link>
-                <Link href="/profile" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
+                <Link
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
+                >
                   Edit Profile
                 </Link>
-                <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
+                >
                   Logout
                 </button>
               </div>
@@ -106,6 +125,7 @@ export default function HeaderAuth() {
     );
   }
 
+  // Not logged in
   return (
     <div className="flex items-center gap-2.5 flex-shrink-0">
       <Link
