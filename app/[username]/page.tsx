@@ -13,11 +13,11 @@ type Token = {
   image_url: string | null;
 };
 
-async function getCurator(id: string) {
+async function getCuratorByUsername(username: string) {
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", id)
+    .eq("display_name", username.toLowerCase())
     .single();
 
   return profile;
@@ -69,30 +69,44 @@ async function getCuratorRating(tokenIds: string[]) {
 export default async function CuratorPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ username: string }>;
 }) {
-  const { id } = await params;
+  const { username } = await params;
 
-  const curator = await getCurator(id);
+  // Protect reserved routes
+  const reserved = [
+    "admin",
+    "dashboard",
+    "login",
+    "profile",
+    "submissions",
+    "setup-username",
+    "auth",
+    "api",
+    "token",
+    "curator",
+  ];
+  if (reserved.includes(username.toLowerCase())) {
+    notFound();
+  }
+
+  const curator = await getCuratorByUsername(username);
   if (!curator) {
     notFound();
   }
 
-  // Get only this curator's approved tokens
   const { data: tokens } = await supabase
     .from("tokens")
     .select("id, chain, address, name, symbol, image_url")
-    .eq("submitted_by", id)
+    .eq("submitted_by", curator.id)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
   const tokenList = tokens || [];
   const tokenIds = tokenList.map((t) => t.id);
 
-  // Get overall curator rating
   const curatorRating = await getCuratorRating(tokenIds);
 
-  // Attach live stats
   const tokensWithStats = await Promise.all(
     tokenList.map(async (token: Token) => {
       const stats = await getTokenStats(token.address);
@@ -117,13 +131,11 @@ export default async function CuratorPage({
         )}
 
         <div>
-          {/* Name + Social Icons */}
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold">
               {curator.display_name || "Anonymous Curator"}
             </h1>
 
-            {/* Social Icons */}
             <div className="flex items-center gap-2.5">
               {curator.twitter_url && (
                 <a
@@ -169,7 +181,6 @@ export default async function CuratorPage({
             </div>
           </div>
 
-          {/* Rating + Tokens curated */}
           <div className="flex items-center gap-3 mt-1.5">
             {curatorRating.count > 0 ? (
               <div className="flex items-center gap-1.5 text-sm">
@@ -196,7 +207,6 @@ export default async function CuratorPage({
         </div>
       </div>
 
-      {/* Table */}
       <TokenTable tokens={tokensWithStats} />
     </div>
   );
