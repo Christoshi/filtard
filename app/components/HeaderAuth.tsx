@@ -108,14 +108,9 @@ export default function HeaderAuth() {
     );
   }
 
+  // Not logged in → only show the green Submit button
   return (
     <div className="flex items-center gap-3 flex-shrink-0">
-      <Link
-        href="/login"
-        className="text-sm text-[#8b93a1] hover:text-white transition"
-      >
-        Login
-      </Link>
       <Link
         href="/login"
         className="text-sm bg-[#b8ff3d] text-black px-3 py-1.5 rounded-md font-medium hover:bg-[#a3e635] transition"
