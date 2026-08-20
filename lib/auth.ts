@@ -40,7 +40,7 @@ export async function signInWithGoogle() {
 
 export async function signInWithX() {
   return await supabase.auth.signInWithOAuth({
-    provider: "twitter",
+    provider: "x",
     options: {
       redirectTo: `${window.location.origin}/auth/callback`,
     },
