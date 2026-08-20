@@ -36,7 +36,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [tokens, setTokens] = useState<Token[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [activeTab, setActiveTab] = useState<"tokens" | "users">("tokens");
+  const [activeTab, setActiveTab] = useState<"tokens" | "curators">("tokens");
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -91,7 +91,6 @@ export default function DashboardPage() {
   }
 
   async function loadProfiles() {
-    // Get all profiles
     const { data: profilesData } = await supabase
       .from("profiles")
       .select("id, display_name, role, twitter_url, telegram_url, avatar_url")
@@ -99,7 +98,6 @@ export default function DashboardPage() {
 
     if (!profilesData) return;
 
-    // Get approved token counts
     const { data: tokenCounts } = await supabase
       .from("tokens")
       .select("submitted_by")
@@ -112,10 +110,12 @@ export default function DashboardPage() {
       }
     });
 
-    const enriched = profilesData.map((p) => ({
-      ...p,
-      token_count: countMap[p.id] || 0,
-    }));
+    const enriched = profilesData
+      .map((p) => ({
+        ...p,
+        token_count: countMap[p.id] || 0,
+      }))
+      .filter((p) => p.token_count > 0); // ← only show users with ≥1 approved token
 
     setProfiles(enriched);
   }
@@ -126,6 +126,11 @@ export default function DashboardPage() {
       return;
     }
 
+    // Optimistic update – change UI immediately
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === userId ? { ...p, role: newRole } : p))
+    );
+
     const { error } = await supabase
       .from("profiles")
       .update({ role: newRole })
@@ -133,9 +138,10 @@ export default function DashboardPage() {
 
     if (error) {
       setMessage("Error updating role");
+      // Revert on error
+      await loadProfiles();
     } else {
       setMessage("Role updated successfully");
-      await loadProfiles();
     }
   }
 
@@ -254,10 +260,7 @@ export default function DashboardPage() {
             Manage tokens and curators
           </p>
         </div>
-        <Link
-          href="/admin"
-          className="text-sm text-[#b8ff3d] hover:underline"
-        >
+        <Link href="/admin" className="text-sm text-[#b8ff3d] hover:underline">
           Submit Token →
         </Link>
       </div>
@@ -281,21 +284,20 @@ export default function DashboardPage() {
           Tokens
         </button>
         <button
-          onClick={() => setActiveTab("users")}
+          onClick={() => setActiveTab("curators")}
           className={`px-5 py-2 rounded-xl text-sm font-medium transition ${
-            activeTab === "users"
+            activeTab === "curators"
               ? "bg-[#b8ff3d] text-black"
               : "bg-[#101215] text-[#8b93a1] hover:text-white border border-[#1c1f26]"
           }`}
         >
-          Users
+          Curators
         </button>
       </div>
 
       {/* ===================== TOKENS TAB ===================== */}
       {activeTab === "tokens" && (
         <>
-          {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <input
               type="text"
@@ -326,7 +328,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Bulk actions */}
           {selected.length > 0 && (
             <div className="flex items-center gap-3 mb-4 p-3.5 rounded-xl bg-[#101215] border border-[#1c1f26]">
               <span className="text-sm text-[#8b93a1]">
@@ -430,7 +431,7 @@ export default function DashboardPage() {
                         Submitted by{" "}
                         {token.profiles?.display_name ? (
                           <Link
-                            href={`/curator/${token.profiles.id}`}
+                            href={`/${token.profiles.display_name}`}
                             className="text-[#b8ff3d] hover:underline"
                           >
                             {token.profiles.display_name}
@@ -466,10 +467,9 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ===================== USERS TAB ===================== */}
-      {activeTab === "users" && (
+      {/* ===================== CURATORS TAB ===================== */}
+      {activeTab === "curators" && (
         <div className="border border-[#1c1f26] rounded-2xl overflow-hidden">
-          {/* Table Header */}
           <div className="grid grid-cols-[1.4fr_0.7fr_0.5fr_0.5fr_1fr_1.2fr] gap-4 px-5 py-3.5 bg-[#0c0d10] border-b border-[#1c1f26] text-xs text-[#8b93a1] uppercase tracking-wider">
             <div>Username</div>
             <div className="text-center">#Tokens</div>
@@ -480,7 +480,9 @@ export default function DashboardPage() {
           </div>
 
           {profiles.length === 0 ? (
-            <div className="p-16 text-center text-[#8b93a1]">No users found</div>
+            <div className="p-16 text-center text-[#8b93a1]">
+              No curators with approved tokens yet
+            </div>
           ) : (
             profiles.map((profile) => (
               <div
@@ -501,7 +503,7 @@ export default function DashboardPage() {
                     </div>
                   )}
                   <Link
-                    href={`/curator/${profile.id}`}
+                    href={`/${profile.display_name}`}
                     className="font-medium hover:text-[#b8ff3d] transition truncate"
                   >
                     {profile.display_name || "Unnamed"}
