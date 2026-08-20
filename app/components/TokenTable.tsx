@@ -46,6 +46,49 @@ const CHAINS = [
   { id: "robinhood", label: "Robinhood" },
 ];
 
+const AGE_OPTIONS = [
+  { id: "any", label: "Any age" },
+  { id: "24h", label: "< 24h" },
+  { id: "7d", label: "< 7d" },
+  { id: "30d", label: "< 30d" },
+];
+
+const MCAP_OPTIONS = [
+  { id: "any", label: "Any mcap" },
+  { id: "lt10k", label: "< $10K" },
+  { id: "10k-100k", label: "$10K – $100K" },
+  { id: "100k-1m", label: "$100K – $1M" },
+  { id: "1m-10m", label: "$1M – $10M" },
+  { id: "gt10m", label: "> $10M" },
+];
+
+const LIQ_OPTIONS = [
+  { id: "any", label: "Any liq" },
+  { id: "gt1k", label: "> $1K" },
+  { id: "gt5k", label: "> $5K" },
+  { id: "gt10k", label: "> $10K" },
+  { id: "gt50k", label: "> $50K" },
+  { id: "gt100k", label: "> $100K" },
+];
+
+const VOL_OPTIONS = [
+  { id: "any", label: "Any volume" },
+  { id: "gt1k", label: "> $1K" },
+  { id: "gt5k", label: "> $5K" },
+  { id: "gt10k", label: "> $10K" },
+  { id: "gt50k", label: "> $50K" },
+  { id: "gt100k", label: "> $100K" },
+];
+
+const TXNS_OPTIONS = [
+  { id: "any", label: "Any txns" },
+  { id: "gt10", label: "> 10" },
+  { id: "gt50", label: "> 50" },
+  { id: "gt100", label: "> 100" },
+  { id: "gt500", label: "> 500" },
+  { id: "gt1000", label: "> 1K" },
+];
+
 function formatUsd(n: number | null) {
   if (n == null) return "—";
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
@@ -105,6 +148,11 @@ function SortIcon({ active, direction }: { active: boolean; direction: SortDirec
   );
 }
 
+const mutedBtn =
+  "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b] hover:text-[#f4f6f8]";
+const mutedBtnActive =
+  "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition bg-[#1c1f26] text-[#b8ff3d] border-[#b8ff3d]/30";
+
 export default function TokenTable({
   tokens,
   currentChain = "all",
@@ -121,7 +169,17 @@ export default function TokenTable({
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const filtersRef = useRef<HTMLDivElement>(null);
+
+  // Filter state (no partnership)
+  const [filterAge, setFilterAge] = useState("any");
+  const [filterMcap, setFilterMcap] = useState("any");
+  const [filterLiq, setFilterLiq] = useState("any");
+  const [filterVol, setFilterVol] = useState("any");
+  const [filterTxns, setFilterTxns] = useState("any");
+  const [filterChangeMin, setFilterChangeMin] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("filtard-watchlist");
@@ -131,6 +189,18 @@ export default function TokenTable({
       } catch {}
     }
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) {
+        setShowFilters(false);
+      }
+    }
+    if (showFilters) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showFilters]);
 
   useEffect(() => {
     function onToggleSearch() {
@@ -143,11 +213,13 @@ export default function TokenTable({
         return next;
       });
       setShowWatchlistOnly(false);
+      setShowFilters(false);
     }
 
     function onToggleWatchlist() {
       setShowWatchlistOnly((prev) => !prev);
       setShowSearch(false);
+      setShowFilters(false);
       setPage(1);
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -155,6 +227,7 @@ export default function TokenTable({
     function onCloseAll() {
       setShowSearch(false);
       setShowWatchlistOnly(false);
+      setShowFilters(false);
       setSearch("");
       setPage(1);
     }
@@ -193,6 +266,25 @@ export default function TokenTable({
     setPage(1);
   }
 
+  function clearFilters() {
+    setFilterAge("any");
+    setFilterMcap("any");
+    setFilterLiq("any");
+    setFilterVol("any");
+    setFilterTxns("any");
+    setFilterChangeMin("");
+    setPage(1);
+  }
+
+  const activeFilterCount = [
+    filterAge !== "any",
+    filterMcap !== "any",
+    filterLiq !== "any",
+    filterVol !== "any",
+    filterTxns !== "any",
+    filterChangeMin !== "",
+  ].filter(Boolean).length;
+
   const filteredAndSorted = useMemo(() => {
     let list = [...tokens];
 
@@ -210,7 +302,85 @@ export default function TokenTable({
       );
     }
 
-    // Separate pinned token so it always stays on top
+    // Age filter
+    if (filterAge !== "any") {
+      const now = Date.now();
+      list = list.filter((t) => {
+        const ts = t.stats?.pairCreatedAt;
+        if (!ts) return false;
+        const hours = (now - ts) / (1000 * 60 * 60);
+        if (filterAge === "24h") return hours <= 24;
+        if (filterAge === "7d") return hours <= 24 * 7;
+        if (filterAge === "30d") return hours <= 24 * 30;
+        return true;
+      });
+    }
+
+    // Market Cap filter
+    if (filterMcap !== "any") {
+      list = list.filter((t) => {
+        const m = t.stats?.marketCap;
+        if (m == null) return false;
+        if (filterMcap === "lt10k") return m < 10_000;
+        if (filterMcap === "10k-100k") return m >= 10_000 && m < 100_000;
+        if (filterMcap === "100k-1m") return m >= 100_000 && m < 1_000_000;
+        if (filterMcap === "1m-10m") return m >= 1_000_000 && m < 10_000_000;
+        if (filterMcap === "gt10m") return m >= 10_000_000;
+        return true;
+      });
+    }
+
+    // Liquidity filter
+    if (filterLiq !== "any") {
+      list = list.filter((t) => {
+        const l = t.stats?.liquidity;
+        if (l == null) return false;
+        if (filterLiq === "gt1k") return l >= 1_000;
+        if (filterLiq === "gt5k") return l >= 5_000;
+        if (filterLiq === "gt10k") return l >= 10_000;
+        if (filterLiq === "gt50k") return l >= 50_000;
+        if (filterLiq === "gt100k") return l >= 100_000;
+        return true;
+      });
+    }
+
+    // Volume 24h filter
+    if (filterVol !== "any") {
+      list = list.filter((t) => {
+        const v = t.stats?.volume24h;
+        if (v == null) return false;
+        if (filterVol === "gt1k") return v >= 1_000;
+        if (filterVol === "gt5k") return v >= 5_000;
+        if (filterVol === "gt10k") return v >= 10_000;
+        if (filterVol === "gt50k") return v >= 50_000;
+        if (filterVol === "gt100k") return v >= 100_000;
+        return true;
+      });
+    }
+
+    // Txns 24h filter
+    if (filterTxns !== "any") {
+      list = list.filter((t) => {
+        const tx = t.stats?.txns24h;
+        if (tx == null) return false;
+        if (filterTxns === "gt10") return tx >= 10;
+        if (filterTxns === "gt50") return tx >= 50;
+        if (filterTxns === "gt100") return tx >= 100;
+        if (filterTxns === "gt500") return tx >= 500;
+        if (filterTxns === "gt1000") return tx >= 1000;
+        return true;
+      });
+    }
+
+    // Min 24h Change %
+    if (filterChangeMin !== "") {
+      const min = Number(filterChangeMin);
+      if (!isNaN(min)) {
+        list = list.filter((t) => (t.stats?.change24h ?? -999) >= min);
+      }
+    }
+
+    // Keep pinned token(s) on top
     const pinned = list.filter((t) => t.is_pinned);
     const rest = list.filter((t) => !t.is_pinned);
 
@@ -261,7 +431,20 @@ export default function TokenTable({
     });
 
     return [...pinned, ...rest];
-  }, [tokens, search, sortKey, sortDir, showWatchlistOnly, watchlist]);
+  }, [
+    tokens,
+    search,
+    sortKey,
+    sortDir,
+    showWatchlistOnly,
+    watchlist,
+    filterAge,
+    filterMcap,
+    filterLiq,
+    filterVol,
+    filterTxns,
+    filterChangeMin,
+  ]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
   const startIndex = (page - 1) * PAGE_SIZE;
@@ -278,14 +461,160 @@ export default function TokenTable({
     return str ? `/?${str}` : "/";
   }
 
+  const FiltersPanel = (
+    <div className="p-4 space-y-4 min-w-[280px]">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-[#f4f6f8]">Filters</span>
+        {activeFilterCount > 0 && (
+          <button
+            onClick={clearFilters}
+            className="text-xs text-[#8b93a1] hover:text-[#b8ff3d] transition"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {/* Age */}
+      <div>
+        <div className="text-xs text-[#8b93a1] mb-1.5">Age</div>
+        <div className="flex flex-wrap gap-1.5">
+          {AGE_OPTIONS.map((o) => (
+            <button
+              key={o.id}
+              onClick={() => {
+                setFilterAge(o.id);
+                setPage(1);
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs border transition ${
+                filterAge === o.id
+                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
+                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Market Cap */}
+      <div>
+        <div className="text-xs text-[#8b93a1] mb-1.5">Market Cap</div>
+        <div className="flex flex-wrap gap-1.5">
+          {MCAP_OPTIONS.map((o) => (
+            <button
+              key={o.id}
+              onClick={() => {
+                setFilterMcap(o.id);
+                setPage(1);
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs border transition ${
+                filterMcap === o.id
+                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
+                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Liquidity */}
+      <div>
+        <div className="text-xs text-[#8b93a1] mb-1.5">Liquidity</div>
+        <div className="flex flex-wrap gap-1.5">
+          {LIQ_OPTIONS.map((o) => (
+            <button
+              key={o.id}
+              onClick={() => {
+                setFilterLiq(o.id);
+                setPage(1);
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs border transition ${
+                filterLiq === o.id
+                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
+                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Volume */}
+      <div>
+        <div className="text-xs text-[#8b93a1] mb-1.5">Volume 24h</div>
+        <div className="flex flex-wrap gap-1.5">
+          {VOL_OPTIONS.map((o) => (
+            <button
+              key={o.id}
+              onClick={() => {
+                setFilterVol(o.id);
+                setPage(1);
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs border transition ${
+                filterVol === o.id
+                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
+                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Txns */}
+      <div>
+        <div className="text-xs text-[#8b93a1] mb-1.5">Txns 24h</div>
+        <div className="flex flex-wrap gap-1.5">
+          {TXNS_OPTIONS.map((o) => (
+            <button
+              key={o.id}
+              onClick={() => {
+                setFilterTxns(o.id);
+                setPage(1);
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs border transition ${
+                filterTxns === o.id
+                  ? "bg-[#b8ff3d]/10 text-[#b8ff3d] border-[#b8ff3d]/30"
+                  : "bg-[#101215] text-[#8b93a1] border-[#1c1f26] hover:border-[#3a3f4b]"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Min 24h Change % */}
+      <div>
+        <div className="text-xs text-[#8b93a1] mb-1.5">Min 24h Change %</div>
+        <input
+          type="number"
+          value={filterChangeMin}
+          onChange={(e) => {
+            setFilterChangeMin(e.target.value);
+            setPage(1);
+          }}
+          placeholder="e.g. 10"
+          className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-1.5 text-sm text-[#f4f6f8] placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/40"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full">
-      {/* ===== DESKTOP CONTROLS: All Chains | New | Watchlist | Search ===== */}
+      {/* ===== DESKTOP CONTROLS ===== */}
       <div className="hidden md:flex flex-wrap items-center gap-3 mb-5">
-        {/* All Chains */}
+        {/* Chain */}
         <div className="relative">
           <details className="group">
-            <summary className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1c1f26] bg-[#101215] text-sm cursor-pointer list-none hover:border-[#3a3f4b] transition">
+            <summary className={`${mutedBtn} cursor-pointer list-none`}>
               <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
               <svg
                 className="w-4 h-4 text-[#8b93a1] group-open:rotate-180 transition"
@@ -297,7 +626,6 @@ export default function TokenTable({
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </summary>
-
             <div className="absolute left-0 mt-2 w-48 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
               {CHAINS.map((c) => (
                 <Link
@@ -319,11 +647,7 @@ export default function TokenTable({
         {/* New */}
         <Link
           href={buildUrl({ chain: currentChain, new: !onlyNew })}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
-            onlyNew
-              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
-              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
-          }`}
+          className={onlyNew ? mutedBtnActive : mutedBtn}
         >
           <svg
             width="14"
@@ -347,11 +671,7 @@ export default function TokenTable({
             setShowWatchlistOnly((prev) => !prev);
             setPage(1);
           }}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
-            showWatchlistOnly
-              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
-              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
-          }`}
+          className={showWatchlistOnly ? mutedBtnActive : mutedBtn}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -359,7 +679,43 @@ export default function TokenTable({
           Watchlist
         </button>
 
-        {/* Search bar */}
+        {/* Filters */}
+        <div className="relative" ref={filtersRef}>
+          <button
+            onClick={() => setShowFilters((prev) => !prev)}
+            className={activeFilterCount > 0 || showFilters ? mutedBtnActive : mutedBtn}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="4" y1="8" x2="20" y2="8" />
+              <line x1="8" y1="4" x2="8" y2="12" />
+              <line x1="4" y1="16" x2="20" y2="16" />
+              <line x1="16" y1="12" x2="16" y2="20" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#b8ff3d] text-[10px] font-bold text-black">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {showFilters && (
+            <div className="absolute left-0 mt-2 rounded-xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl z-50 overflow-hidden">
+              {FiltersPanel}
+            </div>
+          )}
+        </div>
+
+        {/* Search */}
         <div className="relative flex-1 min-w-[240px] max-w-sm">
           <svg
             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
@@ -398,14 +754,14 @@ export default function TokenTable({
         </div>
       </div>
 
-      {/* Mobile: keep the old Chain + New row */}
-      <div className="md:hidden flex flex-wrap items-center gap-3 mb-5">
+      {/* ===== MOBILE CONTROLS ===== */}
+      <div className="md:hidden flex flex-wrap items-center gap-2.5 mb-4">
         <div className="relative">
           <details className="group">
-            <summary className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1c1f26] bg-[#101215] text-sm cursor-pointer list-none hover:border-[#3a3f4b] transition">
+            <summary className={`${mutedBtn} cursor-pointer list-none text-xs px-3 py-1.5`}>
               <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
               <svg
-                className="w-4 h-4 text-[#8b93a1] group-open:rotate-180 transition"
+                className="w-3.5 h-3.5 text-[#8b93a1] group-open:rotate-180 transition"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -414,12 +770,12 @@ export default function TokenTable({
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </summary>
-            <div className="absolute left-0 mt-2 w-48 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
+            <div className="absolute left-0 mt-2 w-44 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
               {CHAINS.map((c) => (
                 <Link
                   key={c.id}
                   href={buildUrl({ chain: c.id, new: onlyNew })}
-                  className={`block px-4 py-2.5 text-sm transition ${
+                  className={`block px-3 py-2 text-sm transition ${
                     currentChain === c.id
                       ? "bg-[#b8ff3d]/10 text-[#b8ff3d]"
                       : "text-[#f4f6f8] hover:bg-[#1c1f26]"
@@ -434,18 +790,52 @@ export default function TokenTable({
 
         <Link
           href={buildUrl({ chain: currentChain, new: !onlyNew })}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
+          className={
             onlyNew
-              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
-              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
-          }`}
+              ? mutedBtnActive + " text-xs px-3 py-1.5"
+              : mutedBtn + " text-xs px-3 py-1.5"
+          }
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-          </svg>
           New
         </Link>
+
+        <div className="relative" ref={filtersRef}>
+          <button
+            onClick={() => setShowFilters((prev) => !prev)}
+            className={
+              (activeFilterCount > 0 || showFilters ? mutedBtnActive : mutedBtn) +
+              " text-xs px-3 py-1.5"
+            }
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="4" y1="8" x2="20" y2="8" />
+              <line x1="8" y1="4" x2="8" y2="12" />
+              <line x1="4" y1="16" x2="20" y2="16" />
+              <line x1="16" y1="12" x2="16" y2="20" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="ml-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#b8ff3d] text-[9px] font-bold text-black">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {showFilters && (
+            <div className="absolute left-0 mt-2 w-[min(92vw,320px)] rounded-xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl z-50 overflow-hidden">
+              {FiltersPanel}
+            </div>
+          )}
+        </div>
       </div>
 
       {showWatchlistOnly && (
@@ -456,6 +846,18 @@ export default function TokenTable({
             className="text-[#8b93a1] hover:text-white"
           >
             Show all
+          </button>
+        </div>
+      )}
+
+      {activeFilterCount > 0 && (
+        <div className="mb-3 flex items-center justify-between text-sm">
+          <span className="text-[#8b93a1]">
+            {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active ·{" "}
+            {filteredAndSorted.length} tokens
+          </span>
+          <button onClick={clearFilters} className="text-[#8b93a1] hover:text-[#b8ff3d]">
+            Clear filters
           </button>
         </div>
       )}
@@ -692,19 +1094,19 @@ export default function TokenTable({
                         {token.symbol || "???"}
                       </span>
                       {isPinned && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1] font-medium">
                           Partnership
                         </span>
                       )}
                     </div>
                     <div className="text-[12px] text-[#8b93a1] truncate">
-                      {token.name || token.address.slice(0, 10) + "…"}
+                      {token.name || token.address.slice(0, 8) + "…"}
                     </div>
                   </div>
 
                   <div className="text-right flex-shrink-0">
-                    <div className="font-medium text-[14px]">
-                      {formatUsd(token.stats?.priceUsd ?? null)}
+                    <div className="text-[13px] font-medium">
+                      {formatUsd(token.stats?.marketCap ?? null)}
                     </div>
                     <div
                       className={`text-[12px] ${
@@ -715,16 +1117,6 @@ export default function TokenTable({
                     </div>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-3 px-3 pb-2.5 pl-[52px] text-[11px] text-[#8b93a1]">
-                  <span>Mcap {formatUsd(token.stats?.marketCap ?? null)}</span>
-                  <span>·</span>
-                  <span>Vol {formatUsd(token.stats?.volume24h ?? null)}</span>
-                  <span>·</span>
-                  <span>Liq {formatUsd(token.stats?.liquidity ?? null)}</span>
-                  <span>·</span>
-                  <span>{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
-                </div>
               </Link>
             );
           })
@@ -733,23 +1125,23 @@ export default function TokenTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-5 text-sm">
+        <div className="flex items-center justify-center gap-2 mt-5">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 rounded-lg border border-[#1c1f26] text-[#8b93a1] hover:text-white disabled:opacity-40 transition"
+            className="px-3 py-1.5 rounded-lg text-sm border border-[#1c1f26] bg-[#101215] text-[#8b93a1] disabled:opacity-40 hover:border-[#3a3f4b] transition"
           >
-            ← Prev
+            Prev
           </button>
-          <span className="text-[#8b93a1]">
-            Page {page} of {totalPages}
+          <span className="text-sm text-[#8b93a1]">
+            {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-4 py-2 rounded-lg border border-[#1c1f26] text-[#8b93a1] hover:text-white disabled:opacity-40 transition"
+            className="px-3 py-1.5 rounded-lg text-sm border border-[#1c1f26] bg-[#101215] text-[#8b93a1] disabled:opacity-40 hover:border-[#3a3f4b] transition"
           >
-            Next →
+            Next
           </button>
         </div>
       )}
