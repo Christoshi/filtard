@@ -13,6 +13,7 @@ type Token = {
   symbol: string | null;
   image_url: string | null;
   status: string;
+  is_pinned: boolean;
   created_at: string;
   submitted_by: string | null;
   profiles?: {
@@ -76,6 +77,7 @@ export default function DashboardPage() {
         symbol,
         image_url,
         status,
+        is_pinned,
         created_at,
         submitted_by,
         profiles!submitted_by (
@@ -83,6 +85,7 @@ export default function DashboardPage() {
           display_name
         )
       `)
+      .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -115,7 +118,7 @@ export default function DashboardPage() {
         ...p,
         token_count: countMap[p.id] || 0,
       }))
-      .filter((p) => p.token_count > 0); // ← only show users with ≥1 approved token
+      .filter((p) => p.token_count > 0);
 
     setProfiles(enriched);
   }
@@ -126,7 +129,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // Optimistic update – change UI immediately
     setProfiles((prev) =>
       prev.map((p) => (p.id === userId ? { ...p, role: newRole } : p))
     );
@@ -138,10 +140,31 @@ export default function DashboardPage() {
 
     if (error) {
       setMessage("Error updating role");
-      // Revert on error
       await loadProfiles();
     } else {
       setMessage("Role updated successfully");
+    }
+  }
+
+  async function togglePin(tokenId: string, currentlyPinned: boolean) {
+    // First unpin any currently pinned token
+    if (!currentlyPinned) {
+      await supabase
+        .from("tokens")
+        .update({ is_pinned: false })
+        .eq("is_pinned", true);
+    }
+
+    const { error } = await supabase
+      .from("tokens")
+      .update({ is_pinned: !currentlyPinned })
+      .eq("id", tokenId);
+
+    if (error) {
+      setMessage("Error updating pin status");
+    } else {
+      setMessage(currentlyPinned ? "Token unpinned" : "Token pinned as Partnership");
+      await loadTokens();
     }
   }
 
@@ -379,7 +402,11 @@ export default function DashboardPage() {
               {filteredTokens.map((token) => (
                 <div
                   key={token.id}
-                  className="grid grid-cols-[auto_1fr_auto] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
+                  className={`grid grid-cols-[auto_1fr_auto] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 transition ${
+                    token.is_pinned
+                      ? "bg-[#b8ff3d]/[0.04]"
+                      : "hover:bg-[#14171d]"
+                  }`}
                 >
                   <div className="w-5">
                     <input
@@ -421,6 +448,11 @@ export default function DashboardPage() {
                         >
                           {token.status}
                         </span>
+                        {token.is_pinned && (
+                          <span className="text-[11px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/15 text-[#b8ff3d]">
+                            Partnership
+                          </span>
+                        )}
                       </div>
 
                       <div className="text-sm text-[#8b93a1] truncate mt-0.5">
@@ -445,6 +477,19 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
+                    {token.status === "approved" && (
+                      <button
+                        onClick={() => togglePin(token.id, token.is_pinned)}
+                        className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition ${
+                          token.is_pinned
+                            ? "border border-[#b8ff3d]/50 text-[#b8ff3d] hover:bg-[#b8ff3d]/10"
+                            : "border border-[#1c1f26] text-[#8b93a1] hover:border-[#b8ff3d]/50 hover:text-[#b8ff3d]"
+                        }`}
+                      >
+                        {token.is_pinned ? "Unpin" : "Pin"}
+                      </button>
+                    )}
+
                     {token.status === "pending" && (
                       <button
                         onClick={() => approveToken(token.id)}
@@ -453,6 +498,7 @@ export default function DashboardPage() {
                         Approve
                       </button>
                     )}
+
                     <button
                       onClick={() => deleteToken(token.id)}
                       className="px-3.5 py-1.5 rounded-lg border border-red-500/40 text-red-400 text-sm hover:bg-red-500/10 transition"
@@ -489,7 +535,6 @@ export default function DashboardPage() {
                 key={profile.id}
                 className="grid grid-cols-[1.4fr_0.7fr_0.5fr_0.5fr_1fr_1.2fr] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
               >
-                {/* Username */}
                 <div className="flex items-center gap-3 min-w-0">
                   {profile.avatar_url ? (
                     <img
@@ -510,12 +555,10 @@ export default function DashboardPage() {
                   </Link>
                 </div>
 
-                {/* #Tokens */}
                 <div className="text-center text-sm text-[#f4f6f8]">
                   {profile.token_count}
                 </div>
 
-                {/* X */}
                 <div className="flex justify-center">
                   {profile.twitter_url ? (
                     <a
@@ -533,7 +576,6 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* TG */}
                 <div className="flex justify-center">
                   {profile.telegram_url ? (
                     <a
@@ -551,7 +593,6 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* Role */}
                 <div>
                   <span
                     className={`text-xs px-2.5 py-1 rounded-full font-medium ${
@@ -568,7 +609,6 @@ export default function DashboardPage() {
                   </span>
                 </div>
 
-                {/* Promote */}
                 <div>
                   {profile.id === user.id ? (
                     <span className="text-xs text-[#5c6573]">You</span>

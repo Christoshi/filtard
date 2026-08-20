@@ -10,6 +10,7 @@ type TokenWithStats = {
   name: string | null;
   symbol: string | null;
   image_url: string | null;
+  is_pinned?: boolean;
   stats: {
     priceUsd: number | null;
     change24h: number | null;
@@ -209,7 +210,11 @@ export default function TokenTable({
       );
     }
 
-    list.sort((a, b) => {
+    // Separate pinned token
+    const pinned = list.filter((t) => t.is_pinned);
+    const rest = list.filter((t) => !t.is_pinned);
+
+    rest.sort((a, b) => {
       let aVal: any;
       let bVal: any;
 
@@ -255,7 +260,7 @@ export default function TokenTable({
       return 0;
     });
 
-    return list;
+    return [...pinned, ...rest];
   }, [tokens, search, sortKey, sortDir, showWatchlistOnly, watchlist]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
@@ -275,7 +280,7 @@ export default function TokenTable({
 
   return (
     <div className="w-full">
-      {/* ===== DESKTOP CONTROLS: All Chains | New | Watchlist | Search ===== */}
+      {/* ===== DESKTOP CONTROLS ===== */}
       <div className="hidden md:flex flex-wrap items-center gap-3 mb-5">
         {/* All Chains */}
         <div className="relative">
@@ -292,7 +297,6 @@ export default function TokenTable({
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </summary>
-
             <div className="absolute left-0 mt-2 w-48 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
               {CHAINS.map((c) => (
                 <Link
@@ -320,19 +324,6 @@ export default function TokenTable({
               : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
           }`}
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-          </svg>
           New
         </Link>
 
@@ -348,13 +339,10 @@ export default function TokenTable({
               : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
           }`}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
           Watchlist
         </button>
 
-        {/* Search bar */}
+        {/* Search */}
         <div className="relative flex-1 min-w-[240px] max-w-sm">
           <svg
             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
@@ -393,19 +381,13 @@ export default function TokenTable({
         </div>
       </div>
 
-      {/* Mobile: keep the old Chain + New row */}
+      {/* Mobile controls */}
       <div className="md:hidden flex flex-wrap items-center gap-3 mb-5">
         <div className="relative">
           <details className="group">
-            <summary className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1c1f26] bg-[#101215] text-sm cursor-pointer list-none hover:border-[#3a3f4b] transition">
+            <summary className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1c1f26] bg-[#101215] text-sm cursor-pointer list-none">
               <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
-              <svg
-                className="w-4 h-4 text-[#8b93a1] group-open:rotate-180 transition"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+              <svg className="w-4 h-4 text-[#8b93a1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </summary>
@@ -414,10 +396,8 @@ export default function TokenTable({
                 <Link
                   key={c.id}
                   href={buildUrl({ chain: c.id, new: onlyNew })}
-                  className={`block px-4 py-2.5 text-sm transition ${
-                    currentChain === c.id
-                      ? "bg-[#b8ff3d]/10 text-[#b8ff3d]"
-                      : "text-[#f4f6f8] hover:bg-[#1c1f26]"
+                  className={`block px-4 py-2.5 text-sm ${
+                    currentChain === c.id ? "bg-[#b8ff3d]/10 text-[#b8ff3d]" : "text-[#f4f6f8]"
                   }`}
                 >
                   {c.label}
@@ -429,16 +409,12 @@ export default function TokenTable({
 
         <Link
           href={buildUrl({ chain: currentChain, new: !onlyNew })}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border ${
             onlyNew
               ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
-              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40 hover:border-[#b8ff3d] hover:bg-[#b8ff3d]/10"
+              : "bg-[#101215] text-[#b8ff3d] border-[#b8ff3d]/40"
           }`}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-          </svg>
           New
         </Link>
       </div>
@@ -446,12 +422,50 @@ export default function TokenTable({
       {showWatchlistOnly && (
         <div className="mb-3 flex items-center justify-between text-sm">
           <span className="text-[#b8ff3d]">★ Showing watchlist only</span>
-          <button
-            onClick={() => setShowWatchlistOnly(false)}
-            className="text-[#8b93a1] hover:text-white"
-          >
+          <button onClick={() => setShowWatchlistOnly(false)} className="text-[#8b93a1] hover:text-white">
             Show all
           </button>
+        </div>
+      )}
+
+      {/* Mobile search */}
+      {showSearch && (
+        <div className="md:hidden mb-3">
+          <div className="relative">
+            <svg
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search name, ticker or CA..."
+              className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/50"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setPage(1);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573]"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -509,13 +523,18 @@ export default function TokenTable({
         ) : (
           pageTokens.map((token, index) => {
             const isWatched = watchlist.includes(token.id);
+            const isPinned = !!token.is_pinned;
+            const displayIndex = startIndex + index + 1;
+
             return (
               <Link
                 key={token.id}
                 href={`/token/${token.chain}/${token.address}`}
-                className={`grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 items-center hover:bg-[#14171d] transition ${
-                  index !== pageTokens.length - 1 ? "border-b border-[#1c1f26]" : ""
-                }`}
+                className={`grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 items-center transition ${
+                  isPinned
+                    ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
+                    : "hover:bg-[#14171d]"
+                } ${index !== pageTokens.length - 1 && !isPinned ? "border-b border-[#1c1f26]" : ""}`}
               >
                 <div className="px-2 py-3 flex justify-center">
                   <button
@@ -529,7 +548,11 @@ export default function TokenTable({
                 </div>
 
                 <div className="px-1 py-3 text-center text-sm text-[#8b93a1]">
-                  {startIndex + index + 1}
+                  {isPinned ? (
+                    <span className="text-[#b8ff3d] text-xs font-medium">P</span>
+                  ) : (
+                    displayIndex
+                  )}
                 </div>
 
                 <div className="px-3 py-3 border-r border-[#1c1f26] flex items-center gap-3 min-w-0">
@@ -537,46 +560,44 @@ export default function TokenTable({
                     <img
                       src={token.image_url}
                       alt=""
-                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                      className="h-8 w-8 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
+                    <div className="h-8 w-8 rounded-full bg-[#1c1f26] flex-shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-[15px] truncate">
-                        {token.symbol || "???"}
-                      </span>
-                      <span className="text-[11px] text-[#8b93a1] border border-[#1c1f26] px-1.5 rounded">
-                        {token.chain}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate">{token.symbol || "???"}</span>
+                      {isPinned && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/15 text-[#b8ff3d] font-medium tracking-wide">
+                          Partnership
+                        </span>
+                      )}
                     </div>
-                    <div className="text-[13px] text-[#8b93a1] truncate">
-                      {token.name || token.address.slice(0, 8) + "…"}
-                    </div>
+                    <div className="text-xs text-[#8b93a1] truncate">{token.name}</div>
                   </div>
                 </div>
 
-                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-[15px]">
+                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-sm">
                   {formatUsd(token.stats?.marketCap ?? null)}
                 </div>
-                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-[15px] font-medium">
+                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-sm">
                   {formatUsd(token.stats?.priceUsd ?? null)}
                 </div>
                 <div
-                  className={`px-3 py-3 text-right border-r border-[#1c1f26] text-[15px] ${
-                    (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
+                  className={`px-3 py-3 text-right border-r border-[#1c1f26] text-sm ${
+                    (token.stats?.change24h ?? 0) >= 0 ? "text-green-400" : "text-red-400"
                   }`}
                 >
                   {formatPct(token.stats?.change24h ?? null)}
                 </div>
-                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-[15px]">
+                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-sm">
                   {formatUsd(token.stats?.volume24h ?? null)}
                 </div>
-                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-[15px] text-[#8b93a1]">
+                <div className="px-3 py-3 text-right border-r border-[#1c1f26] text-sm">
                   {formatUsd(token.stats?.liquidity ?? null)}
                 </div>
-                <div className="px-3 py-3 text-right text-[15px] text-[#8b93a1]">
+                <div className="px-3 py-3 text-right text-sm text-[#8b93a1]">
                   {formatAge(token.stats?.pairCreatedAt ?? null)}
                 </div>
               </Link>
@@ -585,119 +606,80 @@ export default function TokenTable({
         )}
       </div>
 
-      {/* ===== MOBILE SEARCH ===== */}
-      {showSearch && (
-        <div className="md:hidden mb-3">
-          <div className="relative">
-            <svg
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search name, ticker or CA..."
-              className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
-              autoFocus
-            />
-
-            {search && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setPage(1);
-                  searchInputRef.current?.focus();
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ===== MOBILE TABLE ===== */}
-      <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
+      {/* ===== MOBILE LIST ===== */}
+      <div className="md:hidden space-y-3">
         {pageTokens.length === 0 ? (
-          <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
+          <div className="p-12 text-center text-[#8b93a1]">No tokens found.</div>
         ) : (
-          pageTokens.map((token, index) => {
+          pageTokens.map((token) => {
             const isWatched = watchlist.includes(token.id);
+            const isPinned = !!token.is_pinned;
+
             return (
               <Link
                 key={token.id}
                 href={`/token/${token.chain}/${token.address}`}
-                className={`block hover:bg-[#14171d] transition ${
-                  index !== pageTokens.length - 1 ? "border-b border-[#1c1f26]" : ""
+                className={`block rounded-xl border p-4 transition ${
+                  isPinned
+                    ? "border-[#b8ff3d]/30 bg-[#b8ff3d]/[0.04]"
+                    : "border-[#1c1f26] bg-[#0c0d10]"
                 }`}
               >
-                <div className="flex items-center gap-2.5 px-3 py-2.5">
-                  <button
-                    onClick={(e) => toggleWatchlist(e, token.id)}
-                    className={`text-lg leading-none flex-shrink-0 ${
-                      isWatched ? "text-[#b8ff3d]" : "text-[#3a3f4b]"
-                    }`}
-                  >
-                    {isWatched ? "★" : "☆"}
-                  </button>
-
-                  {token.image_url ? (
-                    <img
-                      src={token.image_url}
-                      alt=""
-                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-[14px] truncate">
-                      {token.symbol || "???"}
-                    </div>
-                    <div className="text-[12px] text-[#8b93a1] truncate">
-                      {token.name || token.address.slice(0, 10) + "…"}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {token.image_url ? (
+                      <img
+                        src={token.image_url}
+                        alt=""
+                        className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-[#1c1f26] flex-shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{token.symbol || "???"}</span>
+                        {isPinned && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/15 text-[#b8ff3d]">
+                            Partnership
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[#8b93a1] truncate">{token.name}</div>
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0">
-                    <div className="font-medium text-[14px]">
-                      {formatUsd(token.stats?.priceUsd ?? null)}
-                    </div>
+                  <button
+                    onClick={(e) => toggleWatchlist(e, token.id)}
+                    className={`text-xl ${isWatched ? "text-[#b8ff3d]" : "text-[#3a3f4b]"}`}
+                  >
+                    {isWatched ? "★" : "☆"}
+                  </button>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <div className="text-[#8b93a1] text-xs">Price</div>
+                    <div>{formatUsd(token.stats?.priceUsd ?? null)}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[#8b93a1] text-xs">24h</div>
                     <div
-                      className={`text-[12px] ${
-                        (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
-                      }`}
+                      className={
+                        (token.stats?.change24h ?? 0) >= 0 ? "text-green-400" : "text-red-400"
+                      }
                     >
                       {formatPct(token.stats?.change24h ?? null)}
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 px-3 pb-2.5 pl-[52px] text-[11px] text-[#8b93a1]">
-                  <span>Mcap {formatUsd(token.stats?.marketCap ?? null)}</span>
-                  <span>·</span>
-                  <span>Vol {formatUsd(token.stats?.volume24h ?? null)}</span>
-                  <span>·</span>
-                  <span>Liq {formatUsd(token.stats?.liquidity ?? null)}</span>
-                  <span>·</span>
-                  <span>{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
+                  <div>
+                    <div className="text-[#8b93a1] text-xs">Mcap</div>
+                    <div>{formatUsd(token.stats?.marketCap ?? null)}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[#8b93a1] text-xs">Volume</div>
+                    <div>{formatUsd(token.stats?.volume24h ?? null)}</div>
+                  </div>
                 </div>
               </Link>
             );
@@ -707,23 +689,23 @@ export default function TokenTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-5 text-sm">
+        <div className="flex items-center justify-center gap-2 mt-6">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 rounded-lg border border-[#1c1f26] text-[#8b93a1] hover:text-white disabled:opacity-40 transition"
+            className="px-3 py-1.5 rounded-lg border border-[#1c1f26] text-sm disabled:opacity-40"
           >
-            ← Prev
+            Prev
           </button>
-          <span className="text-[#8b93a1]">
-            Page {page} of {totalPages}
+          <span className="text-sm text-[#8b93a1]">
+            {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-4 py-2 rounded-lg border border-[#1c1f26] text-[#8b93a1] hover:text-white disabled:opacity-40 transition"
+            className="px-3 py-1.5 rounded-lg border border-[#1c1f26] text-sm disabled:opacity-40"
           >
-            Next →
+            Next
           </button>
         </div>
       )}

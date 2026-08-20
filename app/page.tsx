@@ -10,6 +10,7 @@ type Token = {
   name: string | null;
   symbol: string | null;
   image_url: string | null;
+  is_pinned: boolean;
 };
 
 async function getTokenStats(address: string) {
@@ -53,8 +54,9 @@ export default async function Home({
 
   let query = supabase
     .from("tokens")
-    .select("id, chain, address, name, symbol, image_url")
+    .select("id, chain, address, name, symbol, image_url, is_pinned")
     .eq("status", "approved")
+    .order("is_pinned", { ascending: false }) // pinned first
     .order("created_at", { ascending: false });
 
   if (chain && chain !== "all") {
