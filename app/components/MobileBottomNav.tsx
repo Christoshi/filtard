@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -7,8 +8,31 @@ export default function MobileBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const [activePanel, setActivePanel] = useState<"search" | "watchlist" | null>(null);
+
   const isHome = pathname === "/";
   const isLeaderboard = pathname === "/leaderboard";
+  const isSubmit =
+    pathname === "/login" ||
+    pathname === "/admin" ||
+    pathname === "/submissions";
+
+  // Clear panel highlight when panels are closed or user navigates
+  useEffect(() => {
+    function handleClose() {
+      setActivePanel(null);
+    }
+
+    window.addEventListener("filtard-close-all", handleClose);
+    return () => window.removeEventListener("filtard-close-all", handleClose);
+  }, []);
+
+  // Clear panel when leaving home
+  useEffect(() => {
+    if (!isHome) {
+      setActivePanel(null);
+    }
+  }, [isHome]);
 
   function goHome(e: React.MouseEvent) {
     window.dispatchEvent(new Event("filtard-close-all"));
@@ -17,6 +41,7 @@ export default function MobileBottomNav() {
   }
 
   function openSearch() {
+    setActivePanel("search");
     if (!isHome) {
       router.push("/");
       setTimeout(() => {
@@ -28,6 +53,7 @@ export default function MobileBottomNav() {
   }
 
   function openWatchlist() {
+    setActivePanel("watchlist");
     if (!isHome) {
       router.push("/");
       setTimeout(() => {
@@ -57,7 +83,11 @@ export default function MobileBottomNav() {
         {/* Search */}
         <button
           onClick={openSearch}
-          className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-[#b8ff3d] transition active:scale-95 w-[18%]"
+          className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
+            activePanel === "search"
+              ? "text-[#b8ff3d]"
+              : "text-[#8b93a1] hover:text-[#b8ff3d]"
+          }`}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />
@@ -70,7 +100,9 @@ export default function MobileBottomNav() {
         <Link
           href="/leaderboard"
           className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
-            isLeaderboard ? "text-[#b8ff3d]" : "text-[#8b93a1] hover:text-[#b8ff3d]"
+            isLeaderboard
+              ? "text-[#b8ff3d]"
+              : "text-[#8b93a1] hover:text-[#b8ff3d]"
           }`}
         >
           <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
@@ -82,7 +114,11 @@ export default function MobileBottomNav() {
         {/* Watchlist */}
         <button
           onClick={openWatchlist}
-          className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-[#b8ff3d] transition active:scale-95 w-[18%]"
+          className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
+            activePanel === "watchlist"
+              ? "text-[#b8ff3d]"
+              : "text-[#8b93a1] hover:text-[#b8ff3d]"
+          }`}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -94,7 +130,11 @@ export default function MobileBottomNav() {
         <Link
           href="/login"
           prefetch={true}
-          className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-[#b8ff3d] transition active:scale-95 w-[18%]"
+          className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
+            isSubmit
+              ? "text-[#b8ff3d]"
+              : "text-[#8b93a1] hover:text-[#b8ff3d]"
+          }`}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14M5 12h14" />
