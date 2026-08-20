@@ -565,9 +565,6 @@ export default function TokenTable({
                           Partnership
                         </span>
                       )}
-                      <span className="text-[11px] text-[#8b93a1] border border-[#1c1f26] px-1.5 rounded">
-                        {token.chain}
-                      </span>
                     </div>
                     <div className="text-[13px] text-[#8b93a1] truncate">
                       {token.name || token.address.slice(0, 8) + "…"}
