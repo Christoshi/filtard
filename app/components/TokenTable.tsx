@@ -10,6 +10,7 @@ type TokenWithStats = {
   name: string | null;
   symbol: string | null;
   image_url: string | null;
+  is_pinned?: boolean;
   stats: {
     priceUsd: number | null;
     change24h: number | null;
@@ -209,7 +210,11 @@ export default function TokenTable({
       );
     }
 
-    list.sort((a, b) => {
+    // Separate pinned token so it always stays on top
+    const pinned = list.filter((t) => t.is_pinned);
+    const rest = list.filter((t) => !t.is_pinned);
+
+    rest.sort((a, b) => {
       let aVal: any;
       let bVal: any;
 
@@ -255,7 +260,7 @@ export default function TokenTable({
       return 0;
     });
 
-    return list;
+    return [...pinned, ...rest];
   }, [tokens, search, sortKey, sortDir, showWatchlistOnly, watchlist]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
@@ -509,13 +514,17 @@ export default function TokenTable({
         ) : (
           pageTokens.map((token, index) => {
             const isWatched = watchlist.includes(token.id);
+            const isPinned = !!token.is_pinned;
+
             return (
               <Link
                 key={token.id}
                 href={`/token/${token.chain}/${token.address}`}
-                className={`grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 items-center hover:bg-[#14171d] transition ${
-                  index !== pageTokens.length - 1 ? "border-b border-[#1c1f26]" : ""
-                }`}
+                className={`grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 items-center transition ${
+                  isPinned
+                    ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
+                    : "hover:bg-[#14171d]"
+                } ${index !== pageTokens.length - 1 && !isPinned ? "border-b border-[#1c1f26]" : ""}`}
               >
                 <div className="px-2 py-3 flex justify-center">
                   <button
@@ -529,7 +538,11 @@ export default function TokenTable({
                 </div>
 
                 <div className="px-1 py-3 text-center text-sm text-[#8b93a1]">
-                  {startIndex + index + 1}
+                  {isPinned ? (
+                    <span className="text-[#b8ff3d] text-xs font-medium">P</span>
+                  ) : (
+                    startIndex + index + 1
+                  )}
                 </div>
 
                 <div className="px-3 py-3 border-r border-[#1c1f26] flex items-center gap-3 min-w-0">
@@ -547,6 +560,11 @@ export default function TokenTable({
                       <span className="font-medium text-[15px] truncate">
                         {token.symbol || "???"}
                       </span>
+                      {isPinned && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1] font-medium tracking-wide">
+                          Partnership
+                        </span>
+                      )}
                       <span className="text-[11px] text-[#8b93a1] border border-[#1c1f26] px-1.5 rounded">
                         {token.chain}
                       </span>
@@ -639,13 +657,17 @@ export default function TokenTable({
         ) : (
           pageTokens.map((token, index) => {
             const isWatched = watchlist.includes(token.id);
+            const isPinned = !!token.is_pinned;
+
             return (
               <Link
                 key={token.id}
                 href={`/token/${token.chain}/${token.address}`}
-                className={`block hover:bg-[#14171d] transition ${
-                  index !== pageTokens.length - 1 ? "border-b border-[#1c1f26]" : ""
-                }`}
+                className={`block transition ${
+                  isPinned
+                    ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
+                    : "hover:bg-[#14171d]"
+                } ${index !== pageTokens.length - 1 && !isPinned ? "border-b border-[#1c1f26]" : ""}`}
               >
                 <div className="flex items-center gap-2.5 px-3 py-2.5">
                   <button
@@ -668,8 +690,15 @@ export default function TokenTable({
                   )}
 
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium text-[14px] truncate">
-                      {token.symbol || "???"}
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-[14px] truncate">
+                        {token.symbol || "???"}
+                      </span>
+                      {isPinned && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
+                          Partnership
+                        </span>
+                      )}
                     </div>
                     <div className="text-[12px] text-[#8b93a1] truncate">
                       {token.name || token.address.slice(0, 10) + "…"}
