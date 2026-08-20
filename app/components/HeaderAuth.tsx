@@ -47,12 +47,10 @@ export default function HeaderAuth() {
     router.refresh();
   }
 
-  // Premium trophy icon
+  // Filled premium trophy
   const TrophyIcon = (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z" />
-      <path d="M17 4h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4h-1" />
-      <path d="M7 4H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4h1" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C9.24 2 7 4.24 7 7v1H5c-1.1 0-2 .9-2 2v1c0 2.21 1.79 4 4 4h1v2c0 1.66 1.34 3 3 3h2c1.66 0 3-1.34 3-3v-2h1c2.21 0 4-1.79 4-4v-1c0-1.1-.9-2-2-2h-2V7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3v1H9V7c0-1.66 1.34-3 3-3zm-1 14v2h2v-2h-2z"/>
     </svg>
   );
 
@@ -65,7 +63,6 @@ export default function HeaderAuth() {
 
     return (
       <div className="flex items-center gap-2 flex-shrink-0">
-        {/* Trophy → Leaderboard */}
         <Link
           href="/leaderboard"
           className="flex items-center justify-center h-9 w-9 rounded-full text-[#b8ff3d] hover:bg-[#b8ff3d]/10 transition"
@@ -80,11 +77,7 @@ export default function HeaderAuth() {
             className="flex items-center justify-center h-9 w-9 rounded-full overflow-hidden bg-[#1c1f26] hover:ring-2 hover:ring-[#b8ff3d]/40 transition"
           >
             {user.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                alt="Profile"
-                className="h-full w-full object-cover"
-              />
+              <img src={user.avatar_url} alt="Profile" className="h-full w-full object-cover" />
             ) : (
               <span className="text-sm font-medium">{initial}</span>
             )}
@@ -93,31 +86,16 @@ export default function HeaderAuth() {
           {open && (
             <div className="absolute right-0 mt-2 w-52 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-50">
               <div className="py-1.5">
-                <Link
-                  href="/admin"
-                  onClick={() => setOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
-                >
+                <Link href="/admin" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
                   Submit Token
                 </Link>
-                <Link
-                  href="/submissions"
-                  onClick={() => setOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
-                >
+                <Link href="/submissions" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
                   My Submissions
                 </Link>
-                <Link
-                  href="/profile"
-                  onClick={() => setOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
-                >
+                <Link href="/profile" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
                   Edit Profile
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
-                >
+                <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition">
                   Logout
                 </button>
               </div>
@@ -128,10 +106,8 @@ export default function HeaderAuth() {
     );
   }
 
-  // Not logged in
   return (
     <div className="flex items-center gap-2.5 flex-shrink-0">
-      {/* Trophy → Leaderboard */}
       <Link
         href="/leaderboard"
         className="flex items-center justify-center h-9 w-9 rounded-full text-[#b8ff3d] hover:bg-[#b8ff3d]/10 transition"
