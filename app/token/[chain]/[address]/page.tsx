@@ -49,6 +49,7 @@ async function getTokenFromDb(chain: string, address: string) {
       image_url,
       status,
       submitted_by,
+      thesis,
       profiles!submitted_by (
         id,
         display_name,
@@ -71,6 +72,7 @@ async function getTokenFromDb(chain: string, address: string) {
         image_url,
         status,
         submitted_by,
+        thesis,
         profiles!submitted_by (
           id,
           display_name,
@@ -117,6 +119,47 @@ function formatPct(n: number | null) {
   return `${sign}${n.toFixed(2)}%`;
 }
 
+// Simple markdown renderer (bold, bullets, links)
+function renderThesis(text: string) {
+  if (!text) return null;
+
+  // Convert markdown links [text](url)
+  let html = text.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#b8ff3d] hover:underline">$1</a>'
+  );
+
+  // Bold **text**
+  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+  // Split into lines and handle bullets
+  const lines = html.split("\n");
+  const elements: React.ReactNode[] = [];
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      elements.push(<div key={i} className="h-3" />);
+      return;
+    }
+
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      elements.push(
+        <div key={i} className="flex gap-2.5">
+          <span className="text-[#b8ff3d] mt-0.5 flex-shrink-0">•</span>
+          <span dangerouslySetInnerHTML={{ __html: trimmed.slice(2) }} />
+        </div>
+      );
+    } else {
+      elements.push(
+        <p key={i} dangerouslySetInnerHTML={{ __html: trimmed }} />
+      );
+    }
+  });
+
+  return <div className="space-y-2.5 text-[15px] leading-relaxed text-[#e8eaed]">{elements}</div>;
+}
+
 export default async function TokenPage({
   params,
 }: {
@@ -158,14 +201,17 @@ export default async function TokenPage({
     ? dbToken.profiles[0]
     : dbToken?.profiles;
 
+  const thesis = dbToken?.thesis?.trim() || null;
+  const imageUrl = stats.imageUrl || dbToken?.image_url || null;
+
   return (
     <div className="max-w-6xl mx-auto">
       {/* Top section */}
       <div className="flex flex-col lg:flex-row lg:items-start gap-6 mb-6">
         <div className="flex items-center gap-4 min-w-0">
-          {stats.imageUrl ? (
+          {imageUrl ? (
             <img
-              src={stats.imageUrl}
+              src={imageUrl}
               alt=""
               className="h-12 w-12 rounded-full object-cover flex-shrink-0"
             />
@@ -179,7 +225,6 @@ export default async function TokenPage({
             </div>
             <p className="text-sm text-[#8b93a1] truncate">{stats.name}</p>
 
-            {/* Curated by – FIXED LINK */}
             {curator && curator.display_name && (
               <p className="text-sm text-[#8b93a1] mt-1">
                 Curated by{" "}
@@ -192,7 +237,6 @@ export default async function TokenPage({
               </p>
             )}
 
-            {/* Star Rating */}
             {dbToken?.id && (
               <div className="mt-2">
                 <StarRating
@@ -290,6 +334,46 @@ export default async function TokenPage({
           )}
         </div>
       </div>
+
+      {/* ===== THESIS CARD (just above the chart) ===== */}
+      {thesis && (
+        <div className="relative mb-8">
+          {/* Floating token image */}
+          <div className="absolute left-1/2 -translate-x-1/2 -top-8 z-10">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt=""
+                className="h-16 w-16 rounded-full object-cover ring-4 ring-[#0c0d10] shadow-xl"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-full bg-[#1c1f26] ring-4 ring-[#0c0d10]" />
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[#1c1f26] bg-[#0c0d10] pt-12 pb-6 px-6 sm:px-8">
+            {/* Ticker + Name */}
+            <div className="text-center mb-5">
+              <div className="text-lg font-semibold text-white">
+                ${stats.symbol}
+              </div>
+              <div className="text-sm text-[#8b93a1] mt-0.5">{stats.name}</div>
+            </div>
+
+            {/* Subtitle */}
+            <div className="text-center mb-5">
+              <span className="text-xs font-medium tracking-widest uppercase text-[#b8ff3d]">
+                The Thesis
+              </span>
+            </div>
+
+            {/* Thesis body */}
+            <div className="max-w-2xl mx-auto">
+              {renderThesis(thesis)}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chart */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
