@@ -351,7 +351,6 @@ export default function TokenTable({
       );
     }
 
-    // Age
     {
       const hasCustom = activeFilters.ageMin !== "" || activeFilters.ageMax !== "";
       if (hasCustom || activeFilters.age !== "any") {
@@ -376,7 +375,6 @@ export default function TokenTable({
       }
     }
 
-    // Market Cap
     {
       const hasCustom = activeFilters.mcapMin !== "" || activeFilters.mcapMax !== "";
       if (hasCustom || activeFilters.mcap !== "any") {
@@ -401,7 +399,6 @@ export default function TokenTable({
       }
     }
 
-    // Liquidity
     {
       const hasCustom = activeFilters.liqMin !== "" || activeFilters.liqMax !== "";
       if (hasCustom || activeFilters.liq !== "any") {
@@ -426,7 +423,6 @@ export default function TokenTable({
       }
     }
 
-    // Volume 24h
     {
       const hasCustom = activeFilters.volMin !== "" || activeFilters.volMax !== "";
       if (hasCustom || activeFilters.vol !== "any") {
@@ -451,7 +447,6 @@ export default function TokenTable({
       }
     }
 
-    // Txns 24h
     {
       const hasCustom = activeFilters.txnsMin !== "" || activeFilters.txnsMax !== "";
       if (hasCustom || activeFilters.txns !== "any") {
@@ -476,7 +471,6 @@ export default function TokenTable({
       }
     }
 
-    // Min 24h Change %
     if (activeFilters.changeMin !== "") {
       const min = Number(activeFilters.changeMin);
       if (!isNaN(min)) {
@@ -692,8 +686,8 @@ export default function TokenTable({
         </div>
       </div>
 
-      {/* ===== MOBILE CONTROLS (sticky under marquee) ===== */}
-      <div className="md:hidden sticky top-12 z-40 -mx-3 px-3 py-2.5 mb-4 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
+      {/* ===== MOBILE CONTROLS (sticky under marquee — top-10 closes the gap) ===== */}
+      <div className="md:hidden sticky top-10 z-40 -mx-3 px-3 py-2.5 mb-4 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative">
             <details className="group">
@@ -768,7 +762,6 @@ export default function TokenTable({
           </button>
         </div>
 
-        {/* Mobile search — only when bottom-nav Search is tapped */}
         {showSearch && (
           <div className="mt-2.5">
             <div className="relative">
@@ -840,7 +833,6 @@ export default function TokenTable({
         </div>
       )}
 
-      {/* ===== FILTERS MODAL ===== */}
       {showFilters && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -852,7 +844,6 @@ export default function TokenTable({
             className="relative flex flex-col w-full max-w-lg md:max-w-2xl max-h-[85vh] rounded-2xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sticky header (both) */}
             <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
               <h2 className="text-base font-medium text-[#f4f6f8]">Filters</h2>
               <button
@@ -863,9 +854,7 @@ export default function TokenTable({
               </button>
             </div>
 
-            {/* Scrollable body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
-              {/* Age */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Age</div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -919,7 +908,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Market Cap */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Market Cap</div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -973,7 +961,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Liquidity */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Liquidity</div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -1027,7 +1014,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Volume 24h */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Volume 24h</div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -1081,7 +1067,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Txns 24h */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Txns 24h</div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -1135,7 +1120,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Min 24h Change % */}
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Min 24h Change %</div>
                 <input
@@ -1149,7 +1133,6 @@ export default function TokenTable({
                 />
               </div>
 
-              {/* Mobile-only: buttons at the end of content (scroll to reach them) */}
               <div className="md:hidden flex items-center justify-end gap-3 pt-4 pb-2 border-t border-[#1c1f26]">
                 <button
                   onClick={handleCancel}
@@ -1166,7 +1149,6 @@ export default function TokenTable({
               </div>
             </div>
 
-            {/* Desktop-only sticky footer */}
             <div className="hidden md:flex flex-shrink-0 items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26]">
               <button
                 onClick={handleCancel}
@@ -1185,7 +1167,6 @@ export default function TokenTable({
         </div>
       )}
 
-      {/* ===== DESKTOP TABLE ===== */}
       <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
         <div className="grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs text-[#8b93a1] uppercase tracking-wider border-b border-[#1c1f26] bg-[#0c0d10]">
           <div className="px-2 py-3"></div>
@@ -1325,7 +1306,6 @@ export default function TokenTable({
         )}
       </div>
 
-      {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
         {pageTokens.length === 0 ? (
           <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
@@ -1409,7 +1389,6 @@ export default function TokenTable({
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-5 text-sm">
           <button
