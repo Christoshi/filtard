@@ -809,18 +809,6 @@ export default function TokenTable({
         )}
       </div>
 
-      {showWatchlistOnly && (
-        <div className="mb-3 flex items-center justify-between text-sm">
-          <span className="text-[#b8ff3d]">★ Showing watchlist only</span>
-          <button
-            onClick={() => setShowWatchlistOnly(false)}
-            className="text-[#8b93a1] hover:text-white"
-          >
-            Show all
-          </button>
-        </div>
-      )}
-
       {!showFilters && activeFilterCount > 0 && (
         <div className="mb-3 flex items-center justify-between text-sm">
           <span className="text-[#8b93a1]">
@@ -846,7 +834,7 @@ export default function TokenTable({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
-              <h2 className="text-base font-medium text-[#f4f6f8]">Customize Filters</h2>
+              <h2 className="text-base font-medium text-[#f4f6f8]">Customize filters</h2>
               <button
                 onClick={clearAll}
                 className="text-xs text-[#8b93a1] hover:text-[#b8ff3d] transition"
