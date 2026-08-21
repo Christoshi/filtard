@@ -206,13 +206,14 @@ export default async function TokenPage({
   const imageUrl = stats.imageUrl || dbToken?.image_url || null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6">
+    <div className="w-full px-4 sm:px-6">
       {/* Top section */}
-      <div className="flex flex-col lg:flex-row lg:items-start gap-6 mb-6">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
         
-        {/* Left: Logo + Name + Curator + Rating */}
-        <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
+        {/* Left block: Logo + texts */}
+        <div className="flex justify-center lg:justify-start">
           <div className="flex items-center gap-4">
+            {/* Logo */}
             {imageUrl ? (
               <img
                 src={imageUrl}
@@ -222,41 +223,43 @@ export default async function TokenPage({
             ) : (
               <div className="h-12 w-12 rounded-full bg-[#1c1f26] flex-shrink-0" />
             )}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 justify-center lg:justify-start">
+
+            {/* Texts - always left aligned */}
+            <div className="min-w-0 text-left">
+              <div className="flex items-center gap-2">
                 <h1 className="text-xl font-semibold truncate">{stats.symbol}</h1>
                 {dbToken?.id && <WatchlistStar tokenId={dbToken.id} />}
               </div>
               <p className="text-sm text-[#8b93a1] truncate">{stats.name}</p>
+
+              {curator && curator.display_name && (
+                <p className="text-sm text-[#8b93a1] mt-1">
+                  Curated by{" "}
+                  <Link
+                    href={`/${curator.display_name}`}
+                    className="text-[#b8ff3d] hover:underline"
+                  >
+                    {curator.display_name}
+                  </Link>
+                </p>
+              )}
+
+              {dbToken?.id && (
+                <div className="mt-2">
+                  <StarRating
+                    tokenId={dbToken.id}
+                    initialAverage={ratings.average}
+                    initialCount={ratings.count}
+                    userRating={null}
+                  />
+                </div>
+              )}
             </div>
           </div>
-
-          {curator && curator.display_name && (
-            <p className="text-sm text-[#8b93a1] mt-2">
-              Curated by{" "}
-              <Link
-                href={`/${curator.display_name}`}
-                className="text-[#b8ff3d] hover:underline"
-              >
-                {curator.display_name}
-              </Link>
-            </p>
-          )}
-
-          {dbToken?.id && (
-            <div className="mt-2">
-              <StarRating
-                tokenId={dbToken.id}
-                initialAverage={ratings.average}
-                initialCount={ratings.count}
-                userRating={null}
-              />
-            </div>
-          )}
         </div>
 
-        {/* Right: Metrics cards */}
-        <div className="flex flex-wrap gap-2 text-sm items-center justify-center lg:justify-start">
+        {/* Metrics cards */}
+        <div className="flex flex-wrap gap-2 text-sm items-center justify-center lg:justify-end">
           <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-[100px]">
             <div className="text-[10px] text-[#8b93a1]">Price</div>
             <div className="font-medium">{formatUsd(stats.priceUsd)}</div>
@@ -340,7 +343,7 @@ export default async function TokenPage({
         </div>
       </div>
 
-      {/* ===== PREMIUM THESIS CARD ===== */}
+      {/* ===== PREMIUM THESIS CARD (still tighter) ===== */}
       {thesis && (
         <div className="mb-8">
           <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 max-w-2xl mx-auto">
@@ -359,7 +362,7 @@ export default async function TokenPage({
         </div>
       )}
 
-      {/* Chart */}
+      {/* Chart - full width */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
         <div className="absolute top-3 right-3 z-10 flex gap-2">
           <a
