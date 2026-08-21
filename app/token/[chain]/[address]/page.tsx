@@ -207,10 +207,10 @@ export default async function TokenPage({
 
   return (
     <div className="w-full px-4 sm:px-6">
-      {/* Top section */}
-      <div className="flex flex-col lg:flex-row lg:items-start gap-5 lg:gap-8 mb-6">
+      {/* ===== TOP SECTION ===== */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center gap-5 lg:gap-6 mb-6">
         
-        {/* Left block: Logo + texts */}
+        {/* Logo + Name block */}
         <div className="flex justify-center lg:justify-start">
           <div className="flex items-center gap-4">
             {imageUrl ? (
@@ -256,14 +256,14 @@ export default async function TokenPage({
           </div>
         </div>
 
-        {/* Metrics cards - closer on desktop, pack tightly on mobile */}
-        <div className="flex flex-wrap gap-2 text-sm items-center justify-center lg:justify-start">
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-[90px]">
+        {/* Metrics cards */}
+        <div className="flex flex-wrap gap-2 text-sm w-full lg:w-auto">
+          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
             <div className="text-[10px] text-[#8b93a1]">Price</div>
             <div className="font-medium">{formatUsd(stats.priceUsd)}</div>
           </div>
 
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-[90px]">
+          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
             <div className="text-[10px] text-[#8b93a1]">24h</div>
             <div
               className={`font-medium ${
@@ -274,22 +274,22 @@ export default async function TokenPage({
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-[90px]">
+          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
             <div className="text-[10px] text-[#8b93a1]">Volume</div>
             <div className="font-medium">{formatUsd(stats.volume24h)}</div>
           </div>
 
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-[90px]">
+          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
             <div className="text-[10px] text-[#8b93a1]">Liquidity</div>
             <div className="font-medium">{formatUsd(stats.liquidity)}</div>
           </div>
 
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-[90px]">
+          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
             <div className="text-[10px] text-[#8b93a1]">Mcap</div>
             <div className="font-medium">{formatUsd(stats.marketCap)}</div>
           </div>
 
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-[130px]">
+          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[120px] lg:flex-none lg:min-w-[130px]">
             <div className="text-[10px] text-[#8b93a1]">Contract</div>
             <div className="font-medium flex items-center">
               {address.slice(0, 6)}…{address.slice(-4)}
@@ -298,7 +298,7 @@ export default async function TokenPage({
           </div>
 
           {socialLinks.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-1 min-w-[80px] lg:flex-none justify-center lg:justify-start">
               {socialLinks.map((link, i) => {
                 const type = link.type.toLowerCase();
                 let icon = null;
