@@ -779,7 +779,6 @@ export default function TokenTable({
             </div>
 
             <div className="flex-1 overflow-y-auto filters-scroll px-5 py-5 space-y-6">
-              {/* Age */}
               <div>
                 <p className="text-sm font-medium mb-2.5">Age</p>
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -816,7 +815,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Market Cap */}
               <div>
                 <p className="text-sm font-medium mb-2.5">Market Cap</p>
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -853,7 +851,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Liquidity */}
               <div>
                 <p className="text-sm font-medium mb-2.5">Liquidity</p>
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -890,7 +887,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Volume */}
               <div>
                 <p className="text-sm font-medium mb-2.5">Volume (24h)</p>
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -927,7 +923,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Txns */}
               <div>
                 <p className="text-sm font-medium mb-2.5">Transactions (24h)</p>
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -964,7 +959,6 @@ export default function TokenTable({
                 </div>
               </div>
 
-              {/* Change */}
               <div>
                 <p className="text-sm font-medium mb-2.5">Min 24h Change (%)</p>
                 <input
@@ -1196,19 +1190,24 @@ export default function TokenTable({
                   </div>
                 </div>
 
-                {/* ===== UPDATED SECOND ROW (centered) ===== */}
-<div className="flex items-center justify-center gap-1.5 px-3 pb-2.5 text-[11px] whitespace-nowrap overflow-x-auto">
-  <span className="text-[#8b93a1]">Mcap</span>
-  <span className="text-white font-medium">{formatUsd(token.stats?.marketCap ?? null)}</span>
-  <span className="text-[#5c6573]">·</span>
-  <span className="text-[#8b93a1]">Vol</span>
-  <span className="text-white font-medium">{formatUsd(token.stats?.volume24h ?? null)}</span>
-  <span className="text-[#5c6573]">·</span>
-  <span className="text-[#8b93a1]">Liq</span>
-  <span className="text-white font-medium">{formatUsd(token.stats?.liquidity ?? null)}</span>
-  <span className="text-[#5c6573]">·</span>
-  <span className="text-white font-medium">{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
-</div>
+                {/* Centered second row */}
+                <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5 text-[11px] whitespace-nowrap overflow-x-auto">
+                  <span className="text-[#8b93a1]">Mcap</span>
+                  <span className="text-white font-medium">{formatUsd(token.stats?.marketCap ?? null)}</span>
+                  <span className="text-[#5c6573]">·</span>
+                  <span className="text-[#8b93a1]">Vol</span>
+                  <span className="text-white font-medium">{formatUsd(token.stats?.volume24h ?? null)}</span>
+                  <span className="text-[#5c6573]">·</span>
+                  <span className="text-[#8b93a1]">Liq</span>
+                  <span className="text-white font-medium">{formatUsd(token.stats?.liquidity ?? null)}</span>
+                  <span className="text-[#5c6573]">·</span>
+                  <span className="text-white font-medium">{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
+                </div>
+              </Link>
+            );
+          })
+        )}
+      </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
