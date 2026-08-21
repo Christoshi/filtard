@@ -289,10 +289,10 @@ export default async function TokenPage({
             <div className="font-medium">{formatUsd(stats.marketCap)}</div>
           </div>
 
-          {/* ===== CA card (updated) ===== */}
+          {/* ===== FIXED CA CARD ===== */}
           <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[70px] lg:flex-none lg:min-w-[80px]">
-            <div className="text-[10px] text-[#8b93a1]">CA</div>
-            <div className="font-medium flex items-center">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-[#8b93a1]">CA</span>
               <CopyButton text={address} />
             </div>
           </div>
@@ -355,24 +355,13 @@ export default async function TokenPage({
               {renderThesis(thesis)}
             </div>
 
-            <ThesisShare symbol={stats.symbol} thesis={thesis} />
+            <ThesisShare symbol={stats.symbol} />
           </div>
         </div>
       )}
 
       {/* Chart - full width */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
-        <div className="absolute top-3 right-3 z-10 flex gap-2">
-          <a
-            href="https://fomo.family/r/christoshi_"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md bg-[#b8ff3d] px-3 py-1.5 text-xs font-medium text-black hover:bg-[#a3e635] transition"
-          >
-            Trade on Fomo
-          </a>
-        </div>
-
         <div style={{ height: "520px" }}>
           <iframe src={embedUrl} className="w-full h-full" title="chart" />
         </div>
