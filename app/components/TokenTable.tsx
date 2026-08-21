@@ -750,8 +750,267 @@ export default function TokenTable({
         </div>
       </div>
 
-      {/* ===== FILTERS PANEL (unchanged) ===== */}
-      {/* ... (the full filters panel code remains exactly as before — I kept it intact) ... */}
+      {/* ===== FILTERS PANEL ===== */}
+      {showFilters && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={handleCancel}
+          />
+          <div className="relative w-full max-w-lg max-h-[85vh] md:max-h-[80vh] rounded-t-2xl md:rounded-2xl border border-[#1c1f26] bg-[#0c0d10] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
+              <h3 className="text-base font-semibold">Filters</h3>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={clearAll}
+                  className="text-sm text-[#8b93a1] hover:text-white transition"
+                >
+                  Clear all
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="text-[#8b93a1] hover:text-white transition"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto filters-scroll px-5 py-5 space-y-6">
+              {/* Age */}
+              <div>
+                <p className="text-sm font-medium mb-2.5">Age</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {AGE_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, age: o.id, ageMin: "", ageMax: "" }))}
+                      className={chipClass(draft.age === o.id && !draft.ageMin && !draft.ageMax)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={draft.ageMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, ageMin: e.target.value, age: "any" }))
+                    }
+                    placeholder="Min hours"
+                    className={inputClass}
+                  />
+                  <span className="text-[#5c6573]">–</span>
+                  <input
+                    type="number"
+                    value={draft.ageMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, ageMax: e.target.value, age: "any" }))
+                    }
+                    placeholder="Max hours"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Market Cap */}
+              <div>
+                <p className="text-sm font-medium mb-2.5">Market Cap</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {MCAP_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, mcap: o.id, mcapMin: "", mcapMax: "" }))}
+                      className={chipClass(draft.mcap === o.id && !draft.mcapMin && !draft.mcapMax)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={draft.mcapMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, mcapMin: e.target.value, mcap: "any" }))
+                    }
+                    placeholder="Min $"
+                    className={inputClass}
+                  />
+                  <span className="text-[#5c6573]">–</span>
+                  <input
+                    type="number"
+                    value={draft.mcapMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, mcapMax: e.target.value, mcap: "any" }))
+                    }
+                    placeholder="Max $"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Liquidity */}
+              <div>
+                <p className="text-sm font-medium mb-2.5">Liquidity</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {LIQ_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, liq: o.id, liqMin: "", liqMax: "" }))}
+                      className={chipClass(draft.liq === o.id && !draft.liqMin && !draft.liqMax)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={draft.liqMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, liqMin: e.target.value, liq: "any" }))
+                    }
+                    placeholder="Min $"
+                    className={inputClass}
+                  />
+                  <span className="text-[#5c6573]">–</span>
+                  <input
+                    type="number"
+                    value={draft.liqMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, liqMax: e.target.value, liq: "any" }))
+                    }
+                    placeholder="Max $"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Volume */}
+              <div>
+                <p className="text-sm font-medium mb-2.5">Volume (24h)</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {VOL_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, vol: o.id, volMin: "", volMax: "" }))}
+                      className={chipClass(draft.vol === o.id && !draft.volMin && !draft.volMax)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={draft.volMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, volMin: e.target.value, vol: "any" }))
+                    }
+                    placeholder="Min $"
+                    className={inputClass}
+                  />
+                  <span className="text-[#5c6573]">–</span>
+                  <input
+                    type="number"
+                    value={draft.volMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, volMax: e.target.value, vol: "any" }))
+                    }
+                    placeholder="Max $"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Txns */}
+              <div>
+                <p className="text-sm font-medium mb-2.5">Transactions (24h)</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {TXNS_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setDraft((d) => ({ ...d, txns: o.id, txnsMin: "", txnsMax: "" }))}
+                      className={chipClass(draft.txns === o.id && !draft.txnsMin && !draft.txnsMax)}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={draft.txnsMin}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, txnsMin: e.target.value, txns: "any" }))
+                    }
+                    placeholder="Min"
+                    className={inputClass}
+                  />
+                  <span className="text-[#5c6573]">–</span>
+                  <input
+                    type="number"
+                    value={draft.txnsMax}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, txnsMax: e.target.value, txns: "any" }))
+                    }
+                    placeholder="Max"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Change */}
+              <div>
+                <p className="text-sm font-medium mb-2.5">Min 24h Change (%)</p>
+                <input
+                  type="number"
+                  value={draft.changeMin}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, changeMin: e.target.value }))
+                  }
+                  placeholder="e.g. 10"
+                  className={inputClass + " max-w-[180px]"}
+                />
+              </div>
+
+              <div className="md:hidden flex items-center justify-end gap-3 pt-6 mt-2 pb-24 border-t border-[#1c1f26]">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="px-5 py-2 rounded-lg text-sm font-medium bg-[#b8ff3d] text-black hover:bg-[#c8ff5d] transition"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+
+            <div className="hidden md:flex items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26]">
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApply}
+                className="px-5 py-2 rounded-lg text-sm font-medium bg-[#b8ff3d] text-black hover:bg-[#c8ff5d] transition"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===== DESKTOP TABLE ===== */}
       <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
@@ -937,14 +1196,18 @@ export default function TokenTable({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 px-3 pb-2.5 pl-[52px] text-[11px] text-[#8b93a1]">
-                  <span>Mcap {formatUsd(token.stats?.marketCap ?? null)}</span>
-                  <span>·</span>
-                  <span>Vol {formatUsd(token.stats?.volume24h ?? null)}</span>
-                  <span>·</span>
-                  <span>Liq {formatUsd(token.stats?.liquidity ?? null)}</span>
-                  <span>·</span>
-                  <span>{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
+                {/* ===== UPDATED SECOND ROW ===== */}
+                <div className="flex items-center gap-1.5 px-3 pb-2.5 text-[11px] whitespace-nowrap overflow-x-auto">
+                  <span className="text-[#8b93a1]">Mcap</span>
+                  <span className="text-white font-medium">{formatUsd(token.stats?.marketCap ?? null)}</span>
+                  <span className="text-[#5c6573]">·</span>
+                  <span className="text-[#8b93a1]">Vol</span>
+                  <span className="text-white font-medium">{formatUsd(token.stats?.volume24h ?? null)}</span>
+                  <span className="text-[#5c6573]">·</span>
+                  <span className="text-[#8b93a1]">Liq</span>
+                  <span className="text-white font-medium">{formatUsd(token.stats?.liquidity ?? null)}</span>
+                  <span className="text-[#5c6573]">·</span>
+                  <span className="text-white font-medium">{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
                 </div>
               </Link>
             );
@@ -952,7 +1215,7 @@ export default function TokenTable({
         )}
       </div>
 
-      {/* Pagination (unchanged) */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-6">
           <button
