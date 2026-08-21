@@ -846,7 +846,7 @@ export default function TokenTable({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
-              <h2 className="text-base font-medium text-[#f4f6f8]">Filters</h2>
+              <h2 className="text-base font-medium text-[#f4f6f8]">Customize Filters</h2>
               <button
                 onClick={clearAll}
                 className="text-xs text-[#8b93a1] hover:text-[#b8ff3d] transition"

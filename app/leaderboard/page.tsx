@@ -251,7 +251,7 @@ export default async function LeaderboardPage() {
             </p>
             <p className="mt-1 text-xs text-[#8b93a1] leading-relaxed max-w-2xl">
               Multiplier is the average performance of a curator’s approved tokens
-              (current market cap ÷ market cap at approval), with a maximum of 10x.
+              (current market cap ÷ market cap at approval), capped at 10x.
             </p>
           </div>
         </>
