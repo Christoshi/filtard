@@ -557,7 +557,7 @@ export default function TokenTable({
 
   return (
     <div className="w-full">
-      {/* ===== DESKTOP CONTROLS (sticky under marquee) ===== */}
+      {/* ===== DESKTOP CONTROLS ===== */}
       <div className="hidden md:flex flex-wrap items-center gap-3 sticky top-12 z-40 -mx-6 px-6 py-3 mb-5 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
         <div className="relative">
           <details className="group">
@@ -686,7 +686,7 @@ export default function TokenTable({
         </div>
       </div>
 
-      {/* ===== MOBILE CONTROLS (sticky under marquee — top-10 closes the gap) ===== */}
+      {/* ===== MOBILE CONTROLS ===== */}
       <div className="md:hidden sticky top-10 z-40 -mx-3 px-3 py-2.5 mb-4 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative">
@@ -833,6 +833,7 @@ export default function TokenTable({
         </div>
       )}
 
+      {/* ===== FILTERS MODAL ===== */}
       {showFilters && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -1132,24 +1133,10 @@ export default function TokenTable({
                   className={inputClass + " max-w-[180px]"}
                 />
               </div>
-
-              <div className="md:hidden flex items-center justify-end gap-3 pt-4 pb-2 border-t border-[#1c1f26]">
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleApply}
-                  className="px-5 py-2 rounded-lg text-sm font-medium bg-[#b8ff3d] text-black hover:bg-[#c8ff5d] transition"
-                >
-                  Apply
-                </button>
-              </div>
             </div>
 
-            <div className="hidden md:flex flex-shrink-0 items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26]">
+            {/* Sticky footer — Cancel / Apply (mobile + desktop) */}
+            <div className="flex-shrink-0 flex items-center justify-end gap-3 px-5 py-3 border-t border-[#1c1f26] bg-[#0c0d10]">
               <button
                 onClick={handleCancel}
                 className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
@@ -1167,6 +1154,7 @@ export default function TokenTable({
         </div>
       )}
 
+      {/* ===== DESKTOP TABLE ===== */}
       <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
         <div className="grid grid-cols-[40px_40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs text-[#8b93a1] uppercase tracking-wider border-b border-[#1c1f26] bg-[#0c0d10]">
           <div className="px-2 py-3"></div>
@@ -1306,6 +1294,7 @@ export default function TokenTable({
         )}
       </div>
 
+      {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
         {pageTokens.length === 0 ? (
           <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
