@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getCurrentUser, supabase } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -44,8 +44,7 @@ export default function StarRating({
       if (!error) {
         setMyRating(value);
         // Simple local recalculation
-        const newAverage =
-          (average * count - myRating + value) / count;
+        const newAverage = (average * count - myRating + value) / count;
         setAverage(Number(newAverage.toFixed(1)));
       }
     } else {
@@ -69,7 +68,13 @@ export default function StarRating({
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
+      {/* Rating score first */}
+      <span className="text-sm font-medium text-white">
+        {count > 0 ? average : "—"}
+      </span>
+
+      {/* Stars */}
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -78,7 +83,7 @@ export default function StarRating({
             onClick={() => handleRate(star)}
             onMouseEnter={() => setHover(star)}
             onMouseLeave={() => setHover(0)}
-            className="text-xl transition disabled:opacity-50"
+            className="text-lg leading-none transition disabled:opacity-50"
           >
             <span
               className={
@@ -91,18 +96,6 @@ export default function StarRating({
             </span>
           </button>
         ))}
-      </div>
-
-      <div className="text-sm text-[#8b93a1]">
-        {count > 0 ? (
-          <>
-            <span className="text-white font-medium">{average}</span>
-            <span className="mx-1">·</span>
-            {count} rating{count !== 1 ? "s" : ""}
-          </>
-        ) : (
-          "No ratings yet"
-        )}
       </div>
     </div>
   );
