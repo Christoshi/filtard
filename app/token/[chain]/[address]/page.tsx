@@ -289,10 +289,10 @@ export default async function TokenPage({
             <div className="font-medium">{formatUsd(stats.marketCap)}</div>
           </div>
 
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[120px] lg:flex-none lg:min-w-[130px]">
-            <div className="text-[10px] text-[#8b93a1]">Contract</div>
+          {/* ===== CA card (updated) ===== */}
+          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[70px] lg:flex-none lg:min-w-[80px]">
+            <div className="text-[10px] text-[#8b93a1]">CA</div>
             <div className="font-medium flex items-center">
-              {address.slice(0, 6)}…{address.slice(-4)}
               <CopyButton text={address} />
             </div>
           </div>
