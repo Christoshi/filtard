@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StarRating from "@/app/components/StarRating";
 import WatchlistStar from "@/app/components/WatchlistStar";
-import ThesisShare from "@/app/components/ThesisShare";
+import ThesisCard from "@/app/components/ThesisCard";
 
 export const revalidate = 20;
 
@@ -120,47 +120,6 @@ function formatPct(n: number | null) {
   return `${sign}${n.toFixed(2)}%`;
 }
 
-function renderThesis(text: string) {
-  if (!text) return null;
-
-  let html = text.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#b8ff3d] hover:underline">$1</a>'
-  );
-
-  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong class='text-white'>$1</strong>");
-
-  const lines = html.split("\n");
-  const elements: React.ReactNode[] = [];
-
-  lines.forEach((line, i) => {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      elements.push(<div key={i} className="h-2" />);
-      return;
-    }
-
-    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-      elements.push(
-        <div key={i} className="flex gap-2.5">
-          <span className="text-[#b8ff3d] mt-0.5 flex-shrink-0">•</span>
-          <span dangerouslySetInnerHTML={{ __html: trimmed.slice(2) }} />
-        </div>
-      );
-    } else {
-      elements.push(
-        <p key={i} dangerouslySetInnerHTML={{ __html: trimmed }} />
-      );
-    }
-  });
-
-  return (
-    <div className="space-y-2 text-[15px] leading-relaxed text-[#c8cdd5]">
-      {elements}
-    </div>
-  );
-}
-
 export default async function TokenPage({
   params,
 }: {
@@ -202,7 +161,6 @@ export default async function TokenPage({
     ? dbToken.profiles[0]
     : dbToken?.profiles;
 
-  const thesis = dbToken?.thesis?.trim() || null;
   const imageUrl = stats.imageUrl || dbToken?.image_url || null;
 
   return (
@@ -297,7 +255,7 @@ export default async function TokenPage({
             </div>
           </div>
 
-          {/* Social links - now properly wrap */}
+          {/* Social links */}
           {socialLinks.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
               {socialLinks.map((link, i) => {
@@ -342,24 +300,13 @@ export default async function TokenPage({
         </div>
       </div>
 
-      {/* ===== THESIS CARD ===== */}
-      {thesis && (
-        <div className="mb-8">
-          <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 w-full lg:max-w-2xl lg:mx-auto">
-            <div className="mb-3">
-              <h3 className="text-sm font-medium text-[#b8ff3d]">
-                The Thesis
-              </h3>
-            </div>
-
-            <div>
-              {renderThesis(thesis)}
-            </div>
-
-            <ThesisShare symbol={stats.symbol} />
-          </div>
-        </div>
-      )}
+      {/* ===== THESIS CARD (with Edit / Add) ===== */}
+      <ThesisCard
+        tokenId={dbToken?.id || null}
+        initialThesis={dbToken?.thesis || null}
+        submittedBy={dbToken?.submitted_by || null}
+        symbol={stats.symbol}
+      />
 
       {/* Chart */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
