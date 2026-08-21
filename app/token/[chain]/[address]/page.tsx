@@ -3,6 +3,7 @@ import CopyButton from "@/app/copy-button";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StarRating from "@/app/components/StarRating";
+import WatchlistStar from "@/app/components/WatchlistStar";
 
 export const revalidate = 20;
 
@@ -175,6 +176,7 @@ export default async function TokenPage({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-semibold truncate">{stats.symbol}</h1>
+              {dbToken?.id && <WatchlistStar tokenId={dbToken.id} />}
             </div>
             <p className="text-sm text-[#8b93a1] truncate">{stats.name}</p>
 
