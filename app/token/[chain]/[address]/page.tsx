@@ -154,7 +154,6 @@ export default async function TokenPage({
     });
   }
 
-  // Fix: Supabase can return profiles as object or array
   const curator = Array.isArray(dbToken?.profiles)
     ? dbToken.profiles[0]
     : dbToken?.profiles;
@@ -180,15 +179,15 @@ export default async function TokenPage({
             </div>
             <p className="text-sm text-[#8b93a1] truncate">{stats.name}</p>
 
-            {/* Curated by */}
-            {curator && (
+            {/* Curated by – FIXED LINK */}
+            {curator && curator.display_name && (
               <p className="text-sm text-[#8b93a1] mt-1">
                 Curated by{" "}
                 <Link
-                  href={`/curator/${curator.id}`}
+                  href={`/${curator.display_name}`}
                   className="text-[#b8ff3d] hover:underline"
                 >
-                  {curator.display_name || "Anonymous"}
+                  {curator.display_name}
                 </Link>
               </p>
             )}
@@ -248,7 +247,6 @@ export default async function TokenPage({
             </div>
           </div>
 
-          {/* Social icons */}
           {socialLinks.length > 0 && (
             <div className="flex items-center gap-2 ml-1">
               {socialLinks.map((link, i) => {
