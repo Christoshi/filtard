@@ -1196,24 +1196,19 @@ export default function TokenTable({
                   </div>
                 </div>
 
-                {/* ===== UPDATED SECOND ROW ===== */}
-                <div className="flex items-center gap-1.5 px-3 pb-2.5 text-[11px] whitespace-nowrap overflow-x-auto">
-                  <span className="text-[#8b93a1]">Mcap</span>
-                  <span className="text-white font-medium">{formatUsd(token.stats?.marketCap ?? null)}</span>
-                  <span className="text-[#5c6573]">·</span>
-                  <span className="text-[#8b93a1]">Vol</span>
-                  <span className="text-white font-medium">{formatUsd(token.stats?.volume24h ?? null)}</span>
-                  <span className="text-[#5c6573]">·</span>
-                  <span className="text-[#8b93a1]">Liq</span>
-                  <span className="text-white font-medium">{formatUsd(token.stats?.liquidity ?? null)}</span>
-                  <span className="text-[#5c6573]">·</span>
-                  <span className="text-white font-medium">{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
-                </div>
-              </Link>
-            );
-          })
-        )}
-      </div>
+                {/* ===== UPDATED SECOND ROW (centered) ===== */}
+<div className="flex items-center justify-center gap-1.5 px-3 pb-2.5 text-[11px] whitespace-nowrap overflow-x-auto">
+  <span className="text-[#8b93a1]">Mcap</span>
+  <span className="text-white font-medium">{formatUsd(token.stats?.marketCap ?? null)}</span>
+  <span className="text-[#5c6573]">·</span>
+  <span className="text-[#8b93a1]">Vol</span>
+  <span className="text-white font-medium">{formatUsd(token.stats?.volume24h ?? null)}</span>
+  <span className="text-[#5c6573]">·</span>
+  <span className="text-[#8b93a1]">Liq</span>
+  <span className="text-white font-medium">{formatUsd(token.stats?.liquidity ?? null)}</span>
+  <span className="text-[#5c6573]">·</span>
+  <span className="text-white font-medium">{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
+</div>
 
       {/* Pagination */}
       {totalPages > 1 && (

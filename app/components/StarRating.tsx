@@ -34,7 +34,6 @@ export default function StarRating({
     setLoading(true);
 
     if (myRating) {
-      // Update existing rating
       const { error } = await supabase
         .from("ratings")
         .update({ stars: value })
@@ -43,12 +42,10 @@ export default function StarRating({
 
       if (!error) {
         setMyRating(value);
-        // Simple local recalculation
         const newAverage = (average * count - myRating + value) / count;
         setAverage(Number(newAverage.toFixed(1)));
       }
     } else {
-      // Insert new rating
       const { error } = await supabase.from("ratings").insert({
         token_id: tokenId,
         user_id: user.id,
@@ -69,12 +66,11 @@ export default function StarRating({
 
   return (
     <div className="flex items-center gap-2">
-      {/* Rating score first */}
+      {/* Always show the number (0 when no ratings) */}
       <span className="text-sm font-medium text-white">
-        {count > 0 ? average : "—"}
+        {count > 0 ? average : 0}
       </span>
 
-      {/* Stars */}
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
