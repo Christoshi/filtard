@@ -708,6 +708,7 @@ export default function TokenTable({
             </details>
           </div>
 
+          {/* Mobile New button – now with leaf icon */}
           <Link
             href={buildUrl({ chain: currentChain, new: !onlyNew })}
             className={
@@ -716,6 +717,19 @@ export default function TokenTable({
                 : mutedBtn + " text-xs px-3 py-1.5"
             }
           >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
             New
           </Link>
 
@@ -1190,7 +1204,6 @@ export default function TokenTable({
                   </div>
                 </div>
 
-                {/* Centered second row */}
                 <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5 text-[11px] whitespace-nowrap overflow-x-auto">
                   <span className="text-[#8b93a1]">Mcap</span>
                   <span className="text-white font-medium">{formatUsd(token.stats?.marketCap ?? null)}</span>
