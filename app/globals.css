@@ -18,3 +18,26 @@
 .marquee-track:hover {
   animation-play-state: paused;
 }
+
+/* Dark scrollbar for Filters panel */
+.filters-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3f4b #0c0d10;
+}
+
+.filters-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.filters-scroll::-webkit-scrollbar-track {
+  background: #0c0d10;
+}
+
+.filters-scroll::-webkit-scrollbar-thumb {
+  background: #3a3f4b;
+  border-radius: 4px;
+}
+
+.filters-scroll::-webkit-scrollbar-thumb:hover {
+  background: #5c6573;
+}

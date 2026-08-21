@@ -855,7 +855,7 @@ export default function TokenTable({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            <div className="filters-scroll flex-1 overflow-y-auto p-5 space-y-5">
               <div>
                 <div className="text-xs text-[#8b93a1] mb-2">Age</div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -1135,8 +1135,7 @@ export default function TokenTable({
               </div>
 
               {/* Mobile-only: buttons inside scroll content */}
-              <div className="md:hidden flex items-center justify-end gap-3 pt-6 mt-2 border-t border-[#1c1f26]">
-                <button
+              <div className="md:hidden flex items-center justify-end gap-3 pt-6 mt-2 pb-24 border-t border-[#1c1f26]">                <button
                   onClick={handleCancel}
                   className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
                 >
