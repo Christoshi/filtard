@@ -136,7 +136,7 @@ function renderThesis(text: string) {
   lines.forEach((line, i) => {
     const trimmed = line.trim();
     if (!trimmed) {
-      elements.push(<div key={i} className="h-3" />);
+      elements.push(<div key={i} className="h-2" />);
       return;
     }
 
@@ -155,7 +155,7 @@ function renderThesis(text: string) {
   });
 
   return (
-    <div className="space-y-3 text-[15px] leading-relaxed text-[#c8cdd5]">
+    <div className="space-y-2 text-[15px] leading-relaxed text-[#c8cdd5]">
       {elements}
     </div>
   );
@@ -206,7 +206,7 @@ export default async function TokenPage({
   const imageUrl = stats.imageUrl || dbToken?.image_url || null;
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6">
       {/* Top section */}
       <div className="flex flex-col lg:flex-row lg:items-start gap-6 mb-6">
         <div className="flex items-center gap-4 min-w-0">
@@ -336,40 +336,19 @@ export default async function TokenPage({
         </div>
       </div>
 
-      {/* ===== PREMIUM THESIS CARD ===== */}
+      {/* ===== PREMIUM THESIS CARD (no logo / ticker / name) ===== */}
       {thesis && (
-        <div className="relative mb-8">
-          {/* Floating token image */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-7 z-10">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt=""
-                className="h-14 w-14 rounded-full object-cover ring-[5px] ring-[#0a0b0e] shadow-lg"
-              />
-            ) : (
-              <div className="h-14 w-14 rounded-full bg-[#1c1f26] ring-[5px] ring-[#0a0b0e]" />
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] pt-11 pb-6 px-6 sm:px-8">
-            {/* Ticker + Name (centered under image) */}
-            <div className="text-center mb-6">
-              <div className="text-lg font-semibold text-white tracking-tight">
-                ${stats.symbol}
-              </div>
-              <div className="text-sm text-[#8b93a1] mt-0.5">{stats.name}</div>
-            </div>
-
+        <div className="mb-8">
+          <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 max-w-2xl mx-auto">
             {/* "The Thesis" - left aligned, sentence case */}
-            <div className="mb-4">
+            <div className="mb-3">
               <h3 className="text-sm font-medium text-[#b8ff3d]">
                 The Thesis
               </h3>
             </div>
 
-            {/* Thesis body */}
-            <div className="max-w-3xl">
+            {/* Thesis body - tightened spacing */}
+            <div>
               {renderThesis(thesis)}
             </div>
 
