@@ -17,7 +17,7 @@ export default function ThesisShare({
     <div className="mt-5 pt-4 border-t border-[#1c1f26] flex items-center gap-3">
       <button
         onClick={handleShareX}
-        className="rounded-md bg-[#b8ff3d] px-3 py-1.5 text-xs font-medium text-black hover:bg-[#a3e635] transition flex items-center gap-1.5"
+        className="text-xs text-[#b8ff3d] hover:text-white border border-[#2a2e38] hover:border-[#3a3f4b] bg-[#101215] rounded-lg px-3.5 py-1.5 transition flex items-center gap-1.5"
       >
         Share to
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">

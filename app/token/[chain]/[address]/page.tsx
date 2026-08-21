@@ -289,7 +289,7 @@ export default async function TokenPage({
             <div className="font-medium">{formatUsd(stats.marketCap)}</div>
           </div>
 
-          {/* ===== FIXED CA CARD ===== */}
+          {/* CA card */}
           <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[70px] lg:flex-none lg:min-w-[80px]">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-[#8b93a1]">CA</span>
@@ -297,8 +297,9 @@ export default async function TokenPage({
             </div>
           </div>
 
+          {/* Social links - now properly wrap */}
           {socialLinks.length > 0 && (
-            <div className="flex items-center gap-2 flex-1 min-w-[80px] lg:flex-none justify-center lg:justify-start">
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
               {socialLinks.map((link, i) => {
                 const type = link.type.toLowerCase();
                 let icon = null;
@@ -360,7 +361,7 @@ export default async function TokenPage({
         </div>
       )}
 
-      {/* Chart - full width */}
+      {/* Chart */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
         <div style={{ height: "520px" }}>
           <iframe src={embedUrl} className="w-full h-full" title="chart" />
