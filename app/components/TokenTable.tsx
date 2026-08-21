@@ -294,7 +294,6 @@ export default function TokenTable({
     setShowFilters(false);
   }
 
-  // Clear all is permanent — clears both draft and applied immediately
   function clearAll() {
     setDraft({ ...DEFAULT_FILTERS });
     setApplied({ ...DEFAULT_FILTERS });
@@ -352,7 +351,7 @@ export default function TokenTable({
       );
     }
 
-    // Age (custom hours take priority, otherwise preset)
+    // Age
     {
       const hasCustom = activeFilters.ageMin !== "" || activeFilters.ageMax !== "";
       if (hasCustom || activeFilters.age !== "any") {
@@ -804,7 +803,7 @@ export default function TokenTable({
             className="relative flex flex-col w-full max-w-lg md:max-w-2xl max-h-[85vh] rounded-2xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sticky header */}
+            {/* Sticky header (both) */}
             <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
               <h2 className="text-base font-medium text-[#f4f6f8]">Filters</h2>
               <button
@@ -1100,10 +1099,26 @@ export default function TokenTable({
                   className={inputClass + " max-w-[180px]"}
                 />
               </div>
+
+              {/* Mobile-only: buttons at the end of content (scroll to reach them) */}
+              <div className="md:hidden flex items-center justify-end gap-3 pt-4 pb-2 border-t border-[#1c1f26]">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="px-5 py-2 rounded-lg text-sm font-medium bg-[#b8ff3d] text-black hover:bg-[#c8ff5d] transition"
+                >
+                  Apply
+                </button>
+              </div>
             </div>
 
-            {/* Sticky footer */}
-            <div className="flex-shrink-0 flex items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26]">
+            {/* Desktop-only sticky footer */}
+            <div className="hidden md:flex flex-shrink-0 items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26]">
               <button
                 onClick={handleCancel}
                 className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
