@@ -1133,10 +1133,26 @@ export default function TokenTable({
                   className={inputClass + " max-w-[180px]"}
                 />
               </div>
+
+              {/* Mobile-only: buttons inside scroll content */}
+              <div className="md:hidden flex items-center justify-end gap-3 pt-6 mt-2 border-t border-[#1c1f26]">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="px-5 py-2 rounded-lg text-sm font-medium bg-[#b8ff3d] text-black hover:bg-[#c8ff5d] transition"
+                >
+                  Apply
+                </button>
+              </div>
             </div>
 
-            {/* Sticky footer — Cancel / Apply (mobile + desktop) */}
-            <div className="flex-shrink-0 flex items-center justify-end gap-3 px-5 py-3 border-t border-[#1c1f26] bg-[#0c0d10]">
+            {/* Desktop-only sticky footer */}
+            <div className="hidden md:flex flex-shrink-0 items-center justify-end gap-3 px-5 py-4 border-t border-[#1c1f26]">
               <button
                 onClick={handleCancel}
                 className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
