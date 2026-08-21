@@ -563,8 +563,8 @@ export default function TokenTable({
 
   return (
     <div className="w-full">
-      {/* ===== DESKTOP CONTROLS ===== */}
-      <div className="hidden md:flex flex-wrap items-center gap-3 mb-5">
+      {/* ===== DESKTOP CONTROLS (sticky under marquee) ===== */}
+      <div className="hidden md:flex flex-wrap items-center gap-3 sticky top-12 z-40 -mx-6 px-6 py-3 mb-5 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
         <div className="relative">
           <details className="group">
             <summary className={`${mutedBtn} cursor-pointer list-none`}>
@@ -692,79 +692,128 @@ export default function TokenTable({
         </div>
       </div>
 
-      {/* ===== MOBILE CONTROLS ===== */}
-      <div className="md:hidden flex flex-wrap items-center gap-2.5 mb-4">
-        <div className="relative">
-          <details className="group">
-            <summary className={`${mutedBtn} cursor-pointer list-none text-xs px-3 py-1.5`}>
-              <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
+      {/* ===== MOBILE CONTROLS (sticky under marquee) ===== */}
+      <div className="md:hidden sticky top-12 z-40 -mx-3 px-3 py-2.5 mb-4 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative">
+            <details className="group">
+              <summary className={`${mutedBtn} cursor-pointer list-none text-xs px-3 py-1.5`}>
+                <span className="text-[#f4f6f8] font-medium">{currentChainLabel}</span>
+                <svg
+                  className="w-3.5 h-3.5 text-[#8b93a1] group-open:rotate-180 transition"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </summary>
+              <div className="absolute left-0 mt-2 w-44 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
+                {CHAINS.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={buildUrl({ chain: c.id, new: onlyNew })}
+                    className={`block px-3 py-2 text-sm transition ${
+                      currentChain === c.id
+                        ? "bg-[#b8ff3d]/10 text-[#b8ff3d]"
+                        : "text-[#f4f6f8] hover:bg-[#1c1f26]"
+                    }`}
+                  >
+                    {c.label}
+                  </Link>
+                ))}
+              </div>
+            </details>
+          </div>
+
+          <Link
+            href={buildUrl({ chain: currentChain, new: !onlyNew })}
+            className={
+              onlyNew
+                ? mutedBtnActive + " text-xs px-3 py-1.5"
+                : mutedBtn + " text-xs px-3 py-1.5"
+            }
+          >
+            New
+          </Link>
+
+          <button
+            onClick={openFilters}
+            className={
+              (activeFilterCount > 0 ? mutedBtnActive : mutedBtn) + " text-xs px-3 py-1.5"
+            }
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="4" y1="8" x2="20" y2="8" />
+              <line x1="8" y1="4" x2="8" y2="12" />
+              <line x1="4" y1="16" x2="20" y2="16" />
+              <line x1="16" y1="12" x2="16" y2="20" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="ml-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#b8ff3d] text-[9px] font-bold text-black">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile search — only when bottom-nav Search is tapped */}
+        {showSearch && (
+          <div className="mt-2.5">
+            <div className="relative">
               <svg
-                className="w-3.5 h-3.5 text-[#8b93a1] group-open:rotate-180 transition"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
               >
-                <path d="M6 9l6 6 6-6" />
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
-            </summary>
-            <div className="absolute left-0 mt-2 w-44 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-40">
-              {CHAINS.map((c) => (
-                <Link
-                  key={c.id}
-                  href={buildUrl({ chain: c.id, new: onlyNew })}
-                  className={`block px-3 py-2 text-sm transition ${
-                    currentChain === c.id
-                      ? "bg-[#b8ff3d]/10 text-[#b8ff3d]"
-                      : "text-[#f4f6f8] hover:bg-[#1c1f26]"
-                  }`}
+
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search name, ticker or CA..."
+                className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
+                autoFocus
+              />
+
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setPage(1);
+                    searchInputRef.current?.focus();
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
                 >
-                  {c.label}
-                </Link>
-              ))}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
-          </details>
-        </div>
-
-        <Link
-          href={buildUrl({ chain: currentChain, new: !onlyNew })}
-          className={
-            onlyNew
-              ? mutedBtnActive + " text-xs px-3 py-1.5"
-              : mutedBtn + " text-xs px-3 py-1.5"
-          }
-        >
-          New
-        </Link>
-
-        <button
-          onClick={openFilters}
-          className={
-            (activeFilterCount > 0 ? mutedBtnActive : mutedBtn) + " text-xs px-3 py-1.5"
-          }
-        >
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="4" y1="8" x2="20" y2="8" />
-            <line x1="8" y1="4" x2="8" y2="12" />
-            <line x1="4" y1="16" x2="20" y2="16" />
-            <line x1="16" y1="12" x2="16" y2="20" />
-          </svg>
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="ml-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#b8ff3d] text-[9px] font-bold text-black">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
+          </div>
+        )}
       </div>
 
       {showWatchlistOnly && (
@@ -803,7 +852,7 @@ export default function TokenTable({
             className="relative flex flex-col w-full max-w-lg md:max-w-2xl max-h-[85vh] rounded-2xl border border-[#1c1f26] bg-[#0c0d10] shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sticky header */}
+            {/* Sticky header (both) */}
             <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
               <h2 className="text-base font-medium text-[#f4f6f8]">Filters</h2>
               <button
@@ -1100,8 +1149,8 @@ export default function TokenTable({
                 />
               </div>
 
-              {/* Mobile-only buttons – extra bottom padding so fully visible */}
-              <div className="md:hidden flex items-center justify-end gap-3 pt-6 pb-8 border-t border-[#1c1f26]">
+              {/* Mobile-only: buttons at the end of content (scroll to reach them) */}
+              <div className="md:hidden flex items-center justify-end gap-3 pt-4 pb-2 border-t border-[#1c1f26]">
                 <button
                   onClick={handleCancel}
                   className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1c1f26] text-[#8b93a1] hover:text-[#f4f6f8] hover:border-[#3a3f4b] transition"
@@ -1276,54 +1325,7 @@ export default function TokenTable({
         )}
       </div>
 
-      {/* ===== MOBILE SEARCH ===== */}
-      {showSearch && (
-        <div className="md:hidden mb-3">
-          <div className="relative">
-            <svg
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6573] pointer-events-none"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search name, ticker or CA..."
-              className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] pl-10 pr-10 py-3 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/60 focus:ring-1 focus:ring-[#b8ff3d]/25 transition shadow-sm"
-              autoFocus
-            />
-
-            {search && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setPage(1);
-                  searchInputRef.current?.focus();
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6573] hover:text-white transition p-0.5"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ===== MOBILE TABLE (exact original layout) ===== */}
+      {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
         {pageTokens.length === 0 ? (
           <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
