@@ -12,6 +12,7 @@ export default function AdminPage() {
 
   const [chain, setChain] = useState("solana");
   const [address, setAddress] = useState("");
+  const [thesis, setThesis] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -60,6 +61,7 @@ export default function AdminPage() {
         image_url,
         status,
         submitted_by: user.id,
+        thesis: thesis.trim(),
       });
 
       if (error) {
@@ -80,6 +82,7 @@ export default function AdminPage() {
           setMessage(`${symbol || "Token"} submitted for approval!`);
         }
         setAddress("");
+        setThesis("");
         setConfirmed(false);
       }
     } catch (err) {
@@ -173,6 +176,34 @@ export default function AdminPage() {
               />
             </div>
 
+            {/* Thesis Field */}
+            <div>
+              <label className="block text-sm text-[#8b93a1] mb-1.5">
+                Thesis <span className="text-red-400">*</span>
+              </label>
+              <textarea
+                value={thesis}
+                onChange={(e) => setThesis(e.target.value)}
+                required
+                rows={10}
+                maxLength={2000}
+                placeholder={`Write a clear, high-signal thesis.
+
+Supports:
+• Bold: **text**
+• Bullets: - item
+• Links: [text](https://...)
+
+Example style:
+$MADE is tied to an AI agent experiment that routes trading fees...`}
+                className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] px-4 py-3 text-sm text-white placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/50 transition resize-y min-h-[180px]"
+              />
+              <div className="mt-1.5 flex justify-between text-xs text-[#5c6573]">
+                <span>Bold, bullets & links supported</span>
+                <span>{thesis.length}/2000</span>
+              </div>
+            </div>
+
             {/* Confirmation Checkbox */}
             <label className="flex items-start gap-3 cursor-pointer select-none pt-2">
               <input
@@ -188,7 +219,7 @@ export default function AdminPage() {
 
             <button
               type="submit"
-              disabled={loading || !confirmed}
+              disabled={loading || !confirmed || !thesis.trim()}
               className="w-full rounded-xl bg-[#b8ff3d] py-3.5 font-medium text-black hover:bg-[#a3e635] disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
               {loading ? "Submitting..." : "Submit Token"}
