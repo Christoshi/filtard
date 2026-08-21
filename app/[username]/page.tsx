@@ -196,13 +196,6 @@ export default async function CuratorPage({
             ) : (
               <span className="text-sm text-[#8b93a1]">No ratings yet</span>
             )}
-
-            <span className="text-[#3a3f4b]">·</span>
-
-            <p className="text-sm text-[#8b93a1]">
-              {tokensWithStats.length} token
-              {tokensWithStats.length !== 1 ? "s" : ""} curated
-            </p>
           </div>
         </div>
       </div>
