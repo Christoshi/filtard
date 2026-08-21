@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StarRating from "@/app/components/StarRating";
 import WatchlistStar from "@/app/components/WatchlistStar";
+import ThesisShare from "@/app/components/ThesisShare";
 
 export const revalidate = 20;
 
@@ -119,20 +120,16 @@ function formatPct(n: number | null) {
   return `${sign}${n.toFixed(2)}%`;
 }
 
-// Simple markdown renderer (bold, bullets, links)
 function renderThesis(text: string) {
   if (!text) return null;
 
-  // Convert markdown links [text](url)
   let html = text.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#b8ff3d] hover:underline">$1</a>'
   );
 
-  // Bold **text**
-  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong class='text-white'>$1</strong>");
 
-  // Split into lines and handle bullets
   const lines = html.split("\n");
   const elements: React.ReactNode[] = [];
 
@@ -157,7 +154,11 @@ function renderThesis(text: string) {
     }
   });
 
-  return <div className="space-y-2.5 text-[15px] leading-relaxed text-[#e8eaed]">{elements}</div>;
+  return (
+    <div className="space-y-3 text-[15px] leading-relaxed text-[#c8cdd5]">
+      {elements}
+    </div>
+  );
 }
 
 export default async function TokenPage({
@@ -335,42 +336,45 @@ export default async function TokenPage({
         </div>
       </div>
 
-      {/* ===== THESIS CARD (just above the chart) ===== */}
+      {/* ===== PREMIUM THESIS CARD ===== */}
       {thesis && (
         <div className="relative mb-8">
           {/* Floating token image */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-8 z-10">
+          <div className="absolute left-1/2 -translate-x-1/2 -top-7 z-10">
             {imageUrl ? (
               <img
                 src={imageUrl}
                 alt=""
-                className="h-16 w-16 rounded-full object-cover ring-4 ring-[#0c0d10] shadow-xl"
+                className="h-14 w-14 rounded-full object-cover ring-[5px] ring-[#0a0b0e] shadow-lg"
               />
             ) : (
-              <div className="h-16 w-16 rounded-full bg-[#1c1f26] ring-4 ring-[#0c0d10]" />
+              <div className="h-14 w-14 rounded-full bg-[#1c1f26] ring-[5px] ring-[#0a0b0e]" />
             )}
           </div>
 
-          <div className="rounded-2xl border border-[#1c1f26] bg-[#0c0d10] pt-12 pb-6 px-6 sm:px-8">
-            {/* Ticker + Name */}
-            <div className="text-center mb-5">
-              <div className="text-lg font-semibold text-white">
+          <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] pt-11 pb-6 px-6 sm:px-8">
+            {/* Ticker + Name (centered under image) */}
+            <div className="text-center mb-6">
+              <div className="text-lg font-semibold text-white tracking-tight">
                 ${stats.symbol}
               </div>
               <div className="text-sm text-[#8b93a1] mt-0.5">{stats.name}</div>
             </div>
 
-            {/* Subtitle */}
-            <div className="text-center mb-5">
-              <span className="text-xs font-medium tracking-widest uppercase text-[#b8ff3d]">
+            {/* "The Thesis" - left aligned, sentence case */}
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-[#b8ff3d]">
                 The Thesis
-              </span>
+              </h3>
             </div>
 
             {/* Thesis body */}
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-3xl">
               {renderThesis(thesis)}
             </div>
+
+            {/* Subtle share buttons */}
+            <ThesisShare symbol={stats.symbol} thesis={thesis} />
           </div>
         </div>
       )}
