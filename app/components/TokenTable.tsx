@@ -240,17 +240,17 @@ export default function TokenTable({
 
   useEffect(() => {
     function onToggleSearch() {
-      setShowSearch((prev) => {
-        const next = !prev;
-        if (next) {
-          window.scrollTo({ top: 0, behavior: "instant" });
-          setTimeout(() => searchInputRef.current?.focus(), 80);
-        }
-        return next;
-      });
-      setShowWatchlistOnly(false);
-      setShowFilters(false);
+  setShowSearch((prev) => {
+    const next = !prev;
+    if (next) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      setTimeout(() => searchInputRef.current?.focus(), 100);
     }
+    return next;
+  });
+  // Do NOT turn off watchlist — allow searching inside watchlist
+  setShowFilters(false);
+}
 
     function onToggleWatchlist() {
       setShowWatchlistOnly((prev) => !prev);
