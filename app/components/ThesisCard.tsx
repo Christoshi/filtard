@@ -77,12 +77,11 @@ function ConfidenceBattery({ value }: { value: number }) {
   const pct = Math.max(0, Math.min(100, value));
 
   // Clear saturation progression
-  // Low = very muted, High = strong but still softer than button green
   const opacity = 0.25 + (pct / 100) * 0.55; // 0.25 → 0.80
   const fillColor = `rgba(74, 222, 128, ${opacity})`;
 
   return (
-    <div className="mt-5 mb-1">
+    <div className="mt-5">
       <div className="mb-1.5">
         <span className="text-xs font-medium text-[#8b93a1]">Confidence score</span>
       </div>
@@ -97,7 +96,6 @@ function ConfidenceBattery({ value }: { value: number }) {
           }}
         />
 
-        {/* Percentage only inside the bar */}
         {pct >= 15 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span
@@ -252,36 +250,45 @@ export default function ThesisCard({
 
   return (
     <div className="mb-8">
+      {/* View count - above the card, top right */}
+      {viewCount > 0 && (
+        <div className="flex justify-end mb-2 px-1">
+          <div className="flex items-center gap-1.5 text-xs text-[#8b93a1]">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="opacity-80"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span className="font-medium tracking-wide">{viewCount.toLocaleString()}</span>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 w-full lg:max-w-2xl lg:mx-auto relative">
         
         {/* Top row */}
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="text-sm font-medium text-[#b8ff3d]">The Thesis</h3>
 
-          <div className="flex items-center gap-3 text-xs text-[#8b93a1]">
-            {viewCount > 0 && (
-              <span className="flex items-center gap-1">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                {viewCount.toLocaleString()}
-              </span>
-            )}
-
-            {canEdit && !isEditing && (
-              <button
-                onClick={() => {
-                  setDraft(thesis);
-                  setDraftConfidence(confidence || 50);
-                  setIsEditing(true);
-                }}
-                className="text-[#8b93a1] hover:text-[#b8ff3d] transition"
-              >
-                Edit
-              </button>
-            )}
-          </div>
+          {canEdit && !isEditing && (
+            <button
+              onClick={() => {
+                setDraft(thesis);
+                setDraftConfidence(confidence || 50);
+                setIsEditing(true);
+              }}
+              className="text-xs text-[#8b93a1] hover:text-[#b8ff3d] transition"
+            >
+              Edit
+            </button>
+          )}
         </div>
 
         {/* Last edited */}
@@ -354,8 +361,8 @@ export default function ThesisCard({
             {/* Confidence score */}
             {confidence != null && <ConfidenceBattery value={confidence} />}
 
-            {/* Share / Trade buttons - centered with good spacing */}
-            <div className="mt-5 pt-4 border-t border-[#1c1f26] flex items-center justify-center gap-6">
+            {/* Share / Trade buttons - extra space above */}
+            <div className="mt-8 pt-4 border-t border-[#1c1f26] flex items-center justify-center gap-6">
               <button
                 onClick={() => {
                   const shareText = `$${symbol} thesis by @filtard\n${window.location.href}`;
