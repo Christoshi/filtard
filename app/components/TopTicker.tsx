@@ -59,7 +59,7 @@ export default function TopTicker() {
         {tickerItems.map((token, index) => (
           <Link
             key={`${token.id}-${index}`}
-            href={`/token/${token.chain}/${token.address}`}
+            href={`/${token.chain}/${token.address}`}
             className="mx-5 inline-flex items-center gap-1.5 text-sm whitespace-nowrap hover:text-white transition"
           >
             <span className="font-medium text-[#f4f6f8]">

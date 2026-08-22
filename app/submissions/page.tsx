@@ -75,7 +75,7 @@ export default function SubmissionsPage() {
           {tokens.map((token) => (
             <Link
               key={token.id}
-              href={`/token/${token.chain}/${token.address}`}
+              href={`/${token.chain}/${token.address}`}
               className="flex items-center gap-4 border border-[#1c1f26] rounded-xl p-4 bg-[#101215] hover:bg-[#14171d] transition"
             >
               {token.image_url ? (

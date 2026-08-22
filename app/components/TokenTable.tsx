@@ -1117,7 +1117,7 @@ export default function TokenTable({
             return (
               <Link
                 key={token.id}
-                href={`/token/${token.chain}/${token.address}`}
+                href={`/${token.chain}/${token.address}`}
                 className={`grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 items-center transition ${
                   isPinned
                     ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
@@ -1196,7 +1196,7 @@ export default function TokenTable({
             return (
               <Link
                 key={token.id}
-                href={`/token/${token.chain}/${token.address}`}
+                href={`/${token.chain}/${token.address}`}
                 className={`block transition ${
                   isPinned
                     ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
