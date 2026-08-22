@@ -181,8 +181,8 @@ export default function ThesisCard({
   // No thesis yet + can edit
   if (!thesis && canEdit) {
     return (
-      <div className="mb-8">
-        <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] py-8 px-5 sm:px-6 w-full lg:max-w-2xl lg:mx-auto text-center">
+      <div className="mb-8 w-full lg:max-w-2xl lg:mx-auto">
+        <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] py-8 px-5 sm:px-6 text-center">
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
@@ -247,7 +247,7 @@ export default function ThesisCard({
   if (!thesis) return null;
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 w-full lg:max-w-2xl lg:mx-auto">
       {/* View count - always visible, top right, above the card */}
       <div className="flex justify-end mb-3 px-1">
         <div className="flex items-center gap-1.5 text-xs text-[#8b93a1]">
@@ -269,8 +269,7 @@ export default function ThesisCard({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 w-full lg:max-w-2xl lg:mx-auto relative">
-        
+      <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 relative">
         {/* Top row */}
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="text-sm font-medium text-[#b8ff3d]">The Thesis</h3>
