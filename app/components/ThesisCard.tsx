@@ -76,36 +76,37 @@ function formatRelativeTime(dateStr: string) {
 function ConfidenceBattery({ value }: { value: number }) {
   const pct = Math.max(0, Math.min(100, value));
 
+  // Soft muted green that intensifies with score (same family as price-up green)
+  const fillColor =
+    pct < 40
+      ? "rgba(74, 222, 128, 0.35)"
+      : pct < 70
+      ? "rgba(74, 222, 128, 0.55)"
+      : "rgba(74, 222, 128, 0.75)";
+
   return (
     <div className="mt-5 mb-1">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs font-medium text-[#8b93a1]">Confidence score</span>
-        <span className="text-xs font-semibold text-[#b8ff3d]">{pct}%</span>
+        <span className="text-xs font-semibold text-[#4ade80]">{pct}%</span>
       </div>
 
-      {/* Modern premium bar */}
       <div className="relative h-3 w-full rounded-full bg-[#14171d] overflow-hidden border border-[#2a2e38]">
-        {/* Subtle track glow */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#b8ff3d]/5 to-transparent" />
-
-        {/* Fill */}
         <div
           className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
           style={{
             width: `${pct}%`,
-            background: "linear-gradient(90deg, #a3e635 0%, #b8ff3d 60%, #d4ff6b 100%)",
-            boxShadow: "0 0 12px rgba(184, 255, 61, 0.35)",
+            background: fillColor,
+            boxShadow: pct > 50 ? "0 0 10px rgba(74, 222, 128, 0.25)" : "none",
           }}
         />
 
-        {/* Percentage inside the bar (only visible when bar is wide enough) */}
         {pct >= 18 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span
               className="text-[10px] font-bold tracking-wide"
               style={{
-                color: pct > 45 ? "#0a0b0e" : "#b8ff3d",
-                textShadow: pct > 45 ? "none" : "0 0 4px rgba(0,0,0,0.8)",
+                color: pct > 50 ? "#0a0b0e" : "#4ade80",
               }}
             >
               {pct}%
@@ -209,11 +210,10 @@ export default function ThesisCard({
                 className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] px-4 py-3 text-sm text-white placeholder:text-[#5c6573] focus:outline-none focus:border-[#b8ff3d]/50 transition resize-y min-h-[180px]"
               />
 
-              {/* Confidence while adding */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[#8b93a1]">Confidence score</span>
-                  <span className="text-sm font-medium text-[#b8ff3d]">{draftConfidence}%</span>
+                  <span className="text-sm font-medium text-[#4ade80]">{draftConfidence}%</span>
                 </div>
                 <input
                   type="range"
@@ -221,7 +221,7 @@ export default function ThesisCard({
                   max={100}
                   value={draftConfidence}
                   onChange={(e) => setDraftConfidence(Number(e.target.value))}
-                  className="w-full accent-[#b8ff3d]"
+                  className="w-full accent-[#4ade80]"
                 />
               </div>
 
@@ -257,7 +257,7 @@ export default function ThesisCard({
     <div className="mb-8">
       <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 w-full lg:max-w-2xl lg:mx-auto relative">
         
-        {/* Top row: Title + View count + Edit */}
+        {/* Top row */}
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="text-sm font-medium text-[#b8ff3d]">The Thesis</h3>
 
@@ -314,11 +314,10 @@ export default function ThesisCard({
               className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] px-4 py-3 text-sm text-white focus:outline-none focus:border-[#b8ff3d]/50 transition resize-y min-h-[180px]"
             />
 
-            {/* Confidence slider only in edit mode */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[#8b93a1]">Confidence score</span>
-                <span className="text-sm font-medium text-[#b8ff3d]">{draftConfidence}%</span>
+                <span className="text-sm font-medium text-[#4ade80]">{draftConfidence}%</span>
               </div>
               <input
                 type="range"
@@ -326,7 +325,7 @@ export default function ThesisCard({
                 max={100}
                 value={draftConfidence}
                 onChange={(e) => setDraftConfidence(Number(e.target.value))}
-                className="w-full accent-[#b8ff3d]"
+                className="w-full accent-[#4ade80]"
               />
             </div>
 
@@ -355,13 +354,11 @@ export default function ThesisCard({
           <>
             {renderThesis(thesis)}
 
-            {/* Confidence score - full width, above buttons */}
-            {confidence != null && (
-              <ConfidenceBattery value={confidence} />
-            )}
+            {/* Confidence score - full width above buttons */}
+            {confidence != null && <ConfidenceBattery value={confidence} />}
 
-            {/* Share / Trade buttons */}
-            <div className="mt-5 pt-4 border-t border-[#1c1f26] flex items-center gap-3">
+            {/* Share / Trade buttons - centered with more spacing */}
+            <div className="mt-5 pt-4 border-t border-[#1c1f26] flex items-center justify-center gap-6">
               <button
                 onClick={() => {
                   const shareText = `$${symbol} thesis by @filtard\n${window.location.href}`;
