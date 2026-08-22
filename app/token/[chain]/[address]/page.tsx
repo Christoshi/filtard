@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import CopyButton from "@/app/copy-button";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
@@ -146,27 +147,91 @@ function formatPct(n: number | null) {
   return `${sign}${n.toFixed(2)}%`;
 }
 
+// ========== SEO / Open Graph ==========
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ chain: string; address: string }>;
+}): Promise<Metadata> {
+  const { chain, address } = await params;
+
+  const [stats, dbToken] = await Promise.all([
+    getTokenStats(address),
+    getTokenFromDb(chain, address),
+  ]);
+
+  if (!stats) {
+    return {
+      title: "Token not found | Filtard",
+      description: "Community-curated memecoin screener",
+    };
+  }
+
+  const symbol = stats.symbol || "???";
+  const name = stats.name || "Unknown";
+  const price = formatUsd(stats.priceUsd);
+  const change = formatPct(stats.change24h);
+  const image = stats.imageUrl || dbToken?.image_url || null;
+
+  const title = `$${symbol} | Filtard`;
+  const description = `${name} (${symbol}) — Price: ${price} · 24h: ${change} · Community curated on Filtard`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://filtard.vercel.app/token/${chain}/${address}`,
+      siteName: "Filtard",
+      type: "website",
+      images: image
+        ? [
+            {
+              url: image,
+              width: 200,
+              height: 200,
+              alt: `${symbol} logo`,
+            },
+          ]
+        : [],
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: image ? [image] : [],
+    },
+  };
+}
+
 export default async function TokenPage({
   params,
 }: {
   params: Promise<{ chain: string; address: string }>;
 }) {
   const { chain, address } = await params;
-  const stats = await getTokenStats(address);
-  const dbToken = await getTokenFromDb(chain, address);
+
+  // Parallel main fetches
+  const [stats, dbToken] = await Promise.all([
+    getTokenStats(address),
+    getTokenFromDb(chain, address),
+  ]);
 
   if (!stats) {
     notFound();
   }
 
-  const ratings = dbToken?.id
-    ? await getTokenRatings(dbToken.id)
-    : { average: 0, count: 0 };
-
-  const viewCount = dbToken?.id ? await getViewCount(dbToken.id) : 0;
-  const editor = dbToken?.thesis_updated_by
-    ? await getThesisEditor(dbToken.thesis_updated_by)
-    : null;
+  // Parallel secondary fetches
+  const [ratings, viewCount, editor] = await Promise.all([
+    dbToken?.id
+      ? getTokenRatings(dbToken.id)
+      : Promise.resolve({ average: 0, count: 0 }),
+    dbToken?.id ? getViewCount(dbToken.id) : Promise.resolve(0),
+    dbToken?.thesis_updated_by
+      ? getThesisEditor(dbToken.thesis_updated_by)
+      : Promise.resolve(null),
+  ]);
 
   const chartChain = stats.dexChain || chain;
   const embedUrl = stats.pairAddress
@@ -200,7 +265,6 @@ export default async function TokenPage({
 
       {/* ===== TOP SECTION ===== */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center gap-5 lg:gap-6 mb-6">
-        
         {/* Logo + Name block */}
         <div className="flex justify-center lg:justify-start">
           <div className="flex items-center gap-4">
@@ -307,7 +371,14 @@ export default async function TokenPage({
                   );
                 } else {
                   icon = (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <circle cx="12" cy="12" r="10" />
                       <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                     </svg>
@@ -344,7 +415,7 @@ export default async function TokenPage({
         viewCount={viewCount}
       />
 
-      {/* Chart */}
+      {/* Chart (unchanged for now) */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
         <div style={{ height: "520px" }}>
           <iframe src={embedUrl} className="w-full h-full" title="chart" />

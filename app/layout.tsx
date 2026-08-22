@@ -6,8 +6,26 @@ import HeaderAuth from "./components/HeaderAuth";
 import MobileBottomNav from "./components/MobileBottomNav";
 
 export const metadata: Metadata = {
-  title: "Filtard",
-  description: "Community curated memecoin screener",
+  title: {
+    default: "Filtard – Community Curated Memecoin Screener",
+    template: "%s | Filtard",
+  },
+  description:
+    "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data across Solana, Base, Ethereum and more.",
+  openGraph: {
+    title: "Filtard – Community Curated Memecoin Screener",
+    description:
+      "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data.",
+    url: "https://filtard.vercel.app",
+    siteName: "Filtard",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Filtard – Community Curated Memecoin Screener",
+    description:
+      "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data.",
+  },
 };
 
 export const revalidate = 60;
@@ -43,7 +61,7 @@ async function getTopTokens() {
 
   return withStats
     .sort((a, b) => b.volume24h - a.volume24h)
-    .slice(0, 5); // top 5
+    .slice(0, 5);
 }
 
 export default async function RootLayout({
