@@ -5,6 +5,7 @@ import Link from "next/link";
 import StarRating from "@/app/components/StarRating";
 import WatchlistStar from "@/app/components/WatchlistStar";
 import ThesisCard from "@/app/components/ThesisCard";
+import ViewTracker from "@/app/components/ViewTracker";
 
 export const revalidate = 20;
 
@@ -51,6 +52,9 @@ async function getTokenFromDb(chain: string, address: string) {
       status,
       submitted_by,
       thesis,
+      confidence,
+      thesis_updated_at,
+      thesis_updated_by,
       profiles!submitted_by (
         id,
         display_name,
@@ -74,6 +78,9 @@ async function getTokenFromDb(chain: string, address: string) {
         status,
         submitted_by,
         thesis,
+        confidence,
+        thesis_updated_at,
+        thesis_updated_by,
         profiles!submitted_by (
           id,
           display_name,
@@ -103,6 +110,25 @@ async function getTokenRatings(tokenId: string) {
   const average = Number((sum / data.length).toFixed(1));
 
   return { average, count: data.length };
+}
+
+async function getViewCount(tokenId: string) {
+  const { count } = await supabase
+    .from("token_views")
+    .select("*", { count: "exact", head: true })
+    .eq("token_id", tokenId);
+
+  return count || 0;
+}
+
+async function getThesisEditor(userId: string | null) {
+  if (!userId) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .maybeSingle();
+  return data;
 }
 
 function formatUsd(n: number | null) {
@@ -137,6 +163,11 @@ export default async function TokenPage({
     ? await getTokenRatings(dbToken.id)
     : { average: 0, count: 0 };
 
+  const viewCount = dbToken?.id ? await getViewCount(dbToken.id) : 0;
+  const editor = dbToken?.thesis_updated_by
+    ? await getThesisEditor(dbToken.thesis_updated_by)
+    : null;
+
   const chartChain = stats.dexChain || chain;
   const embedUrl = stats.pairAddress
     ? `https://dexscreener.com/${chartChain}/${stats.pairAddress}?embed=1&theme=dark&trades=0&info=0`
@@ -165,6 +196,8 @@ export default async function TokenPage({
 
   return (
     <div className="w-full px-4 sm:px-6">
+      {dbToken?.id && <ViewTracker tokenId={dbToken.id} />}
+
       {/* ===== TOP SECTION ===== */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center gap-5 lg:gap-6 mb-6">
         
@@ -247,7 +280,6 @@ export default async function TokenPage({
             <div className="font-medium">{formatUsd(stats.marketCap)}</div>
           </div>
 
-          {/* CA card */}
           <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[70px] lg:flex-none lg:min-w-[80px]">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-[#8b93a1]">CA</span>
@@ -255,7 +287,6 @@ export default async function TokenPage({
             </div>
           </div>
 
-          {/* Social links */}
           {socialLinks.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
               {socialLinks.map((link, i) => {
@@ -300,12 +331,17 @@ export default async function TokenPage({
         </div>
       </div>
 
-      {/* ===== THESIS CARD (with Edit / Add) ===== */}
+      {/* ===== THESIS CARD ===== */}
       <ThesisCard
         tokenId={dbToken?.id || null}
         initialThesis={dbToken?.thesis || null}
         submittedBy={dbToken?.submitted_by || null}
         symbol={stats.symbol}
+        initialConfidence={dbToken?.confidence ?? null}
+        thesisUpdatedAt={dbToken?.thesis_updated_at || null}
+        thesisUpdatedByName={editor?.display_name || null}
+        thesisUpdatedByDisplay={editor?.display_name || null}
+        viewCount={viewCount}
       />
 
       {/* Chart */}
