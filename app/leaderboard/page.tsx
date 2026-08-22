@@ -1,6 +1,12 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+};
+
 export const revalidate = 60;
 
 type CuratorScore = {

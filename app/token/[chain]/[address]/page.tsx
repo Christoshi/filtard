@@ -162,8 +162,7 @@ export async function generateMetadata({
 
   if (!stats) {
     return {
-      title: "Token not found | Filtard",
-      description: "Community-curated memecoin screener",
+      title: "Token not found",
     };
   }
 
@@ -173,14 +172,14 @@ export async function generateMetadata({
   const change = formatPct(stats.change24h);
   const image = stats.imageUrl || dbToken?.image_url || null;
 
-  const title = `$${symbol} | Filtard`;
+  const title = `$${symbol}`;
   const description = `${name} (${symbol}) — Price: ${price} · 24h: ${change} · Community curated on Filtard`;
 
   return {
     title,
     description,
     openGraph: {
-      title,
+      title: `${title} | Filtard`,
       description,
       url: `https://filtard.vercel.app/token/${chain}/${address}`,
       siteName: "Filtard",
@@ -198,7 +197,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary",
-      title,
+      title: `${title} | Filtard`,
       description,
       images: image ? [image] : [],
     },
@@ -265,7 +264,6 @@ export default async function TokenPage({
 
       {/* ===== TOP SECTION ===== */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center gap-5 lg:gap-6 mb-6">
-        {/* Logo + Name block */}
         <div className="flex justify-center lg:justify-start">
           <div className="flex items-center gap-4">
             {imageUrl ? (
@@ -311,7 +309,6 @@ export default async function TokenPage({
           </div>
         </div>
 
-        {/* Metrics cards */}
         <div className="flex flex-wrap gap-2 text-sm w-full lg:w-auto">
           <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
             <div className="text-[10px] text-[#8b93a1]">Price</div>
@@ -402,7 +399,6 @@ export default async function TokenPage({
         </div>
       </div>
 
-      {/* ===== THESIS CARD ===== */}
       <ThesisCard
         tokenId={dbToken?.id || null}
         initialThesis={dbToken?.thesis || null}
@@ -415,7 +411,6 @@ export default async function TokenPage({
         viewCount={viewCount}
       />
 
-      {/* Chart (unchanged for now) */}
       <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
         <div style={{ height: "520px" }}>
           <iframe src={embedUrl} className="w-full h-full" title="chart" />
