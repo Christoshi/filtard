@@ -76,37 +76,34 @@ function formatRelativeTime(dateStr: string) {
 function ConfidenceBattery({ value }: { value: number }) {
   const pct = Math.max(0, Math.min(100, value));
 
-  // Soft muted green that intensifies with score (same family as price-up green)
-  const fillColor =
-    pct < 40
-      ? "rgba(74, 222, 128, 0.35)"
-      : pct < 70
-      ? "rgba(74, 222, 128, 0.55)"
-      : "rgba(74, 222, 128, 0.75)";
+  // Clear saturation progression
+  // Low = very muted, High = strong but still softer than button green
+  const opacity = 0.25 + (pct / 100) * 0.55; // 0.25 → 0.80
+  const fillColor = `rgba(74, 222, 128, ${opacity})`;
 
   return (
     <div className="mt-5 mb-1">
-      <div className="flex items-center justify-between mb-1.5">
+      <div className="mb-1.5">
         <span className="text-xs font-medium text-[#8b93a1]">Confidence score</span>
-        <span className="text-xs font-semibold text-[#4ade80]">{pct}%</span>
       </div>
 
-      <div className="relative h-3 w-full rounded-full bg-[#14171d] overflow-hidden border border-[#2a2e38]">
+      <div className="relative h-3.5 w-full rounded-full bg-[#14171d] overflow-hidden border border-[#2a2e38]">
         <div
           className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
           style={{
             width: `${pct}%`,
             background: fillColor,
-            boxShadow: pct > 50 ? "0 0 10px rgba(74, 222, 128, 0.25)" : "none",
+            boxShadow: pct > 60 ? `0 0 12px rgba(74, 222, 128, ${opacity * 0.6})` : "none",
           }}
         />
 
-        {pct >= 18 && (
+        {/* Percentage only inside the bar */}
+        {pct >= 15 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span
-              className="text-[10px] font-bold tracking-wide"
+              className="text-[11px] font-bold tracking-wide"
               style={{
-                color: pct > 50 ? "#0a0b0e" : "#4ade80",
+                color: pct > 45 ? "#0a0b0e" : "#4ade80",
               }}
             >
               {pct}%
@@ -354,10 +351,10 @@ export default function ThesisCard({
           <>
             {renderThesis(thesis)}
 
-            {/* Confidence score - full width above buttons */}
+            {/* Confidence score */}
             {confidence != null && <ConfidenceBattery value={confidence} />}
 
-            {/* Share / Trade buttons - centered with more spacing */}
+            {/* Share / Trade buttons - centered with good spacing */}
             <div className="mt-5 pt-4 border-t border-[#1c1f26] flex items-center justify-center gap-6">
               <button
                 onClick={() => {
