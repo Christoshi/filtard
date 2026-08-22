@@ -239,45 +239,45 @@ export default function TokenTable({
   }, [showFilters]);
 
   useEffect(() => {
-    function onToggleSearch() {
-  setShowSearch((prev) => {
-    const next = !prev;
-    if (next) {
-      window.scrollTo({ top: 0, behavior: "instant" });
-      setTimeout(() => searchInputRef.current?.focus(), 100);
-    }
-    return next;
-  });
-  // Do NOT turn off watchlist — allow searching inside watchlist
-  setShowFilters(false);
-}
+  function onToggleSearch() {
+    setShowSearch((prev) => {
+      const next = !prev;
+      if (next) {
+        window.scrollTo({ top: 0, behavior: "instant" });
+        setTimeout(() => searchInputRef.current?.focus(), 100);
+      }
+      return next;
+    });
+    // Do NOT turn off watchlist — allow searching inside watchlist
+    setShowFilters(false);
+  }
 
-    function onToggleWatchlist() {
-      setShowWatchlistOnly((prev) => !prev);
-      setShowSearch(false);
-      setShowFilters(false);
-      setPage(1);
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
+  function onToggleWatchlist() {
+    setShowWatchlistOnly((prev) => !prev);
+    setShowSearch(false);
+    setShowFilters(false);
+    setPage(1);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
 
-    function onCloseAll() {
-      setShowSearch(false);
-      setShowWatchlistOnly(false);
-      setShowFilters(false);
-      setSearch("");
-      setPage(1);
-    }
+  function onCloseAll() {
+    setShowSearch(false);
+    setShowWatchlistOnly(false);
+    setShowFilters(false);
+    setSearch("");
+    setPage(1);
+  }
 
-    window.addEventListener("filtard-toggle-search", onToggleSearch);
-    window.addEventListener("filtard-toggle-watchlist", onToggleWatchlist);
-    window.addEventListener("filtard-close-all", onCloseAll);
+  window.addEventListener("filtard-toggle-search", onToggleSearch);
+  window.addEventListener("filtard-toggle-watchlist", onToggleWatchlist);
+  window.addEventListener("filtard-close-all", onCloseAll);
 
-    return () => {
-      window.removeEventListener("filtard-toggle-search", onToggleSearch);
-      window.removeEventListener("filtard-toggle-watchlist", onToggleWatchlist);
-      window.removeEventListener("filtard-close-all", onCloseAll);
-    };
-  }, []);
+  return () => {
+    window.removeEventListener("filtard-toggle-search", onToggleSearch);
+    window.removeEventListener("filtard-toggle-watchlist", onToggleWatchlist);
+    window.removeEventListener("filtard-close-all", onCloseAll);
+  };
+}, []);
 
   function openFilters() {
     setDraft({ ...applied });

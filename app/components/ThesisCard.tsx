@@ -75,9 +75,7 @@ function formatRelativeTime(dateStr: string) {
 
 function ConfidenceBattery({ value }: { value: number }) {
   const pct = Math.max(0, Math.min(100, value));
-
-  // Clear saturation progression
-  const opacity = 0.25 + (pct / 100) * 0.55; // 0.25 → 0.80
+  const opacity = 0.25 + (pct / 100) * 0.55;
   const fillColor = `rgba(74, 222, 128, ${opacity})`;
 
   return (
@@ -250,26 +248,26 @@ export default function ThesisCard({
 
   return (
     <div className="mb-8">
-      {/* View count - above the card, top right */}
-      {viewCount > 0 && (
-        <div className="flex justify-end mb-2 px-1">
-          <div className="flex items-center gap-1.5 text-xs text-[#8b93a1]">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="opacity-80"
-            >
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            <span className="font-medium tracking-wide">{viewCount.toLocaleString()}</span>
-          </div>
+      {/* View count - always visible, top right, above the card */}
+      <div className="flex justify-end mb-3 px-1">
+        <div className="flex items-center gap-1.5 text-xs text-[#8b93a1]">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            className="opacity-90"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          <span className="font-medium tracking-wide tabular-nums">
+            {viewCount.toLocaleString()}
+          </span>
         </div>
-      )}
+      </div>
 
       <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 w-full lg:max-w-2xl lg:mx-auto relative">
         
@@ -358,10 +356,8 @@ export default function ThesisCard({
           <>
             {renderThesis(thesis)}
 
-            {/* Confidence score */}
             {confidence != null && <ConfidenceBattery value={confidence} />}
 
-            {/* Share / Trade buttons - extra space above */}
             <div className="mt-8 pt-4 border-t border-[#1c1f26] flex items-center justify-center gap-6">
               <button
                 onClick={() => {
