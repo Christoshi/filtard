@@ -75,19 +75,43 @@ function formatRelativeTime(dateStr: string) {
 
 function ConfidenceBattery({ value }: { value: number }) {
   const pct = Math.max(0, Math.min(100, value));
+
   return (
-    <div className="flex items-center gap-2.5">
-      <span className="text-xs text-[#8b93a1]">Confidence</span>
-      <div className="relative h-5 w-24 rounded-full bg-[#1c1f26] overflow-hidden border border-[#2a2e38]">
+    <div className="mt-5 mb-1">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-medium text-[#8b93a1]">Confidence score</span>
+        <span className="text-xs font-semibold text-[#b8ff3d]">{pct}%</span>
+      </div>
+
+      {/* Modern premium bar */}
+      <div className="relative h-3 w-full rounded-full bg-[#14171d] overflow-hidden border border-[#2a2e38]">
+        {/* Subtle track glow */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#b8ff3d]/5 to-transparent" />
+
+        {/* Fill */}
         <div
-          className="absolute inset-y-0 left-0 bg-[#b8ff3d]/80 transition-all duration-500"
-          style={{ width: `${pct}%` }}
+          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+          style={{
+            width: `${pct}%`,
+            background: "linear-gradient(90deg, #a3e635 0%, #b8ff3d 60%, #d4ff6b 100%)",
+            boxShadow: "0 0 12px rgba(184, 255, 61, 0.35)",
+          }}
         />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[11px] font-semibold text-black mix-blend-difference">
-            {pct}%
-          </span>
-        </div>
+
+        {/* Percentage inside the bar (only visible when bar is wide enough) */}
+        {pct >= 18 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span
+              className="text-[10px] font-bold tracking-wide"
+              style={{
+                color: pct > 45 ? "#0a0b0e" : "#b8ff3d",
+                textShadow: pct > 45 ? "none" : "0 0 4px rgba(0,0,0,0.8)",
+              }}
+            >
+              {pct}%
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -186,17 +210,19 @@ export default function ThesisCard({
               />
 
               {/* Confidence while adding */}
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-[#8b93a1]">Confidence</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[#8b93a1]">Confidence score</span>
+                  <span className="text-sm font-medium text-[#b8ff3d]">{draftConfidence}%</span>
+                </div>
                 <input
                   type="range"
                   min={1}
                   max={100}
                   value={draftConfidence}
                   onChange={(e) => setDraftConfidence(Number(e.target.value))}
-                  className="flex-1 accent-[#b8ff3d]"
+                  className="w-full accent-[#b8ff3d]"
                 />
-                <span className="text-sm font-medium w-10 text-right">{draftConfidence}%</span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -231,7 +257,7 @@ export default function ThesisCard({
     <div className="mb-8">
       <div className="rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.03)] py-5 px-5 sm:px-6 w-full lg:max-w-2xl lg:mx-auto relative">
         
-        {/* Top row: Title + View count */}
+        {/* Top row: Title + View count + Edit */}
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="text-sm font-medium text-[#b8ff3d]">The Thesis</h3>
 
@@ -289,17 +315,19 @@ export default function ThesisCard({
             />
 
             {/* Confidence slider only in edit mode */}
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-[#8b93a1]">Confidence</span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-[#8b93a1]">Confidence score</span>
+                <span className="text-sm font-medium text-[#b8ff3d]">{draftConfidence}%</span>
+              </div>
               <input
                 type="range"
                 min={1}
                 max={100}
                 value={draftConfidence}
                 onChange={(e) => setDraftConfidence(Number(e.target.value))}
-                className="flex-1 accent-[#b8ff3d]"
+                className="w-full accent-[#b8ff3d]"
               />
-              <span className="text-sm font-medium w-10 text-right">{draftConfidence}%</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -327,36 +355,35 @@ export default function ThesisCard({
           <>
             {renderThesis(thesis)}
 
-            {/* Confidence battery + Share buttons */}
-            <div className="mt-5 pt-4 border-t border-[#1c1f26] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              {confidence != null && (
-                <ConfidenceBattery value={confidence} />
-              )}
+            {/* Confidence score - full width, above buttons */}
+            {confidence != null && (
+              <ConfidenceBattery value={confidence} />
+            )}
 
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    const shareText = `$${symbol} thesis by @filtard\n${window.location.href}`;
-                    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-                    window.open(url, "_blank", "noopener,noreferrer");
-                  }}
-                  className="text-xs text-[#b8ff3d] hover:text-white border border-[#2a2e38] hover:border-[#3a3f4b] bg-[#101215] rounded-lg px-3.5 py-1.5 transition flex items-center gap-1.5"
-                >
-                  Share to
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </button>
+            {/* Share / Trade buttons */}
+            <div className="mt-5 pt-4 border-t border-[#1c1f26] flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const shareText = `$${symbol} thesis by @filtard\n${window.location.href}`;
+                  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+                  window.open(url, "_blank", "noopener,noreferrer");
+                }}
+                className="text-xs text-[#b8ff3d] hover:text-white border border-[#2a2e38] hover:border-[#3a3f4b] bg-[#101215] rounded-lg px-3.5 py-1.5 transition flex items-center gap-1.5"
+              >
+                Share to
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </button>
 
-                <a
-                  href="https://fomo.family/r/christoshi_"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-md bg-[#b8ff3d] px-3 py-1.5 text-xs font-medium text-black hover:bg-[#a3e635] transition"
-                >
-                  Trade on Fomo
-                </a>
-              </div>
+              <a
+                href="https://fomo.family/r/christoshi_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md bg-[#b8ff3d] px-3 py-1.5 text-xs font-medium text-black hover:bg-[#a3e635] transition"
+              >
+                Trade on Fomo
+              </a>
             </div>
           </>
         )}
