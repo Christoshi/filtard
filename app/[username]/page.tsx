@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import TokenTable from "@/app/components/TokenTable";
+import TipButton from "@/app/components/TipButton";
 
 export const revalidate = 30;
 
@@ -73,7 +74,6 @@ export default async function CuratorPage({
 }) {
   const { username } = await params;
 
-  // Protect reserved routes
   const reserved = [
     "admin",
     "dashboard",
@@ -131,7 +131,7 @@ export default async function CuratorPage({
         )}
 
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold">
               {curator.display_name || "Anonymous Curator"}
             </h1>
@@ -178,6 +178,12 @@ export default async function CuratorPage({
                   </svg>
                 </a>
               )}
+
+              <TipButton
+                username={curator.display_name || "curator"}
+                solWallet={curator.sol_wallet}
+                evmWallet={curator.evm_wallet}
+              />
             </div>
           </div>
 

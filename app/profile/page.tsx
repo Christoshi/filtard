@@ -19,6 +19,8 @@ export default function ProfilePage() {
   const [twitterUrl, setTwitterUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
   const [discordUrl, setDiscordUrl] = useState("");
+  const [solWallet, setSolWallet] = useState("");
+  const [evmWallet, setEvmWallet] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -40,6 +42,8 @@ export default function ProfilePage() {
         setTwitterUrl(profile.twitter_url || "");
         setTelegramUrl(profile.telegram_url || "");
         setDiscordUrl(profile.discord_url || "");
+        setSolWallet(profile.sol_wallet || "");
+        setEvmWallet(profile.evm_wallet || "");
       }
 
       setLoading(false);
@@ -51,7 +55,6 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Basic validation
     if (!file.type.startsWith("image/")) {
       setError("Please select an image file");
       return;
@@ -73,7 +76,6 @@ export default function ProfilePage() {
     const fileExt = file.name.split(".").pop();
     const filePath = `${user.id}/avatar.${fileExt}`;
 
-    // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(filePath, file, { upsert: true });
@@ -84,9 +86,8 @@ export default function ProfilePage() {
       return;
     }
 
-    // Get public URL
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    const publicUrl = data.publicUrl + `?t=${Date.now()}`; // cache bust
+    const publicUrl = data.publicUrl + `?t=${Date.now()}`;
 
     setAvatarUrl(publicUrl);
     setUploading(false);
@@ -119,7 +120,6 @@ export default function ProfilePage() {
       return;
     }
 
-    // Check username uniqueness
     const { data: existing } = await supabase
       .from("profiles")
       .select("id")
@@ -141,6 +141,8 @@ export default function ProfilePage() {
         twitter_url: twitterUrl.trim() || null,
         telegram_url: telegramUrl.trim() || null,
         discord_url: discordUrl.trim() || null,
+        sol_wallet: solWallet.trim() || null,
+        evm_wallet: evmWallet.trim() || null,
       })
       .eq("id", user.id);
 
@@ -254,6 +256,35 @@ export default function ProfilePage() {
                 value={discordUrl}
                 onChange={(e) => setDiscordUrl(e.target.value)}
                 placeholder="https://discord.gg/... or discord.com/users/..."
+                className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 focus:outline-none focus:border-[#b8ff3d]"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Wallet Addresses */}
+        <div>
+          <p className="text-sm text-[#8b93a1] mb-3">Wallet Addresses (for tips)</p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-[#8b93a1] mb-1">Solana Wallet</label>
+              <input
+                type="text"
+                value={solWallet}
+                onChange={(e) => setSolWallet(e.target.value)}
+                placeholder="Your Solana address"
+                className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 focus:outline-none focus:border-[#b8ff3d]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-[#8b93a1] mb-1">EVM Wallet</label>
+              <input
+                type="text"
+                value={evmWallet}
+                onChange={(e) => setEvmWallet(e.target.value)}
+                placeholder="Your EVM address (0x...)"
                 className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 focus:outline-none focus:border-[#b8ff3d]"
               />
             </div>
