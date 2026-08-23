@@ -11,6 +11,8 @@ type Props = {
 export default function TipButton({ username, solWallet, evmWallet }: Props) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [solLoaded, setSolLoaded] = useState(false);
+  const [evmLoaded, setEvmLoaded] = useState(false);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -18,6 +20,9 @@ export default function TipButton({ username, solWallet, evmWallet }: Props) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      // Reset loaded states when closing so next open is clean
+      setSolLoaded(false);
+      setEvmLoaded(false);
     }
     return () => {
       document.body.style.overflow = "";
@@ -86,11 +91,20 @@ export default function TipButton({ username, solWallet, evmWallet }: Props) {
                       <span className="text-xs font-medium text-[#c8cdd5]">Solana</span>
                     </div>
 
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${solWallet}&bgcolor=0a0b0e&color=f4f6f8&margin=8`}
-                      alt="Solana QR"
-                      className="rounded-lg border border-[#1c1f26] mb-2.5"
-                    />
+                    <div className="relative w-[120px] h-[120px] mb-2.5">
+                      {/* Placeholder */}
+                      {!solLoaded && (
+                        <div className="absolute inset-0 rounded-lg border border-[#1c1f26] bg-[#101215] animate-pulse" />
+                      )}
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${solWallet}&bgcolor=0a0b0e&color=f4f6f8&margin=8`}
+                        alt="Solana QR"
+                        className={`rounded-lg border border-[#1c1f26] transition-opacity duration-200 ${
+                          solLoaded ? "opacity-100" : "opacity-0"
+                        }`}
+                        onLoad={() => setSolLoaded(true)}
+                      />
+                    </div>
 
                     <div className="w-full flex items-center gap-1.5">
                       <code className="flex-1 text-[11px] text-[#8b93a1] bg-[#101215] border border-[#1c1f26] rounded-md px-2 py-1.5 truncate text-center">
@@ -113,11 +127,20 @@ export default function TipButton({ username, solWallet, evmWallet }: Props) {
                       <span className="text-xs font-medium text-[#c8cdd5]">EVM</span>
                     </div>
 
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${evmWallet}&bgcolor=0a0b0e&color=f4f6f8&margin=8`}
-                      alt="EVM QR"
-                      className="rounded-lg border border-[#1c1f26] mb-2.5"
-                    />
+                    <div className="relative w-[120px] h-[120px] mb-2.5">
+                      {/* Placeholder */}
+                      {!evmLoaded && (
+                        <div className="absolute inset-0 rounded-lg border border-[#1c1f26] bg-[#101215] animate-pulse" />
+                      )}
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${evmWallet}&bgcolor=0a0b0e&color=f4f6f8&margin=8`}
+                        alt="EVM QR"
+                        className={`rounded-lg border border-[#1c1f26] transition-opacity duration-200 ${
+                          evmLoaded ? "opacity-100" : "opacity-0"
+                        }`}
+                        onLoad={() => setEvmLoaded(true)}
+                      />
+                    </div>
 
                     <div className="w-full flex items-center gap-1.5">
                       <code className="flex-1 text-[11px] text-[#8b93a1] bg-[#101215] border border-[#1c1f26] rounded-md px-2 py-1.5 truncate text-center">
