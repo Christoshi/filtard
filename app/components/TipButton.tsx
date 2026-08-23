@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   username: string;
@@ -11,6 +11,18 @@ type Props = {
 export default function TipButton({ username, solWallet, evmWallet }: Props) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   if (!solWallet && !evmWallet) return null;
 
@@ -29,10 +41,9 @@ export default function TipButton({ username, solWallet, evmWallet }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#b8ff3d]/10 border border-[#b8ff3d]/25 text-[#b8ff3d] text-sm font-medium hover:bg-[#b8ff3d]/15 hover:border-[#b8ff3d]/40 transition"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c1f26] border border-[#2a2e38] text-[#b8ff3d] text-sm font-medium hover:bg-[#252830] hover:border-[#3a3f4b] transition"
       >
-        {/* Tip / Heart icon */}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
         </svg>
         Tip
