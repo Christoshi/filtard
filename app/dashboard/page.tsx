@@ -2,8 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, supabase } from "@/lib/auth";
 import Link from "next/link";
+import { getCurrentUser, supabase } from "@/lib/auth";
+
+type Profile = {
+  id: string;
+  display_name: string | null;
+  role: string;
+  twitter_url: string | null;
+  telegram_url: string | null;
+  avatar_url: string | null;
+  token_count?: number;
+};
 
 type Token = {
   id: string;
@@ -15,20 +25,11 @@ type Token = {
   status: string;
   created_at: string;
   submitted_by: string | null;
+  thesis: string | null;
   profiles?: {
     id: string;
     display_name: string | null;
   } | null;
-};
-
-type Profile = {
-  id: string;
-  display_name: string | null;
-  role: string;
-  twitter_url: string | null;
-  telegram_url: string | null;
-  avatar_url: string | null;
-  token_count: number;
 };
 
 export default function DashboardPage() {
@@ -43,10 +44,16 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
+  // Thesis modal
+  const [thesisModal, setThesisModal] = useState<{
+    open: boolean;
+    symbol: string;
+    thesis: string;
+  }>({ open: false, symbol: "", thesis: "" });
+
   useEffect(() => {
     async function init() {
       const currentUser = await getCurrentUser();
-
       if (!currentUser) {
         router.push("/login");
         return;
@@ -78,6 +85,7 @@ export default function DashboardPage() {
         status,
         created_at,
         submitted_by,
+        thesis,
         profiles!submitted_by (
           id,
           display_name
@@ -143,7 +151,6 @@ export default function DashboardPage() {
     }
   }
 
-  // Helper: get current market cap from DexScreener
   async function getCurrentMcap(address: string): Promise<number | null> {
     try {
       const res = await fetch(
@@ -255,8 +262,6 @@ export default function DashboardPage() {
 
   const filteredTokens = tokens.filter((t) => {
     if (filter !== "all" && t.status !== filter) return false;
-    if (!search.trim()) return true;
-
     const q = search.toLowerCase();
     return (
       t.symbol?.toLowerCase().includes(q) ||
@@ -269,60 +274,51 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
-        <p className="text-[#8b93a1]">Loading dashboard...</p>
+        <p className="text-[#8b93a1]">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto pb-20">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
-          <p className="text-sm text-[#8b93a1] mt-1">
-            Manage tokens and curators
-          </p>
-        </div>
-        <Link href="/admin" className="text-sm text-[#b8ff3d] hover:underline">
-          Submit Token →
-        </Link>
+    <div className="max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
       </div>
 
-      {message && (
-        <div className="mb-6 text-sm text-green-400 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
-          {message}
-        </div>
-      )}
-
       {/* Tabs */}
-      <div className="flex gap-2 mb-8">
+      <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveTab("tokens")}
-          className={`px-5 py-2 rounded-xl text-sm font-medium transition ${
+          className={`px-4 py-2 rounded-xl text-sm border transition ${
             activeTab === "tokens"
-              ? "bg-[#b8ff3d] text-black"
-              : "bg-[#101215] text-[#8b93a1] hover:text-white border border-[#1c1f26]"
+              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
+              : "border-[#1c1f26] text-[#8b93a1] hover:border-[#3a3f4b]"
           }`}
         >
           Tokens
         </button>
         <button
           onClick={() => setActiveTab("curators")}
-          className={`px-5 py-2 rounded-xl text-sm font-medium transition ${
+          className={`px-4 py-2 rounded-xl text-sm border transition ${
             activeTab === "curators"
-              ? "bg-[#b8ff3d] text-black"
-              : "bg-[#101215] text-[#8b93a1] hover:text-white border border-[#1c1f26]"
+              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
+              : "border-[#1c1f26] text-[#8b93a1] hover:border-[#3a3f4b]"
           }`}
         >
           Curators
         </button>
       </div>
 
+      {message && (
+        <div className="mb-4 p-3 rounded-xl bg-[#101215] border border-[#1c1f26] text-sm text-center">
+          {message}
+        </div>
+      )}
+
       {/* ===================== TOKENS TAB ===================== */}
       {activeTab === "tokens" && (
         <>
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <input
               type="text"
               value={search}
@@ -342,11 +338,7 @@ export default function DashboardPage() {
                       : "border-[#1c1f26] text-[#8b93a1] hover:border-[#3a3f4b]"
                   }`}
                 >
-                  {f.charAt(0).toUpperCase() + f.slice(1)} (
-                  {f === "all"
-                    ? tokens.length
-                    : tokens.filter((t) => t.status === f).length}
-                  )
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
             </div>
@@ -371,7 +363,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={() => setSelected([])}
-                className="text-sm text-[#8b93a1] hover:text-white ml-auto"
+                className="text-sm text-[#8b93a1] hover:text-white"
               >
                 Clear
               </button>
@@ -384,13 +376,13 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="border border-[#1c1f26] rounded-2xl overflow-hidden">
-              <div className="grid grid-cols-[auto_1fr_auto] gap-4 px-5 py-3.5 bg-[#0c0d10] border-b border-[#1c1f26] text-xs text-[#8b93a1] uppercase tracking-wider">
+              <div className="grid grid-cols-[auto_1fr_auto] gap-4 px-5 py-3 bg-[#0c0d10] border-b border-[#1c1f26] text-xs text-[#8b93a1]">
                 <div className="w-5">
                   <input
                     type="checkbox"
                     checked={
-                      filteredTokens.length > 0 &&
-                      selected.length === filteredTokens.length
+                      selected.length === filteredTokens.length &&
+                      filteredTokens.length > 0
                     }
                     onChange={toggleSelectAll}
                     className="rounded border-[#3a3f4b] bg-[#101215]"
@@ -428,7 +420,7 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
-                          href={`/token/${token.chain}/${token.address}`}
+                          href={`/${token.chain}/${token.address}`}
                           className="font-medium hover:text-[#b8ff3d] transition"
                         >
                           {token.symbol || "???"}
@@ -469,6 +461,21 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
+                    {token.thesis && (
+                      <button
+                        onClick={() =>
+                          setThesisModal({
+                            open: true,
+                            symbol: token.symbol || "Token",
+                            thesis: token.thesis || "",
+                          })
+                        }
+                        className="px-3 py-1.5 rounded-lg border border-[#2a2e38] text-[#8b93a1] text-sm hover:text-white hover:border-[#3a3f4b] transition"
+                      >
+                        View Thesis
+                      </button>
+                    )}
+
                     {token.status === "pending" && (
                       <button
                         onClick={() => approveToken(token.id)}
@@ -551,6 +558,34 @@ export default function DashboardPage() {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* Thesis Modal */}
+      {thesisModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setThesisModal({ open: false, symbol: "", thesis: "" })}
+          />
+          <div className="relative w-full max-w-2xl max-h-[80vh] rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
+              <h3 className="text-lg font-medium text-white">
+                Thesis — ${thesisModal.symbol}
+              </h3>
+              <button
+                onClick={() => setThesisModal({ open: false, symbol: "", thesis: "" })}
+                className="text-[#8b93a1] hover:text-white transition"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto text-[15px] leading-relaxed text-[#c8cdd5] whitespace-pre-wrap">
+              {thesisModal.thesis}
+            </div>
+          </div>
         </div>
       )}
     </div>
