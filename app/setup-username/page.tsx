@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getCurrentUser, supabase } from "@/lib/auth";
 
-export default function SetupUsernamePage() {
+function SetupUsernameForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
+
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -20,16 +23,16 @@ export default function SetupUsernamePage() {
         return;
       }
 
-      // Already has a username → go home
+      // Already has a username → go to intended destination
       if (user.display_name) {
-        router.push("/");
+        router.push(redirect);
         return;
       }
 
       setChecking(false);
     }
     check();
-  }, [router]);
+  }, [router, redirect]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -83,8 +86,8 @@ export default function SetupUsernamePage() {
       return;
     }
 
-    // Force a full page reload so everything picks up the new username
-    window.location.href = "/";
+    // Go back to the original page the user wanted
+    window.location.href = redirect;
   }
 
   if (checking) {
@@ -96,44 +99,56 @@ export default function SetupUsernamePage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[70vh]">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold">Choose a username</h1>
-          <p className="text-sm text-[#8b93a1] mt-2">
-            This will be shown publicly when you curate tokens
-          </p>
+    <div className="w-full max-w-sm">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-semibold">Choose a username</h1>
+        <p className="text-sm text-[#8b93a1] mt-2">
+          This will be shown publicly when you curate tokens
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm text-[#8b93a1] mb-1">
+            Username
+          </label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            placeholder="e.g. satoshi"
+            className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2.5 focus:outline-none focus:border-[#b8ff3d]"
+            autoFocus
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-[#8b93a1] mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              placeholder="e.g. satoshi"
-              className="w-full rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2.5 focus:outline-none focus:border-[#b8ff3d]"
-              autoFocus
-            />
-          </div>
+        {error && (
+          <p className="text-sm text-red-400 text-center">{error}</p>
+        )}
 
-          {error && (
-            <p className="text-sm text-red-400 text-center">{error}</p>
-          )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-[#b8ff3d] py-2.5 font-medium text-black hover:bg-[#a3e635] disabled:opacity-50 transition"
+        >
+          {loading ? "Saving..." : "Continue"}
+        </button>
+      </form>
+    </div>
+  );
+}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-[#b8ff3d] py-2.5 font-medium text-black hover:bg-[#a3e635] disabled:opacity-50 transition"
-          >
-            {loading ? "Saving..." : "Continue"}
-          </button>
-        </form>
-      </div>
+export default function SetupUsernamePage() {
+  return (
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <Suspense
+        fallback={
+          <div className="text-center text-[#8b93a1]">Loading...</div>
+        }
+      >
+        <SetupUsernameForm />
+      </Suspense>
     </div>
   );
 }
