@@ -1244,17 +1244,19 @@ export default function TokenTable({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5 text-[11px] whitespace-nowrap overflow-x-auto">
-                  <span className="text-[#8b93a1]">Mcap</span>
-                  <span className="text-white font-medium">{formatUsd(token.stats?.marketCap ?? null)}</span>
-                  <span className="text-[#5c6573]">·</span>
-                  <span className="text-[#8b93a1]">Vol</span>
-                  <span className="text-white font-medium">{formatUsd(token.stats?.volume24h ?? null)}</span>
-                  <span className="text-[#5c6573]">·</span>
-                  <span className="text-[#8b93a1]">Liq</span>
-                  <span className="text-white font-medium">{formatUsd(token.stats?.liquidity ?? null)}</span>
-                  <span className="text-[#5c6573]">·</span>
-                  <span className="text-white font-medium">{formatAge(token.stats?.pairCreatedAt ?? null)}</span>
+                <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#f4f6f8] whitespace-nowrap">
+                    MCAP {formatUsd(token.stats?.marketCap ?? null)}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#f4f6f8] whitespace-nowrap">
+                    VOL {formatUsd(token.stats?.volume24h ?? null)}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#f4f6f8] whitespace-nowrap">
+                    LIQ {formatUsd(token.stats?.liquidity ?? null)}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#f4f6f8] whitespace-nowrap">
+                    {formatAge(token.stats?.pairCreatedAt ?? null)}
+                  </span>
                 </div>
               </Link>
             );
