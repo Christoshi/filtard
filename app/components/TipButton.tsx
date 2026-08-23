@@ -42,7 +42,7 @@ export default function TipButton({ username, solWallet, evmWallet }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0a0b0e] border border-[#b8ff3d]/30 text-[#b8ff3d] text-sm font-medium hover:bg-[#111214] hover:border-[#b8ff3d]/50 transition"
+         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#0a0b0e] border border-[#b8ff3d]/30 text-[#b8ff3d] text-xs font-medium hover:bg-[#111214] hover:border-[#b8ff3d]/50 transition"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
