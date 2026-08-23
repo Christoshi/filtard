@@ -1245,19 +1245,19 @@ export default function TokenTable({
                 </div>
 
                 <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
                     <span className="text-[#8b93a1]">MCAP</span>
                     <span className="text-[#f4f6f8] ml-1">{formatUsd(token.stats?.marketCap ?? null)}</span>
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
                     <span className="text-[#8b93a1]">VOL</span>
                     <span className="text-[#f4f6f8] ml-1">{formatUsd(token.stats?.volume24h ?? null)}</span>
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
                     <span className="text-[#8b93a1]">LIQ</span>
                     <span className="text-[#f4f6f8] ml-1">{formatUsd(token.stats?.liquidity ?? null)}</span>
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#8b93a1] whitespace-nowrap">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#8b93a1] whitespace-nowrap">
                     {formatAge(token.stats?.pairCreatedAt ?? null)}
                   </span>
                 </div>
