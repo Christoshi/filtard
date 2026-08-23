@@ -29,20 +29,22 @@ export async function getCurrentUser() {
   };
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(redirectTo?: string) {
+  const next = redirectTo || "/admin";
   return await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 }
 
-export async function signInWithX() {
+export async function signInWithX(redirectTo?: string) {
+  const next = redirectTo || "/admin";
   return await supabase.auth.signInWithOAuth({
     provider: "x",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 }

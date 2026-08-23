@@ -27,7 +27,8 @@ export default function StarRating({
   async function handleRate(value: number) {
     const user = await getCurrentUser();
     if (!user) {
-      router.push("/login");
+      const currentPath = window.location.pathname;
+      router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
       return;
     }
 

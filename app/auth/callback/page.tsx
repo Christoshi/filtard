@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/auth";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -13,11 +14,13 @@ export default function AuthCallbackPage() {
       if (error) {
         console.error(error);
       }
-      router.push("/admin");
+
+      const next = searchParams.get("next") || "/admin";
+      router.push(next);
     };
 
     handleCallback();
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <div className="flex items-center justify-center min-h-[70vh]">

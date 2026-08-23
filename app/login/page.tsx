@@ -1,19 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithX } from "@/lib/auth";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState<"google" | "x" | null>(null);
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/admin";
 
   async function handleGoogle() {
     setLoading("google");
-    await signInWithGoogle();
+    await signInWithGoogle(redirect);
   }
 
   async function handleX() {
     setLoading("x");
-    await signInWithX();
+    await signInWithX(redirect);
   }
 
   return (
@@ -26,7 +29,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Google */}
         <button
           onClick={handleGoogle}
           disabled={!!loading}
@@ -53,7 +55,6 @@ export default function LoginPage() {
           {loading === "google" ? "Connecting..." : "Continue with Google"}
         </button>
 
-        {/* X */}
         <button
           onClick={handleX}
           disabled={!!loading}
@@ -65,7 +66,6 @@ export default function LoginPage() {
           {loading === "x" ? "Connecting..." : "Continue with X"}
         </button>
 
-        {/* Wallet placeholder */}
         <button
           disabled
           className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#1c1f26] bg-[#101215] py-3 opacity-50 cursor-not-allowed"
