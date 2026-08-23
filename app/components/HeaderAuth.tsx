@@ -90,6 +90,15 @@ export default function HeaderAuth() {
           {open && (
             <div className="absolute right-0 mt-2 w-52 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-50">
               <div className="py-1.5">
+                {(user.role === "admin" || user.role === "super_admin") && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="block px-4 py-2.5 text-sm text-[#b8ff3d] hover:bg-[#1c1f26] transition"
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}
