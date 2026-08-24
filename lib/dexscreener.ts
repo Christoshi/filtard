@@ -32,8 +32,8 @@ function extractStats(pair: any): TokenStats {
 
 /**
  * Batch-fetch stats from DexScreener.
- * Groups by chain and uses the official v1 endpoint (up to 30 addresses per call).
- * Returns a Map keyed by "chain:address" (lowercase).
+ * 1. Try the official v1 batch endpoint (grouped by chain, max 30).
+ * 2. For any tokens still missing, fall back to the reliable single-token endpoint.
  */
 export async function getTokenStatsBatch(
   tokens: TokenInput[],
@@ -50,15 +50,14 @@ export async function getTokenStatsBatch(
     const addr = t.address;
     if (!byChain.has(chain)) byChain.set(chain, []);
     byChain.get(chain)!.push(addr);
-    // Pre-fill null so every requested token has an entry
     result.set(makeKey(chain, addr), null);
   }
 
   const CHUNK = 30;
 
+  // --- Pass 1: batch v1 endpoint ---
   await Promise.all(
     Array.from(byChain.entries()).map(async ([chain, addresses]) => {
-      // Deduplicate addresses within the chain
       const unique = [...new Set(addresses.map((a) => a))];
 
       for (let i = 0; i < unique.length; i += CHUNK) {
@@ -75,13 +74,10 @@ export async function getTokenStatsBatch(
           const pairs: any[] = await res.json();
           if (!Array.isArray(pairs)) continue;
 
-          // Group pairs by token address and keep the highest-liquidity one
           const bestByAddress = new Map<string, any>();
 
           for (const pair of pairs) {
-            const baseAddr = (
-              pair.baseToken?.address || ""
-            ).toLowerCase();
+            const baseAddr = (pair.baseToken?.address || "").toLowerCase();
             if (!baseAddr) continue;
 
             const existing = bestByAddress.get(baseAddr);
@@ -95,11 +91,51 @@ export async function getTokenStatsBatch(
             result.set(makeKey(chain, addr), extractStats(pair));
           }
         } catch {
-          // Leave as null on failure
+          // leave as null
         }
       }
     })
   );
+
+  // --- Pass 2: fallback for any still-null tokens ---
+  const missing = tokens.filter(
+    (t) => result.get(makeKey(t.chain, t.address)) == null
+  );
+
+  if (missing.length > 0) {
+    await Promise.all(
+      missing.map(async (t) => {
+        try {
+          const res = await fetch(
+            `https://api.dexscreener.com/latest/dex/tokens/${t.address}`,
+            { next: { revalidate } }
+          );
+          if (!res.ok) return;
+
+          const data = await res.json();
+          const pairs: any[] = data?.pairs || [];
+          if (!pairs.length) return;
+
+          // Prefer pair on the requested chain, otherwise highest liquidity
+          const onChain = pairs.filter(
+            (p) => (p.chainId || "").toLowerCase() === t.chain.toLowerCase()
+          );
+          const candidates = onChain.length ? onChain : pairs;
+
+          candidates.sort(
+            (a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0)
+          );
+
+          const best = candidates[0];
+          if (best) {
+            result.set(makeKey(t.chain, t.address), extractStats(best));
+          }
+        } catch {
+          // leave as null
+        }
+      })
+    );
+  }
 
   return result;
 }
