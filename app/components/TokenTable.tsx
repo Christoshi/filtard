@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type TokenWithStats = {
   id: string;
@@ -1134,9 +1135,11 @@ export default function TokenTable({
 
                 <div className="px-3 py-3 border-r border-[#1c1f26] flex items-center gap-3 min-w-0">
                   {token.image_url ? (
-                    <img
+                    <Image
                       src={token.image_url}
                       alt=""
+                      width={36}
+                      height={36}
                       className="h-9 w-9 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
@@ -1205,9 +1208,11 @@ export default function TokenTable({
               >
                 <div className="flex items-center gap-2.5 px-3 py-2.5">
                   {token.image_url ? (
-                    <img
+                    <Image
                       src={token.image_url}
                       alt=""
+                      width={36}
+                      height={36}
                       className="h-9 w-9 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
