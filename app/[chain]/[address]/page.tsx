@@ -10,7 +10,22 @@ import ViewTracker from "@/app/components/ViewTracker";
 
 export const revalidate = 20;
 
-async function getTokenStats(address: string) {
+type LiveStats = {
+  name: string;
+  symbol: string;
+  imageUrl: string | null;
+  priceUsd: number | null;
+  change24h: number | null;
+  volume24h: number | null;
+  liquidity: number | null;
+  marketCap: number | null;
+  pairAddress: string | null;
+  dexChain: string | null;
+  websites: any[];
+  socials: any[];
+};
+
+async function getTokenStats(address: string): Promise<LiveStats | null> {
   try {
     const res = await fetch(
       `https://api.dexscreener.com/latest/dex/tokens/${address}`,
@@ -41,9 +56,11 @@ async function getTokenStats(address: string) {
 }
 
 async function getTokenFromDb(chain: string, address: string) {
+  // Case-insensitive address match (fixes Robinhood / EVM checksum issues)
   let { data } = await supabase
     .from("tokens")
-    .select(`
+    .select(
+      `
       id,
       chain,
       address,
@@ -56,20 +73,29 @@ async function getTokenFromDb(chain: string, address: string) {
       confidence,
       thesis_updated_at,
       thesis_updated_by,
+      token_stats (
+        price_usd,
+        change_24h,
+        volume_24h,
+        liquidity,
+        market_cap
+      ),
       profiles!submitted_by (
         id,
         display_name,
         avatar_url
       )
-    `)
+    `
+    )
     .eq("chain", chain.toLowerCase())
-    .eq("address", address)
+    .ilike("address", address)
     .maybeSingle();
 
   if (!data) {
     const result = await supabase
       .from("tokens")
-      .select(`
+      .select(
+        `
         id,
         chain,
         address,
@@ -82,13 +108,21 @@ async function getTokenFromDb(chain: string, address: string) {
         confidence,
         thesis_updated_at,
         thesis_updated_by,
+        token_stats (
+          price_usd,
+          change_24h,
+          volume_24h,
+          liquidity,
+          market_cap
+        ),
         profiles!submitted_by (
           id,
           display_name,
           avatar_url
         )
-      `)
-      .eq("address", address)
+      `
+      )
+      .ilike("address", address)
       .maybeSingle();
 
     data = result.data;
@@ -147,7 +181,6 @@ function formatPct(n: number | null) {
   return `${sign}${n.toFixed(2)}%`;
 }
 
-// ========== SEO / Open Graph ==========
 export async function generateMetadata({
   params,
 }: {
@@ -160,17 +193,12 @@ export async function generateMetadata({
     getTokenFromDb(chain, address),
   ]);
 
-  if (!stats) {
-    return {
-      title: "Token not found",
-    };
-  }
-
-  const symbol = stats.symbol || "???";
-  const name = stats.name || "Unknown";
-  const price = formatUsd(stats.priceUsd);
-  const change = formatPct(stats.change24h);
-  const image = stats.imageUrl || dbToken?.image_url || null;
+  const symbol =
+    stats?.symbol || dbToken?.symbol || "???";
+  const name = stats?.name || dbToken?.name || "Unknown";
+  const price = formatUsd(stats?.priceUsd ?? null);
+  const change = formatPct(stats?.change24h ?? null);
+  const image = stats?.imageUrl || dbToken?.image_url || null;
 
   const title = `$${symbol}`;
   const description = `${name} (${symbol}) — Price: ${price} · 24h: ${change} · Community curated on Filtard`;
@@ -212,14 +240,45 @@ export default async function TokenPage({
   const { chain, address } = await params;
 
   // Parallel main fetches
-  const [stats, dbToken] = await Promise.all([
+  const [liveStats, dbToken] = await Promise.all([
     getTokenStats(address),
     getTokenFromDb(chain, address),
   ]);
 
-  if (!stats) {
+  // Only 404 when the token is not in our DB AND DexScreener also has nothing
+  if (!dbToken && !liveStats) {
     notFound();
   }
+
+  // Merge: prefer live DexScreener, fall back to cache / DB
+  const cached = Array.isArray(dbToken?.token_stats)
+    ? dbToken?.token_stats[0]
+    : dbToken?.token_stats;
+
+  const stats = {
+    name: liveStats?.name || dbToken?.name || "Unknown",
+    symbol: liveStats?.symbol || dbToken?.symbol || "???",
+    imageUrl: liveStats?.imageUrl || dbToken?.image_url || null,
+    priceUsd:
+      liveStats?.priceUsd ??
+      (cached?.price_usd != null ? Number(cached.price_usd) : null),
+    change24h:
+      liveStats?.change24h ??
+      (cached?.change_24h != null ? Number(cached.change_24h) : null),
+    volume24h:
+      liveStats?.volume24h ??
+      (cached?.volume_24h != null ? Number(cached.volume_24h) : null),
+    liquidity:
+      liveStats?.liquidity ??
+      (cached?.liquidity != null ? Number(cached.liquidity) : null),
+    marketCap:
+      liveStats?.marketCap ??
+      (cached?.market_cap != null ? Number(cached.market_cap) : null),
+    pairAddress: liveStats?.pairAddress || null,
+    dexChain: liveStats?.dexChain || null,
+    websites: liveStats?.websites || [],
+    socials: liveStats?.socials || [],
+  };
 
   // Parallel secondary fetches
   const [ratings, viewCount, editor] = await Promise.all([
