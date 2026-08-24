@@ -47,192 +47,231 @@ export async function GET(request: NextRequest) {
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
           width: "100%",
           height: "100%",
           backgroundColor: "#07080a",
-          padding: "24px 40px 24px 40px",
           fontFamily: "sans-serif",
         }}
       >
-        {/* Branding — top right only */}
+        {/* Left accent strip */}
         <div
           style={{
             display: "flex",
-            width: "100%",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            marginBottom: 36,
+            width: 6,
+            height: "100%",
+            backgroundColor: "#b8ff3d",
           }}
-        >
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <div
-              style={{
-                display: "flex",
-                width: 72,
-                height: 72,
-                borderRadius: 14,
-                backgroundColor: "#b8ff3d",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 40,
-                fontWeight: 800,
-                color: "#07080a",
-                marginRight: 16,
-              }}
-            >
-              F
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 40,
-                color: "#5a6270",
-                marginRight: 16,
-              }}
-            >
-              |
-            </div>
-            <div style={{ display: "flex", fontSize: 40, color: "#c0c6d0" }}>
-              {domain}
-            </div>
-          </div>
-        </div>
+        />
 
-        {/* Token — more space below branding; larger name */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: 48,
-          }}
-        >
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              width={160}
-              height={160}
-              style={{ borderRadius: "50%", marginRight: 28 }}
-            />
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                width: 160,
-                height: 160,
-                borderRadius: "50%",
-                backgroundColor: "#1c1f26",
-                marginRight: 28,
-              }}
-            />
-          )}
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 96,
-                fontWeight: 700,
-                color: "#f4f6f8",
-                lineHeight: 1.05,
-              }}
-            >
-              ${symbol}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 52,
-                color: "#b0b8c4",
-                marginTop: 10,
-              }}
-            >
-              {name}
-            </div>
-          </div>
-        </div>
-
-        {/* Metrics — labels 1.5x, figures 1.2x */}
-        <div style={{ display: "flex", marginBottom: 12 }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              marginRight: 64,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 42,
-                color: "#8b93a1",
-                marginBottom: 6,
-              }}
-            >
-              Price
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 68,
-                fontWeight: 600,
-                color: "#f4f6f8",
-              }}
-            >
-              {price}
-            </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 42,
-                color: "#8b93a1",
-                marginBottom: 6,
-              }}
-            >
-              24h
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 68,
-                fontWeight: 600,
-                color: change.color,
-              }}
-            >
-              {change.text}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexGrow: 1 }} />
-
-        {/* Tagline — 2x */}
+        {/* Main content */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
-            width: "100%",
+            flex: 1,
+            height: "100%",
+            padding: "32px 44px 28px 40px",
           }}
         >
+          {/* Top branding — quiet, right */}
           <div
             style={{
               display: "flex",
               width: "100%",
-              height: 1,
-              backgroundColor: "#1c1f26",
-              marginBottom: 14,
+              justifyContent: "flex-end",
+              alignItems: "center",
+              marginBottom: 28,
             }}
-          />
+          >
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  backgroundColor: "#b8ff3d",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20,
+                  fontWeight: 800,
+                  color: "#07080a",
+                  marginRight: 12,
+                }}
+              >
+                F
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 22,
+                  color: "#4a5060",
+                  marginRight: 12,
+                }}
+              >
+                |
+              </div>
+              <div style={{ display: "flex", fontSize: 22, color: "#8b93a1" }}>
+                {domain}
+              </div>
+            </div>
+          </div>
+
+          {/* Middle: two columns */}
           <div
             style={{
               display: "flex",
-              fontSize: 40,
-              color: "#c0c6d0",
+              flex: 1,
+              width: "100%",
+              alignItems: "center",
             }}
           >
-            Community-curated memecoins screener
+            {/* Left — identity */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                flex: 1,
+                paddingRight: 40,
+              }}
+            >
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  width={140}
+                  height={140}
+                  style={{ borderRadius: "50%", marginRight: 28 }}
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    width: 140,
+                    height: 140,
+                    borderRadius: "50%",
+                    backgroundColor: "#1c1f26",
+                    marginRight: 28,
+                  }}
+                />
+              )}
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 64,
+                    fontWeight: 700,
+                    color: "#f4f6f8",
+                    lineHeight: 1.1,
+                  }}
+                >
+                  ${symbol}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 28,
+                    color: "#9ca3af",
+                    marginTop: 8,
+                  }}
+                >
+                  {name}
+                </div>
+              </div>
+            </div>
+
+            {/* Right — metrics panel */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                width: 340,
+                backgroundColor: "#0e1014",
+                borderRadius: 16,
+                border: "1px solid #1c1f26",
+                padding: "28px 32px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginBottom: 24,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 20,
+                    color: "#6b7280",
+                    marginBottom: 6,
+                  }}
+                >
+                  Price
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 44,
+                    fontWeight: 600,
+                    color: "#f4f6f8",
+                  }}
+                >
+                  {price}
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 20,
+                    color: "#6b7280",
+                    marginBottom: 6,
+                  }}
+                >
+                  24h
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 44,
+                    fontWeight: 600,
+                    color: change.color,
+                  }}
+                >
+                  {change.text}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom tagline */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              width: "100%",
+              marginTop: 24,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                width: "100%",
+                height: 1,
+                backgroundColor: "#1c1f26",
+                marginBottom: 14,
+              }}
+            />
+            <div
+              style={{
+                display: "flex",
+                fontSize: 22,
+                color: "#8b93a1",
+              }}
+            >
+              Community-curated memecoins screener
+            </div>
           </div>
         </div>
       </div>
