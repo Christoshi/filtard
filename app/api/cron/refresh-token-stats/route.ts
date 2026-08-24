@@ -3,10 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import { getTokenStatsBatch } from "@/lib/dexscreener";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60; // allow up to 60s for the batch
+export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
-  // Protect the route
   const authHeader = request.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
 
@@ -14,7 +13,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Use service role so we can write (RLS blocks anon writes)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -43,31 +41,54 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ updated: 0, message: "No approved tokens" });
     }
 
-    // 2. Batch fetch from DexScreener
-    const statsMap = await getTokenStatsBatch(
-      tokens.map((t) => ({ chain: t.chain, address: t.address })),
-      0 // no Next.js cache for the cron itself
+    // 2. Load existing stats so we never overwrite real data with null
+    const { data: existingStats } = await supabase
+      .from("token_stats")
+      .select("*")
+      .in(
+        "token_id",
+        tokens.map((t) => t.id)
+      );
+
+    const existingMap = new Map(
+      (existingStats || []).map((row) => [row.token_id, row])
     );
 
-    // 3. Build rows for upsert
+    // 3. Batch fetch from DexScreener
+    const statsMap = await getTokenStatsBatch(
+      tokens.map((t) => ({ chain: t.chain, address: t.address })),
+      0
+    );
+
+    // 4. Merge: only keep new values when they are not null
     const rows = tokens.map((t) => {
       const key = `${t.chain.toLowerCase()}:${t.address.toLowerCase()}`;
-      const stats = statsMap.get(key);
+      const fresh = statsMap.get(key);
+      const prev = existingMap.get(t.id);
 
       return {
         token_id: t.id,
-        price_usd: stats?.priceUsd ?? null,
-        change_24h: stats?.change24h ?? null,
-        volume_24h: stats?.volume24h ?? null,
-        liquidity: stats?.liquidity ?? null,
-        market_cap: stats?.marketCap ?? null,
-        txns_24h: stats?.txns24h ?? null,
-        pair_created_at: stats?.pairCreatedAt ?? null,
+        price_usd:
+          fresh?.priceUsd != null ? fresh.priceUsd : prev?.price_usd ?? null,
+        change_24h:
+          fresh?.change24h != null ? fresh.change24h : prev?.change_24h ?? null,
+        volume_24h:
+          fresh?.volume24h != null ? fresh.volume24h : prev?.volume_24h ?? null,
+        liquidity:
+          fresh?.liquidity != null ? fresh.liquidity : prev?.liquidity ?? null,
+        market_cap:
+          fresh?.marketCap != null ? fresh.marketCap : prev?.market_cap ?? null,
+        txns_24h:
+          fresh?.txns24h != null ? fresh.txns24h : prev?.txns_24h ?? null,
+        pair_created_at:
+          fresh?.pairCreatedAt != null
+            ? fresh.pairCreatedAt
+            : prev?.pair_created_at ?? null,
         updated_at: new Date().toISOString(),
       };
     });
 
-    // 4. Upsert into token_stats
+    // 5. Upsert merged rows
     const { error: upsertError } = await supabase
       .from("token_stats")
       .upsert(rows, { onConflict: "token_id" });
@@ -79,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       updated: rows.length,
-      message: "token_stats refreshed",
+      message: "token_stats refreshed (null-safe)",
     });
   } catch (err: any) {
     console.error("cron refresh error:", err);
