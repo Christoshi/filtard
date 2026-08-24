@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import TokenTable from "./components/TokenTable";
-import { getTokenStatsBatch } from "@/lib/dexscreener";
 
 export const revalidate = 30;
 
@@ -30,9 +29,28 @@ export default async function Home({
 
   let query = supabase
     .from("tokens")
-    .select("id, chain, address, name, symbol, image_url, is_pinned")
+    .select(
+      `
+      id,
+      chain,
+      address,
+      name,
+      symbol,
+      image_url,
+      is_pinned,
+      token_stats (
+        price_usd,
+        change_24h,
+        volume_24h,
+        liquidity,
+        market_cap,
+        txns_24h,
+        pair_created_at
+      )
+    `
+    )
     .eq("status", "approved")
-    .order("is_pinned", { ascending: false }) // pinned first
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (chain && chain !== "all") {
@@ -41,19 +59,32 @@ export default async function Home({
 
   const { data: tokens } = await query;
 
-  const list = (tokens || []) as Token[];
-
-  // Single batched call instead of N individual fetches
-  const statsMap = await getTokenStatsBatch(
-    list.map((t) => ({ chain: t.chain, address: t.address })),
-    30
-  );
+  const list = (tokens || []) as any[];
 
   const tokensWithStats = list.map((token) => {
-    const key = `${token.chain.toLowerCase()}:${token.address.toLowerCase()}`;
+    const s = Array.isArray(token.token_stats)
+      ? token.token_stats[0]
+      : token.token_stats;
+
     return {
-      ...token,
-      stats: statsMap.get(key) ?? null,
+      id: token.id,
+      chain: token.chain,
+      address: token.address,
+      name: token.name,
+      symbol: token.symbol,
+      image_url: token.image_url,
+      is_pinned: token.is_pinned,
+      stats: s
+        ? {
+            priceUsd: s.price_usd != null ? Number(s.price_usd) : null,
+            change24h: s.change_24h != null ? Number(s.change_24h) : null,
+            volume24h: s.volume_24h != null ? Number(s.volume_24h) : null,
+            liquidity: s.liquidity != null ? Number(s.liquidity) : null,
+            marketCap: s.market_cap != null ? Number(s.market_cap) : null,
+            txns24h: s.txns_24h != null ? Number(s.txns_24h) : null,
+            pairCreatedAt: s.pair_created_at != null ? Number(s.pair_created_at) : null,
+          }
+        : null,
     };
   });
 
