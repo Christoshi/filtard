@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getTokenStatsBatch } from "@/lib/dexscreener";
 
-export const revalidate = 180; // 3 minutes
+export const dynamic = "force-dynamic"; // ← prevents build-time execution
+export const revalidate = 180;
 
 export async function GET() {
   try {
