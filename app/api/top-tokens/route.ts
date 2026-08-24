@@ -1,15 +1,25 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { getTokenStatsBatch } from "@/lib/dexscreener";
 
-export const dynamic = "force-dynamic"; // ← prevents build-time execution
+export const dynamic = "force-dynamic";
 export const revalidate = 180;
 
 export async function GET() {
   try {
     const { data: tokens } = await supabase
       .from("tokens")
-      .select("id, chain, address, symbol")
+      .select(
+        `
+        id,
+        chain,
+        address,
+        symbol,
+        token_stats (
+          volume_24h,
+          change_24h
+        )
+      `
+      )
       .eq("status", "approved")
       .limit(20);
 
@@ -17,21 +27,18 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    const statsMap = await getTokenStatsBatch(
-      tokens.map((t) => ({ chain: t.chain, address: t.address })),
-      180
-    );
-
     const withStats = tokens.map((token) => {
-      const key = `${token.chain.toLowerCase()}:${token.address.toLowerCase()}`;
-      const stats = statsMap.get(key);
+      const s = Array.isArray(token.token_stats)
+        ? token.token_stats[0]
+        : token.token_stats;
+
       return {
         id: token.id,
         chain: token.chain,
         address: token.address,
         symbol: token.symbol,
-        volume24h: stats?.volume24h ?? 0,
-        change24h: stats?.change24h ?? 0,
+        volume24h: s?.volume_24h != null ? Number(s.volume_24h) : 0,
+        change24h: s?.change_24h != null ? Number(s.change_24h) : 0,
       };
     });
 
