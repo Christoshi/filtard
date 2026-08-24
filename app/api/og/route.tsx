@@ -8,6 +8,7 @@ function formatPrice(raw: string | null): string {
   const n = Number(raw);
   if (!Number.isFinite(n)) return "-";
   if (n >= 1) return "$" + n.toFixed(4);
+  if (n >= 0.01) return "$" + n.toFixed(4);
   if (n >= 0.0001) return "$" + n.toFixed(6);
   return "$" + n.toPrecision(4);
 }
@@ -50,34 +51,34 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           backgroundColor: "#07080a",
-          padding: "40px 48px 36px 48px",
+          padding: "44px 52px 40px 52px",
           fontFamily: "sans-serif",
         }}
       >
-        {/* Branding — top right only */}
+        {/* Branding — larger, visible */}
         <div
           style={{
             display: "flex",
             width: "100%",
             justifyContent: "flex-end",
             alignItems: "center",
-            marginBottom: 28,
+            marginBottom: 36,
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
             <div
               style={{
                 display: "flex",
-                width: 26,
-                height: 26,
-                borderRadius: 6,
+                width: 36,
+                height: 36,
+                borderRadius: 8,
                 backgroundColor: "#b8ff3d",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 14,
+                fontSize: 20,
                 fontWeight: 800,
                 color: "#07080a",
-                marginRight: 8,
+                marginRight: 12,
               }}
             >
               F
@@ -85,43 +86,43 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 16,
-                color: "#4a5060",
-                marginRight: 8,
+                fontSize: 22,
+                color: "#5a6270",
+                marginRight: 12,
               }}
             >
               |
             </div>
-            <div style={{ display: "flex", fontSize: 16, color: "#8b93a1" }}>
+            <div style={{ display: "flex", fontSize: 22, color: "#a0a8b4" }}>
               {domain}
             </div>
           </div>
         </div>
 
-        {/* Token block */}
+        {/* Token — larger */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            marginBottom: 32,
+            marginBottom: 40,
           }}
         >
           {imageUrl ? (
             <img
               src={imageUrl}
-              width={80}
-              height={80}
-              style={{ borderRadius: "50%", marginRight: 22 }}
+              width={96}
+              height={96}
+              style={{ borderRadius: "50%", marginRight: 28 }}
             />
           ) : (
             <div
               style={{
                 display: "flex",
-                width: 80,
-                height: 80,
+                width: 96,
+                height: 96,
                 borderRadius: "50%",
                 backgroundColor: "#1c1f26",
-                marginRight: 22,
+                marginRight: 28,
               }}
             />
           )}
@@ -129,10 +130,10 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 42,
+                fontSize: 56,
                 fontWeight: 700,
                 color: "#f4f6f8",
-                lineHeight: 1.1,
+                lineHeight: 1.05,
               }}
             >
               ${symbol}
@@ -140,9 +141,9 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 22,
-                color: "#8b93a1",
-                marginTop: 6,
+                fontSize: 28,
+                color: "#9ca3af",
+                marginTop: 8,
               }}
             >
               {name}
@@ -150,21 +151,21 @@ export async function GET(request: NextRequest) {
           </div>
         </div>
 
-        {/* Metrics — tighter, stronger */}
-        <div style={{ display: "flex", marginBottom: 28 }}>
+        {/* Metrics — large and clear */}
+        <div style={{ display: "flex" }}>
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              marginRight: 56,
+              marginRight: 72,
             }}
           >
             <div
               style={{
                 display: "flex",
-                fontSize: 16,
-                color: "#6b7280",
-                marginBottom: 4,
+                fontSize: 22,
+                color: "#7a8494",
+                marginBottom: 8,
               }}
             >
               Price
@@ -172,7 +173,7 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 44,
+                fontSize: 56,
                 fontWeight: 600,
                 color: "#f4f6f8",
               }}
@@ -184,9 +185,9 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 16,
-                color: "#6b7280",
-                marginBottom: 4,
+                fontSize: 22,
+                color: "#7a8494",
+                marginBottom: 8,
               }}
             >
               24h
@@ -194,7 +195,7 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 44,
+                fontSize: 56,
                 fontWeight: 600,
                 color: change.color,
               }}
@@ -204,10 +205,9 @@ export async function GET(request: NextRequest) {
           </div>
         </div>
 
-        {/* Spacer */}
         <div style={{ display: "flex", flexGrow: 1 }} />
 
-        {/* Divider + tagline */}
+        {/* Tagline */}
         <div
           style={{
             display: "flex",
@@ -222,13 +222,13 @@ export async function GET(request: NextRequest) {
               width: "100%",
               height: 1,
               backgroundColor: "#1c1f26",
-              marginBottom: 16,
+              marginBottom: 18,
             }}
           />
           <div
             style={{
               display: "flex",
-              fontSize: 18,
+              fontSize: 22,
               color: "#9ca3af",
             }}
           >
