@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getTokenStatsBatch } from "@/lib/dexscreener";
 
-export const revalidate = 180; // 3 minutes
+export const dynamic = "force-dynamic"; // ← prevents build-time execution
+export const revalidate = 180;
 
 export async function GET() {
   try {
@@ -15,36 +17,23 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    const withStats = await Promise.all(
-      tokens.map(async (token) => {
-        try {
-          const res = await fetch(
-            `https://api.dexscreener.com/latest/dex/tokens/${token.address}`,
-            { next: { revalidate: 180 } }
-          );
-          if (!res.ok) throw new Error("DexScreener error");
-          const data = await res.json();
-          const pair = data?.pairs?.[0];
-          return {
-            id: token.id,
-            chain: token.chain,
-            address: token.address,
-            symbol: token.symbol,
-            volume24h: pair?.volume?.h24 ?? 0,
-            change24h: pair?.priceChange?.h24 ?? 0,
-          };
-        } catch {
-          return {
-            id: token.id,
-            chain: token.chain,
-            address: token.address,
-            symbol: token.symbol,
-            volume24h: 0,
-            change24h: 0,
-          };
-        }
-      })
+    const statsMap = await getTokenStatsBatch(
+      tokens.map((t) => ({ chain: t.chain, address: t.address })),
+      180
     );
+
+    const withStats = tokens.map((token) => {
+      const key = `${token.chain.toLowerCase()}:${token.address.toLowerCase()}`;
+      const stats = statsMap.get(key);
+      return {
+        id: token.id,
+        chain: token.chain,
+        address: token.address,
+        symbol: token.symbol,
+        volume24h: stats?.volume24h ?? 0,
+        change24h: stats?.change24h ?? 0,
+      };
+    });
 
     const top5 = withStats
       .sort((a, b) => b.volume24h - a.volume24h)
