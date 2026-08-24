@@ -1,195 +1,26 @@
 import { ImageResponse } from "next/og";
-import type { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-function formatPrice(raw: string | null): string {
-  if (!raw || raw === "null" || raw === "") return "-";
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return "-";
-  if (n >= 1) return `$${n.toFixed(4)}`;
-  if (n >= 0.0001) return `$${n.toFixed(6)}`;
-  return `$${n.toPrecision(4)}`;
-}
-
-function formatChange(raw: string | null): { text: string; color: string } {
-  if (!raw || raw === "null" || raw === "") {
-    return { text: "-", color: "#8b93a1" };
-  }
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return { text: "-", color: "#8b93a1" };
-  const sign = n > 0 ? "+" : "";
-  return {
-    text: `${sign}${n.toFixed(2)}%`,
-    color: n < 0 ? "#f87171" : "#4ade80",
-  };
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = request.nextUrl;
-
-    const symbol = searchParams.get("symbol") || "???";
-    const name = searchParams.get("name") || "Unknown";
-    const priceRaw = searchParams.get("price");
-    const changeRaw = searchParams.get("change");
-    const imageUrl = searchParams.get("image");
-    const domain =
-      searchParams.get("domain") ||
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ||
-      "filtard.vercel.app";
-
-    const price = formatPrice(priceRaw);
-    const change = formatChange(changeRaw);
-
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            backgroundColor: "#07080a",
-            padding: "48px 56px",
-            fontFamily: "system-ui, sans-serif",
-          }}
-        >
-          {/* Branding top-right */}
-          <div
-            style={{
-              display: "flex",
-              width: "100%",
-              justifyContent: "flex-end",
-              alignItems: "center",
-              gap: "10px",
-              marginBottom: 40,
-            }}
-          >
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 6,
-                backgroundColor: "#b8ff3d",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-                fontWeight: 800,
-                color: "#07080a",
-              }}
-            >
-              F
-            </div>
-            <div style={{ fontSize: 18, color: "#3a3f4a" }}>|</div>
-            <div style={{ fontSize: 18, color: "#8b93a1" }}>{domain}</div>
-          </div>
-
-          {/* Token */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "20px",
-              marginBottom: 48,
-            }}
-          >
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                width={72}
-                height={72}
-                style={{ borderRadius: "50%" }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: "50%",
-                  backgroundColor: "#1c1f26",
-                }}
-              />
-            )}
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div
-                style={{
-                  fontSize: 36,
-                  fontWeight: 700,
-                  color: "#f4f6f8",
-                  lineHeight: 1.2,
-                }}
-              >
-                ${symbol}
-              </div>
-              <div style={{ fontSize: 20, color: "#8b93a1", marginTop: 4 }}>
-                {name}
-              </div>
-            </div>
-          </div>
-
-          {/* Metrics */}
-          <div
-            style={{
-              display: "flex",
-              gap: "64px",
-              marginBottom: 48,
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 18, color: "#8b93a1", marginBottom: 6 }}>
-                Price
-              </div>
-              <div style={{ fontSize: 40, fontWeight: 600, color: "#f4f6f8" }}>
-                {price}
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 18, color: "#8b93a1", marginBottom: 6 }}>
-                24h
-              </div>
-              <div
-                style={{ fontSize: 40, fontWeight: 600, color: change.color }}
-              >
-                {change.text}
-              </div>
-            </div>
-          </div>
-
-          {/* Spacer */}
-          <div style={{ display: "flex", flex: 1 }} />
-
-          {/* Bottom */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                height: 1,
-                backgroundColor: "#1c1f26",
-                marginBottom: 20,
-              }}
-            />
-            <div style={{ fontSize: 18, color: "#8b93a1" }}>
-              Community-curated memecoins screener
-            </div>
-          </div>
-        </div>
-      ),
-      {
-        width: 1200,
-        height: 630,
-      }
-    );
-  } catch (e) {
-    console.error("OG image error:", e);
-    return new Response("Failed to generate image", { status: 500 });
-  }
+export async function GET() {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#07080a",
+          color: "#b8ff3d",
+          fontSize: 48,
+          fontFamily: "sans-serif",
+        }}
+      >
+        Filtard OG works
+      </div>
+    ),
+    { width: 1200, height: 630 }
+  );
 }
