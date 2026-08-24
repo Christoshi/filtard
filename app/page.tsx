@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import TokenTable from "./components/TokenTable";
-import { getTokenStatsBatch } from "@/lib/dexscreener";
 
 export const revalidate = 30;
 
@@ -13,6 +12,31 @@ type Token = {
   image_url: string | null;
   is_pinned: boolean;
 };
+
+async function getTokenStats(address: string) {
+  try {
+    const res = await fetch(
+      `https://api.dexscreener.com/latest/dex/tokens/${address}`,
+      { next: { revalidate: 30 } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const pair = data?.pairs?.[0];
+    if (!pair) return null;
+
+    return {
+      priceUsd: pair.priceUsd ? Number(pair.priceUsd) : null,
+      change24h: pair.priceChange?.h24 ?? null,
+      volume24h: pair.volume?.h24 ?? null,
+      liquidity: pair.liquidity?.usd ?? null,
+      marketCap: pair.marketCap ?? pair.fdv ?? null,
+      txns24h: (pair.txns?.h24?.buys ?? 0) + (pair.txns?.h24?.sells ?? 0) || null,
+      pairCreatedAt: pair.pairCreatedAt ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
 
 function isNewToken(timestamp: number | null) {
   if (!timestamp) return false;
@@ -41,21 +65,12 @@ export default async function Home({
 
   const { data: tokens } = await query;
 
-  const list = (tokens || []) as Token[];
-
-  // Single batched call instead of N individual fetches
-  const statsMap = await getTokenStatsBatch(
-    list.map((t) => ({ chain: t.chain, address: t.address })),
-    30
+  const tokensWithStats = await Promise.all(
+    (tokens || []).map(async (token: Token) => {
+      const stats = await getTokenStats(token.address);
+      return { ...token, stats };
+    })
   );
-
-  const tokensWithStats = list.map((token) => {
-    const key = `${token.chain.toLowerCase()}:${token.address.toLowerCase()}`;
-    return {
-      ...token,
-      stats: statsMap.get(key) ?? null,
-    };
-  });
 
   const finalTokens = onlyNew
     ? tokensWithStats.filter((t) => isNewToken(t.stats?.pairCreatedAt ?? null))
