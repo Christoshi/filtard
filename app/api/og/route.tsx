@@ -4,9 +4,9 @@ import type { NextRequest } from "next/server";
 export const runtime = "edge";
 
 function formatPrice(raw: string | null): string {
-  if (!raw || raw === "null" || raw === "") return "—";
+  if (!raw || raw === "null" || raw === "") return "-";
   const n = Number(raw);
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) return "-";
   if (n >= 1) return `$${n.toFixed(4)}`;
   if (n >= 0.0001) return `$${n.toFixed(6)}`;
   return `$${n.toPrecision(4)}`;
@@ -14,10 +14,10 @@ function formatPrice(raw: string | null): string {
 
 function formatChange(raw: string | null): { text: string; color: string } {
   if (!raw || raw === "null" || raw === "") {
-    return { text: "—", color: "#8b93a1" };
+    return { text: "-", color: "#8b93a1" };
   }
   const n = Number(raw);
-  if (!Number.isFinite(n)) return { text: "—", color: "#8b93a1" };
+  if (!Number.isFinite(n)) return { text: "-", color: "#8b93a1" };
   const sign = n > 0 ? "+" : "";
   return {
     text: `${sign}${n.toFixed(2)}%`,
@@ -52,10 +52,10 @@ export async function GET(request: NextRequest) {
             flexDirection: "column",
             backgroundColor: "#07080a",
             padding: "48px 56px",
-            fontFamily: "system-ui, -apple-system, sans-serif",
+            fontFamily: "system-ui, sans-serif",
           }}
         >
-          {/* Top row — branding only, right-aligned */}
+          {/* Branding top-right */}
           <div
             style={{
               display: "flex",
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
               justifyContent: "flex-end",
               alignItems: "center",
               gap: "10px",
-              marginBottom: 36,
+              marginBottom: 40,
             }}
           >
             <div
@@ -86,14 +86,21 @@ export async function GET(request: NextRequest) {
             <div style={{ fontSize: 18, color: "#8b93a1" }}>{domain}</div>
           </div>
 
-          {/* Token block — left-aligned, below branding */}
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          {/* Token */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "20px",
+              marginBottom: 48,
+            }}
+          >
             {imageUrl ? (
               <img
                 src={imageUrl}
                 width={72}
                 height={72}
-                style={{ borderRadius: "50%", objectFit: "cover" }}
+                style={{ borderRadius: "50%" }}
               />
             ) : (
               <div
@@ -102,7 +109,6 @@ export async function GET(request: NextRequest) {
                   height: 72,
                   borderRadius: "50%",
                   backgroundColor: "#1c1f26",
-                  display: "flex",
                 }}
               />
             )}
@@ -112,7 +118,7 @@ export async function GET(request: NextRequest) {
                   fontSize: 36,
                   fontWeight: 700,
                   color: "#f4f6f8",
-                  lineHeight: 1.1,
+                  lineHeight: 1.2,
                 }}
               >
                 ${symbol}
@@ -128,24 +134,14 @@ export async function GET(request: NextRequest) {
             style={{
               display: "flex",
               gap: "64px",
-              marginTop: "auto",
-              marginBottom: "auto",
-              paddingTop: 24,
-              paddingBottom: 24,
+              marginBottom: 48,
             }}
           >
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 18, color: "#8b93a1", marginBottom: 6 }}>
                 Price
               </div>
-              <div
-                style={{
-                  fontSize: 42,
-                  fontWeight: 600,
-                  color: "#f4f6f8",
-                  letterSpacing: "-0.02em",
-                }}
-              >
+              <div style={{ fontSize: 40, fontWeight: 600, color: "#f4f6f8" }}>
                 {price}
               </div>
             </div>
@@ -154,19 +150,17 @@ export async function GET(request: NextRequest) {
                 24h
               </div>
               <div
-                style={{
-                  fontSize: 42,
-                  fontWeight: 600,
-                  color: change.color,
-                  letterSpacing: "-0.02em",
-                }}
+                style={{ fontSize: 40, fontWeight: 600, color: change.color }}
               >
                 {change.text}
               </div>
             </div>
           </div>
 
-          {/* Bottom tagline */}
+          {/* Spacer */}
+          <div style={{ display: "flex", flex: 1 }} />
+
+          {/* Bottom */}
           <div
             style={{
               display: "flex",
