@@ -7,6 +7,7 @@ import StarRating from "@/app/components/StarRating";
 import WatchlistStar from "@/app/components/WatchlistStar";
 import ThesisCard from "@/app/components/ThesisCard";
 import ViewTracker from "@/app/components/ViewTracker";
+import DexChartEmbed from "@/app/components/DexChartEmbed";
 
 export const revalidate = 20;
 
@@ -470,11 +471,7 @@ export default async function TokenPage({
         viewCount={viewCount}
       />
 
-      <div className="relative rounded-xl border border-[#1c1f26] overflow-hidden mb-6">
-        <div style={{ height: "520px" }}>
-          <iframe src={embedUrl} className="w-full h-full" title="chart" />
-        </div>
-      </div>
+      <DexChartEmbed embedUrl={embedUrl} height={520} />
     </div>
   );
 }
