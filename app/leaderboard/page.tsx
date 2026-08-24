@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { getTokenStatsBatch } from "@/lib/dexscreener";
 
 import type { Metadata } from "next";
 
@@ -24,30 +23,37 @@ type CuratorScore = {
 async function getLeaderboard(): Promise<CuratorScore[]> {
   const { data: tokens } = await supabase
     .from("tokens")
-    .select("id, chain, address, submitted_by, initial_mcap")
+    .select(
+      `
+      id,
+      chain,
+      address,
+      submitted_by,
+      initial_mcap,
+      token_stats (
+        market_cap
+      )
+    `
+    )
     .eq("status", "approved")
     .not("submitted_by", "is", null);
 
   if (!tokens || tokens.length === 0) return [];
 
-  // One batched DexScreener call for all tokens
-  const statsMap = await getTokenStatsBatch(
-    tokens.map((t) => ({ chain: t.chain, address: t.address })),
-    60
-  );
-
   const byCurator: Record<
     string,
-    { chain: string; address: string; initial_mcap: number | null }[]
+    { initial_mcap: number | null; market_cap: number | null }[]
   > = {};
 
   tokens.forEach((t) => {
     if (!t.submitted_by) return;
     if (!byCurator[t.submitted_by]) byCurator[t.submitted_by] = [];
+
+    const s = Array.isArray(t.token_stats) ? t.token_stats[0] : t.token_stats;
+
     byCurator[t.submitted_by].push({
-      chain: t.chain,
-      address: t.address,
       initial_mcap: t.initial_mcap,
+      market_cap: s?.market_cap != null ? Number(s.market_cap) : null,
     });
   });
 
@@ -68,9 +74,7 @@ async function getLeaderboard(): Promise<CuratorScore[]> {
     if (tokenCount === 0) continue;
 
     const multipliers = curatorTokens.map((t) => {
-      const key = `${t.chain.toLowerCase()}:${t.address.toLowerCase()}`;
-      const stats = statsMap.get(key);
-      const current = stats?.marketCap ?? null;
+      const current = t.market_cap;
       const initial = t.initial_mcap;
       if (!current || !initial || initial <= 0) return 1;
       const raw = current / initial;
