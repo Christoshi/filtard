@@ -3,8 +3,38 @@ import Link from "next/link";
 
 import type { Metadata } from "next";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
+const domain = siteUrl.replace(/^https?:\/\//, "");
+const ogImage = `${siteUrl}/api/og/site?domain=${encodeURIComponent(domain)}`;
+
 export const metadata: Metadata = {
   title: "Leaderboard",
+  description:
+    "Curator leaderboard on Filtard — discover memecoins the trenches find most interesting.",
+  openGraph: {
+    title: "Leaderboard | Filtard",
+    description:
+      "Curator leaderboard on Filtard — discover memecoins the trenches find most interesting.",
+    url: `${siteUrl}/leaderboard`,
+    siteName: "Filtard",
+    type: "website",
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "Filtard",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Leaderboard | Filtard",
+    description:
+      "Curator leaderboard on Filtard — discover memecoins the trenches find most interesting.",
+    images: [ogImage],
+  },
 };
 
 export const revalidate = 60;

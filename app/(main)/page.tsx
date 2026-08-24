@@ -1,5 +1,40 @@
 import { supabase } from "@/lib/supabase";
 import TokenTable from "../components/TokenTable";
+import type { Metadata } from "next";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
+const domain = siteUrl.replace(/^https?:\/\//, "");
+const ogImage = `${siteUrl}/api/og/site?domain=${encodeURIComponent(domain)}`;
+
+export const metadata: Metadata = {
+  title: "Filtard – Community Curated Memecoin Screener",
+  description:
+    "Discover memecoins the trenches find most interesting. Community-curated tokens with theses, ratings, and live data.",
+  openGraph: {
+    title: "Filtard – Community Curated Memecoin Screener",
+    description:
+      "Discover memecoins the trenches find most interesting. Community-curated tokens with theses, ratings, and live data.",
+    url: siteUrl,
+    siteName: "Filtard",
+    type: "website",
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "Filtard",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Filtard – Community Curated Memecoin Screener",
+    description:
+      "Discover memecoins the trenches find most interesting. Community-curated tokens with theses, ratings, and live data.",
+    images: [ogImage],
+  },
+};
 
 export const revalidate = 30;
 
