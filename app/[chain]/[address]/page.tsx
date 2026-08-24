@@ -194,15 +194,50 @@ export async function generateMetadata({
     getTokenFromDb(chain, address),
   ]);
 
-  const symbol =
-    stats?.symbol || dbToken?.symbol || "???";
+  const symbol = stats?.symbol || dbToken?.symbol || "???";
   const name = stats?.name || dbToken?.name || "Unknown";
-  const price = formatUsd(stats?.priceUsd ?? null);
-  const change = formatPct(stats?.change24h ?? null);
+
+  const cached = Array.isArray(dbToken?.token_stats)
+    ? dbToken?.token_stats[0]
+    : dbToken?.token_stats;
+
+  const priceUsd =
+    stats?.priceUsd ??
+    (cached?.price_usd != null ? Number(cached.price_usd) : null);
+  const change24h =
+    stats?.change24h ??
+    (cached?.change_24h != null ? Number(cached.change_24h) : null);
+
   const image = stats?.imageUrl || dbToken?.image_url || null;
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
+  const domain = siteUrl.replace(/^https?:\/\//, "");
+
+  const ogParams = new URLSearchParams({
+    symbol,
+    name,
+    domain,
+  });
+  if (priceUsd != null) ogParams.set("price", String(priceUsd));
+  if (change24h != null) ogParams.set("change", String(change24h));
+  if (image) ogParams.set("image", image);
+
+  const ogImageUrl = `${siteUrl}/api/og?${ogParams.toString()}`;
+
+  const priceLabel =
+    priceUsd != null
+      ? priceUsd >= 1
+        ? `$${priceUsd.toFixed(4)}`
+        : `$${priceUsd.toPrecision(4)}`
+      : "—";
+  const changeLabel =
+    change24h != null
+      ? `${change24h > 0 ? "+" : ""}${change24h.toFixed(2)}%`
+      : "—";
+
   const title = `$${symbol}`;
-  const description = `${name} (${symbol}) — Price: ${price} · 24h: ${change} · Community curated on Filtard`;
+  const description = `${name} (${symbol}) — Price: ${priceLabel} · 24h: ${changeLabel} · Community curated on Filtard`;
 
   return {
     title,
@@ -210,25 +245,23 @@ export async function generateMetadata({
     openGraph: {
       title: `${title} | Filtard`,
       description,
-      url: `https://filtard.vercel.app/${chain}/${address}`,
+      url: `${siteUrl}/${chain}/${address}`,
       siteName: "Filtard",
       type: "website",
-      images: image
-        ? [
-            {
-              url: image,
-              width: 200,
-              height: 200,
-              alt: `${symbol} logo`,
-            },
-          ]
-        : [],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${symbol} on Filtard`,
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: `${title} | Filtard`,
       description,
-      images: image ? [image] : [],
+      images: [ogImageUrl],
     },
   };
 }
