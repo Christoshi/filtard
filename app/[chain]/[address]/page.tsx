@@ -209,6 +209,7 @@ export async function generateMetadata({
     (cached?.change_24h != null ? Number(cached.change_24h) : null);
 
   const image = stats?.imageUrl || dbToken?.image_url || null;
+  const thesis = dbToken?.thesis || null;
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
@@ -222,22 +223,16 @@ export async function generateMetadata({
   if (priceUsd != null) ogParams.set("price", String(priceUsd));
   if (change24h != null) ogParams.set("change", String(change24h));
   if (image) ogParams.set("image", image);
+  if (thesis) ogParams.set("thesis", thesis.slice(0, 120));
 
   const ogImageUrl = `${siteUrl}/api/og?${ogParams.toString()}`;
 
-  const priceLabel =
-    priceUsd != null
-      ? priceUsd >= 1
-        ? `$${priceUsd.toFixed(4)}`
-        : `$${priceUsd.toPrecision(4)}`
-      : "—";
-  const changeLabel =
-    change24h != null
-      ? `${change24h > 0 ? "+" : ""}${change24h.toFixed(2)}%`
-      : "—";
-
   const title = `$${symbol}`;
-  const description = `${name} (${symbol}) — Price: ${priceLabel} · 24h: ${changeLabel} · Community curated on Filtard`;
+  const description = thesis
+    ? thesis.length > 160
+      ? thesis.slice(0, 157) + "..."
+      : thesis
+    : `${name} (${symbol}) — Community curated on Filtard`;
 
   return {
     title,

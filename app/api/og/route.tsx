@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
   const priceRaw = searchParams.get("price");
   const changeRaw = searchParams.get("change");
   const imageUrl = searchParams.get("image");
+  const thesis = searchParams.get("thesis") || "";
   const domain =
     searchParams.get("domain") ||
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ||
@@ -41,6 +42,12 @@ export async function GET(request: NextRequest) {
 
   const price = formatPrice(priceRaw);
   const change = formatChange(changeRaw);
+
+  const bottomText = thesis
+    ? thesis.length > 90
+      ? thesis.slice(0, 87) + "..."
+      : thesis
+    : "Community-curated memecoins screener";
 
   return new ImageResponse(
     (
@@ -51,34 +58,34 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           backgroundColor: "#07080a",
-          padding: "44px 52px 40px 52px",
+          padding: "36px 44px 32px 44px",
           fontFamily: "sans-serif",
         }}
       >
-        {/* Branding — larger, visible */}
+        {/* Branding — top right only */}
         <div
           style={{
             display: "flex",
             width: "100%",
             justifyContent: "flex-end",
             alignItems: "center",
-            marginBottom: 36,
+            marginBottom: 28,
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
             <div
               style={{
                 display: "flex",
-                width: 36,
-                height: 36,
-                borderRadius: 8,
+                width: 56,
+                height: 56,
+                borderRadius: 12,
                 backgroundColor: "#b8ff3d",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 20,
+                fontSize: 32,
                 fontWeight: 800,
                 color: "#07080a",
-                marginRight: 12,
+                marginRight: 14,
               }}
             >
               F
@@ -86,40 +93,40 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 22,
+                fontSize: 32,
                 color: "#5a6270",
-                marginRight: 12,
+                marginRight: 14,
               }}
             >
               |
             </div>
-            <div style={{ display: "flex", fontSize: 22, color: "#a0a8b4" }}>
+            <div style={{ display: "flex", fontSize: 32, color: "#c0c6d0" }}>
               {domain}
             </div>
           </div>
         </div>
 
-        {/* Token — larger */}
+        {/* Token */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            marginBottom: 40,
+            marginBottom: 28,
           }}
         >
           {imageUrl ? (
             <img
               src={imageUrl}
-              width={96}
-              height={96}
+              width={110}
+              height={110}
               style={{ borderRadius: "50%", marginRight: 28 }}
             />
           ) : (
             <div
               style={{
                 display: "flex",
-                width: 96,
-                height: 96,
+                width: 110,
+                height: 110,
                 borderRadius: "50%",
                 backgroundColor: "#1c1f26",
                 marginRight: 28,
@@ -130,7 +137,7 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 56,
+                fontSize: 72,
                 fontWeight: 700,
                 color: "#f4f6f8",
                 lineHeight: 1.05,
@@ -141,9 +148,9 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 28,
-                color: "#9ca3af",
-                marginTop: 8,
+                fontSize: 40,
+                color: "#b0b8c4",
+                marginTop: 6,
               }}
             >
               {name}
@@ -151,21 +158,21 @@ export async function GET(request: NextRequest) {
           </div>
         </div>
 
-        {/* Metrics — large and clear */}
-        <div style={{ display: "flex" }}>
+        {/* Metrics */}
+        <div style={{ display: "flex", marginBottom: 20 }}>
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              marginRight: 72,
+              marginRight: 64,
             }}
           >
             <div
               style={{
                 display: "flex",
-                fontSize: 22,
-                color: "#7a8494",
-                marginBottom: 8,
+                fontSize: 32,
+                color: "#8b93a1",
+                marginBottom: 6,
               }}
             >
               Price
@@ -173,7 +180,7 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 56,
+                fontSize: 64,
                 fontWeight: 600,
                 color: "#f4f6f8",
               }}
@@ -185,9 +192,9 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 22,
-                color: "#7a8494",
-                marginBottom: 8,
+                fontSize: 32,
+                color: "#8b93a1",
+                marginBottom: 6,
               }}
             >
               24h
@@ -195,7 +202,7 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 display: "flex",
-                fontSize: 56,
+                fontSize: 64,
                 fontWeight: 600,
                 color: change.color,
               }}
@@ -207,7 +214,7 @@ export async function GET(request: NextRequest) {
 
         <div style={{ display: "flex", flexGrow: 1 }} />
 
-        {/* Tagline */}
+        {/* Bottom — thesis or tagline */}
         <div
           style={{
             display: "flex",
@@ -222,24 +229,23 @@ export async function GET(request: NextRequest) {
               width: "100%",
               height: 1,
               backgroundColor: "#1c1f26",
-              marginBottom: 18,
+              marginBottom: 16,
             }}
           />
           <div
             style={{
               display: "flex",
-              fontSize: 22,
-              color: "#9ca3af",
+              fontSize: 28,
+              color: "#c0c6d0",
+              textAlign: "center",
+              maxWidth: "100%",
             }}
           >
-            Community-curated memecoins screener
+            {bottomText}
           </div>
         </div>
       </div>
     ),
-    {
-      width: 1200,
-      height: 630,
-    }
+    { width: 1200, height: 630 }
   );
 }
