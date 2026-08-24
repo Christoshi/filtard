@@ -209,7 +209,18 @@ export async function generateMetadata({
     (cached?.change_24h != null ? Number(cached.change_24h) : null);
 
   const image = stats?.imageUrl || dbToken?.image_url || null;
-  const thesis = dbToken?.thesis || null;
+  const rawThesis = dbToken?.thesis || null;
+
+  // Plain text only — strip markdown links and simple md syntax
+  function toPlainText(text: string): string {
+    return text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/[*_`~]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  const plainThesis = rawThesis ? toPlainText(rawThesis) : null;
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
@@ -223,15 +234,15 @@ export async function generateMetadata({
   if (priceUsd != null) ogParams.set("price", String(priceUsd));
   if (change24h != null) ogParams.set("change", String(change24h));
   if (image) ogParams.set("image", image);
-  if (thesis) ogParams.set("thesis", thesis.slice(0, 120));
+  // thesis is NOT sent to the card image
 
   const ogImageUrl = `${siteUrl}/api/og?${ogParams.toString()}`;
 
   const title = `$${symbol}`;
-  const description = thesis
-    ? thesis.length > 160
-      ? thesis.slice(0, 157) + "..."
-      : thesis
+  const description = plainThesis
+    ? plainThesis.length > 160
+      ? plainThesis.slice(0, 157) + "..."
+      : plainThesis
     : `${name} (${symbol}) — Community curated on Filtard`;
 
   return {
