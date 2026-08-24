@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import TokenTable from "./components/TokenTable";
+import TokenTable from "../components/TokenTable";
 
 export const revalidate = 30;
 
