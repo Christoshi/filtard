@@ -52,25 +52,25 @@ export async function GET(request: NextRequest) {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "48px 64px",
+            padding: "40px 64px",
           }}
         >
-          {/* Logo */}
+          {/* Logo – doubled */}
           <img
             src={logoUrl}
-            width={72}
-            height={72}
+            width={144}
+            height={144}
             style={{
-              borderRadius: 14,
-              marginBottom: 28,
+              borderRadius: 20,
+              marginBottom: 32,
             }}
           />
 
-          {/* FILTARD wordmark – dominant with special spacing */}
+          {/* FILTARD – +50% size with special spacing */}
           <div
             style={{
               display: "flex",
-              fontSize: 92,
+              fontSize: 138,
               fontWeight: 700,
               color: "#f4f6f8",
               letterSpacing: "0.12em",
@@ -81,11 +81,11 @@ export async function GET(request: NextRequest) {
             FILTARD
           </div>
 
-          {/* Tagline */}
+          {/* Tagline – +25% size */}
           <div
             style={{
               display: "flex",
-              fontSize: 28,
+              fontSize: 35,
               fontWeight: 400,
               color: "#8b93a1",
               letterSpacing: "0.01em",

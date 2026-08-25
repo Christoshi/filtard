@@ -17,19 +17,19 @@ const siteUrl =
 
 export const metadata: Metadata = {
   title: {
-    default: "Filtard – Community Curated Memecoin Screener",
+    default: "Filtard",
     template: "%s | Filtard",
   },
   description:
-    "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data across Solana, Base, Ethereum and more.",
+    "Community-curated memecoins with theses, ratings, and live data.",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Filtard – Community Curated Memecoin Screener",
+    title: "Filtard",
     description:
-      "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data.",
+      "Community-curated memecoins with theses, ratings, and live data.",
     url: siteUrl,
     siteName: "Filtard",
     type: "website",
@@ -38,15 +38,15 @@ export const metadata: Metadata = {
         url: `${siteUrl}/api/og/site`,
         width: 1200,
         height: 630,
-        alt: "Filtard – Community Curated Memecoin Screener",
+        alt: "Filtard",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Filtard – Community Curated Memecoin Screener",
+    title: "Filtard",
     description:
-      "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data.",
+      "Community-curated memecoins with theses, ratings, and live data.",
     images: [`${siteUrl}/api/og/site`],
   },
 };
