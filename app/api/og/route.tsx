@@ -3,10 +3,29 @@ import type { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+async function loadGoogleFont(font: string, weight: number) {
+  const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}&display=swap`;
+  const css = await (await fetch(url)).text();
+  const resource = css.match(
+    /src: url\((.+)\) format\('(opentype|truetype)'\)/
+  );
+
+  if (!resource) {
+    throw new Error(`Failed to load font: ${font} ${weight}`);
+  }
+
+  const response = await fetch(resource[1]);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch font data: ${font} ${weight}`);
+  }
+
+  return response.arrayBuffer();
+}
+
 function formatPrice(raw: string | null): string {
-  if (!raw || raw === "null" || raw === "") return "-";
+  if (!raw || raw === "null" || raw === "") return "—";
   const n = Number(raw);
-  if (!Number.isFinite(n)) return "-";
+  if (!Number.isFinite(n)) return "—";
   if (n >= 1) return "$" + n.toFixed(4);
   if (n >= 0.01) return "$" + n.toFixed(4);
   if (n >= 0.0001) return "$" + n.toFixed(6);
@@ -15,15 +34,25 @@ function formatPrice(raw: string | null): string {
 
 function formatChange(raw: string | null): { text: string; color: string } {
   if (!raw || raw === "null" || raw === "") {
-    return { text: "-", color: "#8b93a1" };
+    return { text: "—", color: "#8b93a1" };
   }
   const n = Number(raw);
-  if (!Number.isFinite(n)) return { text: "-", color: "#8b93a1" };
+  if (!Number.isFinite(n)) return { text: "—", color: "#8b93a1" };
   const sign = n > 0 ? "+" : "";
   return {
     text: sign + n.toFixed(2) + "%",
     color: n < 0 ? "#f87171" : "#4ade80",
   };
+}
+
+function formatMcap(raw: string | null): string {
+  if (!raw || raw === "null" || raw === "") return "—";
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return "—";
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
+  return `$${n.toFixed(0)}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -33,14 +62,27 @@ export async function GET(request: NextRequest) {
   const name = searchParams.get("name") || "Unknown";
   const priceRaw = searchParams.get("price");
   const changeRaw = searchParams.get("change");
+  const mcapRaw = searchParams.get("mcap");
   const imageUrl = searchParams.get("image");
+  const curator = searchParams.get("curator");
   const domain =
     searchParams.get("domain") ||
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ||
-    "filtard.vercel.app";
+    "filtard.com";
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
+  const logoUrl = `${siteUrl}/logo.png`;
 
   const price = formatPrice(priceRaw);
   const change = formatChange(changeRaw);
+  const mcap = formatMcap(mcapRaw);
+
+  const [inter400, inter600, inter700] = await Promise.all([
+    loadGoogleFont("Inter", 400),
+    loadGoogleFont("Inter", 600),
+    loadGoogleFont("Inter", 700),
+  ]);
 
   return new ImageResponse(
     (
@@ -50,74 +92,59 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           backgroundColor: "#07080a",
-          fontFamily: "sans-serif",
+          fontFamily: "Inter",
         }}
       >
-        {/* Left accent strip */}
-        <div
-          style={{
-            display: "flex",
-            width: 6,
-            height: "100%",
-            backgroundColor: "#b8ff3d",
-          }}
-        />
-
-        {/* Main content */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             flex: 1,
             height: "100%",
-            padding: "32px 44px 28px 40px",
+            padding: "36px 48px 32px 48px",
           }}
         >
-          {/* Top branding — quiet, right */}
+          {/* Top branding */}
           <div
             style={{
               display: "flex",
               width: "100%",
-              justifyContent: "flex-end",
+              justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: 28,
+              marginBottom: 32,
             }}
           >
             <div style={{ display: "flex", alignItems: "center" }}>
+              <img
+                src={logoUrl}
+                width={40}
+                height={40}
+                style={{ borderRadius: 8, marginRight: 12 }}
+              />
               <div
                 style={{
                   display: "flex",
-                  width: 36,
-                  height: 36,
-                  borderRadius: 8,
-                  backgroundColor: "#b8ff3d",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 20,
-                  fontWeight: 800,
-                  color: "#07080a",
-                  marginRight: 12,
+                  fontSize: 26,
+                  fontWeight: 600,
+                  color: "#f4f6f8",
+                  letterSpacing: "-0.02em",
                 }}
               >
-                F
+                Filtard
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 22,
-                  color: "#4a5060",
-                  marginRight: 12,
-                }}
-              >
-                |
-              </div>
-              <div style={{ display: "flex", fontSize: 22, color: "#8b93a1" }}>
-                {domain}
-              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: 20,
+                color: "#8b93a1",
+              }}
+            >
+              {domain}
             </div>
           </div>
 
-          {/* Middle: two columns */}
+          {/* Main content */}
           <div
             style={{
               display: "flex",
@@ -138,16 +165,20 @@ export async function GET(request: NextRequest) {
               {imageUrl ? (
                 <img
                   src={imageUrl}
-                  width={140}
-                  height={140}
-                  style={{ borderRadius: "50%", marginRight: 28 }}
+                  width={148}
+                  height={148}
+                  style={{
+                    borderRadius: "50%",
+                    marginRight: 28,
+                    border: "2px solid #1c1f26",
+                  }}
                 />
               ) : (
                 <div
                   style={{
                     display: "flex",
-                    width: 140,
-                    height: 140,
+                    width: 148,
+                    height: 148,
                     borderRadius: "50%",
                     backgroundColor: "#1c1f26",
                     marginRight: 28,
@@ -158,10 +189,11 @@ export async function GET(request: NextRequest) {
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 64,
+                    fontSize: 56,
                     fontWeight: 700,
                     color: "#f4f6f8",
                     lineHeight: 1.1,
+                    letterSpacing: "-0.03em",
                   }}
                 >
                   ${symbol}
@@ -169,13 +201,25 @@ export async function GET(request: NextRequest) {
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 28,
+                    fontSize: 26,
                     color: "#9ca3af",
-                    marginTop: 8,
+                    marginTop: 6,
                   }}
                 >
                   {name}
                 </div>
+                {curator ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 18,
+                      color: "#6b7280",
+                      marginTop: 10,
+                    }}
+                  >
+                    Curated by @{curator}
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -188,22 +232,23 @@ export async function GET(request: NextRequest) {
                 backgroundColor: "#0e1014",
                 borderRadius: 16,
                 border: "1px solid #1c1f26",
-                padding: "28px 32px",
+                padding: "26px 30px",
               }}
             >
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  marginBottom: 24,
+                  marginBottom: 20,
                 }}
               >
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 20,
+                    fontSize: 17,
                     color: "#6b7280",
-                    marginBottom: 6,
+                    marginBottom: 4,
+                    fontWeight: 500,
                   }}
                 >
                   Price
@@ -211,7 +256,7 @@ export async function GET(request: NextRequest) {
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 44,
+                    fontSize: 36,
                     fontWeight: 600,
                     color: "#f4f6f8",
                   }}
@@ -219,13 +264,21 @@ export async function GET(request: NextRequest) {
                   {price}
                 </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginBottom: 20,
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 20,
+                    fontSize: 17,
                     color: "#6b7280",
-                    marginBottom: 6,
+                    marginBottom: 4,
+                    fontWeight: 500,
                   }}
                 >
                   24h
@@ -233,12 +286,36 @@ export async function GET(request: NextRequest) {
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 44,
+                    fontSize: 36,
                     fontWeight: 600,
                     color: change.color,
                   }}
                 >
                   {change.text}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 17,
+                    color: "#6b7280",
+                    marginBottom: 4,
+                    fontWeight: 500,
+                  }}
+                >
+                  Market Cap
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 36,
+                    fontWeight: 600,
+                    color: "#f4f6f8",
+                  }}
+                >
+                  {mcap}
                 </div>
               </div>
             </div>
@@ -251,7 +328,7 @@ export async function GET(request: NextRequest) {
               flexDirection: "column",
               alignItems: "center",
               width: "100%",
-              marginTop: 24,
+              marginTop: 28,
             }}
           >
             <div
@@ -260,22 +337,31 @@ export async function GET(request: NextRequest) {
                 width: "100%",
                 height: 1,
                 backgroundColor: "#1c1f26",
-                marginBottom: 14,
+                marginBottom: 16,
               }}
             />
             <div
               style={{
                 display: "flex",
-                fontSize: 22,
+                fontSize: 26,
                 color: "#8b93a1",
+                fontWeight: 400,
               }}
             >
-              Community-curated memecoins screener
+              Community-curated memecoin screener
             </div>
           </div>
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      fonts: [
+        { name: "Inter", data: inter400, style: "normal", weight: 400 },
+        { name: "Inter", data: inter600, style: "normal", weight: 600 },
+        { name: "Inter", data: inter700, style: "normal", weight: 700 },
+      ],
+    }
   );
 }

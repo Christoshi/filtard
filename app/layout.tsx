@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import HeaderAuth from "./components/HeaderAuth";
 import MobileBottomNav from "./components/MobileBottomNav";
 import TopTicker from "./components/TopTicker";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -38,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.className}>
       <body className="min-h-screen bg-[#07080a] text-[#f4f6f8] pb-20 md:pb-0">
         <header className="sticky top-0 z-50 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
           <div className="flex items-center px-3 py-2.5 md:px-6 md:py-3 gap-3">

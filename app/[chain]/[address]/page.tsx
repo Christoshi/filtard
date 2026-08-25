@@ -207,11 +207,18 @@ export async function generateMetadata({
   const change24h =
     stats?.change24h ??
     (cached?.change_24h != null ? Number(cached.change_24h) : null);
+  const marketCap =
+    stats?.marketCap ??
+    (cached?.market_cap != null ? Number(cached.market_cap) : null);
 
   const image = stats?.imageUrl || dbToken?.image_url || null;
   const rawThesis = dbToken?.thesis || null;
 
-  // Plain text only — strip markdown links and simple md syntax
+  const curatorProfile = Array.isArray(dbToken?.profiles)
+    ? dbToken.profiles[0]
+    : dbToken?.profiles;
+  const curator = curatorProfile?.display_name || null;
+
   function toPlainText(text: string): string {
     return text
       .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
@@ -233,8 +240,9 @@ export async function generateMetadata({
   });
   if (priceUsd != null) ogParams.set("price", String(priceUsd));
   if (change24h != null) ogParams.set("change", String(change24h));
+  if (marketCap != null) ogParams.set("mcap", String(marketCap));
   if (image) ogParams.set("image", image);
-  // thesis is NOT sent to the card image
+  if (curator) ogParams.set("curator", curator);
 
   const ogImageUrl = `${siteUrl}/api/og?${ogParams.toString()}`;
 
