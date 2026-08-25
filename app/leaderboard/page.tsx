@@ -7,11 +7,11 @@ const siteUrl =
 const ogImage = `${siteUrl}/api/og/site`;
 
 export const metadata: Metadata = {
-  title: "Leaderboard",
-  description: "The curator leaderboard on Filtard.",
+  title: "Curator leaderboard",
+  description: "Submit memecoins with strong theses and earn points.",
   openGraph: {
-    title: "Leaderboard | Filtard",
-    description: "The curator leaderboard on Filtard.",
+    title: "Curator leaderboard",
+    description: "Submit memecoins with strong theses and earn points.",
     url: `${siteUrl}/leaderboard`,
     siteName: "Filtard",
     type: "website",
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Leaderboard | Filtard",
-    description: "The curator leaderboard on Filtard.",
+    title: "Curator leaderboard",
+    description: "Submit memecoins with strong theses and earn points.",
     images: [ogImage],
   },
 };
