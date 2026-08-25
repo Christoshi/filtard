@@ -7,7 +7,9 @@ const siteUrl =
 const ogImage = `${siteUrl}/api/og/site`;
 
 export const metadata: Metadata = {
-  title: "Filtard",
+  title: {
+    absolute: "Filtard",
+  },
   description:
     "Community-curated memecoins with theses, ratings, and live data.",
   openGraph: {

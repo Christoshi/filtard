@@ -63,7 +63,7 @@ export default function RootLayout({
           <div className="flex items-center px-3 py-2.5 md:px-6 md:py-3 gap-3">
             <Link
               href="/"
-              className="hidden md:flex items-center gap-2 font-semibold tracking-tight flex-shrink-0"
+              className="hidden md:flex items-center gap-2 font-semibold tracking-[0.05em] flex-shrink-0"
             >
               <img
                 src="/logo.png"
