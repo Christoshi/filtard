@@ -118,7 +118,7 @@ export default function MobileBottomNav() {
           onClick={openSearch}
           className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
             activePanel === "search"
-              ? "text-[#b8ff3d]"
+              ? "text-white"
               : "text-[#8b93a1] hover:text-[#b8ff3d]"
           }`}
         >
@@ -141,7 +141,7 @@ export default function MobileBottomNav() {
           href="/leaderboard"
           className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
             isLeaderboard
-              ? "text-[#b8ff3d]"
+              ? "text-white"
               : "text-[#8b93a1] hover:text-[#b8ff3d]"
           }`}
         >
@@ -158,7 +158,7 @@ export default function MobileBottomNav() {
           onClick={openWatchlist}
           className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
             activePanel === "watchlist"
-              ? "text-[#b8ff3d]"
+              ? "text-white"
               : "text-[#8b93a1] hover:text-[#b8ff3d]"
           }`}
         >
@@ -185,7 +185,7 @@ export default function MobileBottomNav() {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${
                   menuOpen || pathname === "/profile"
-                    ? "text-[#b8ff3d]"
+                    ? "text-white"
                     : "text-[#8b93a1] hover:text-[#b8ff3d]"
                 }`}
               >
@@ -254,7 +254,7 @@ export default function MobileBottomNav() {
               prefetch={true}
               className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${
                 isSubmit
-                  ? "text-[#b8ff3d]"
+                  ? "text-white"
                   : "text-[#8b93a1] hover:text-[#b8ff3d]"
               }`}
             >
