@@ -106,9 +106,11 @@ export default function MobileBottomNav() {
           prefetch={true}
           className="flex flex-col items-center justify-center gap-0.5 text-[#8b93a1] hover:text-white transition active:scale-95 w-[18%]"
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#b8ff3d] text-xs font-bold text-black">
-            F
-          </span>
+          <img
+            src="/logo.png"
+            alt="Filtard"
+            className="h-6 w-6 rounded-md object-contain"
+          />
           <span className="text-[10px] font-medium leading-tight">Filtard</span>
         </Link>
 
@@ -121,7 +123,14 @@ export default function MobileBottomNav() {
               : "text-[#8b93a1] hover:text-[#b8ff3d]"
           }`}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <circle cx="11" cy="11" r="8" />
             <path d="M21 21l-4.35-4.35" />
           </svg>
@@ -132,13 +141,17 @@ export default function MobileBottomNav() {
         <Link
           href="/leaderboard"
           className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 w-[18%] ${
-            isLeaderboard ? "text-[#b8ff3d]" : "text-[#8b93a1] hover:text-[#b8ff3d]"
+            isLeaderboard
+              ? "text-[#b8ff3d]"
+              : "text-[#8b93a1] hover:text-[#b8ff3d]"
           }`}
         >
           <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
             <path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5q0 .807-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33 33 0 0 1 2.5.5m.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935m10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935" />
           </svg>
-          <span className="text-[10px] font-medium leading-tight">Leaderboard</span>
+          <span className="text-[10px] font-medium leading-tight">
+            Leaderboard
+          </span>
         </Link>
 
         {/* Watchlist */}
@@ -150,10 +163,19 @@ export default function MobileBottomNav() {
               : "text-[#8b93a1] hover:text-[#b8ff3d]"
           }`}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
-          <span className="text-[10px] font-medium leading-tight">Watchlist</span>
+          <span className="text-[10px] font-medium leading-tight">
+            Watchlist
+          </span>
         </button>
 
         {/* Profile / Submit */}
@@ -179,7 +201,9 @@ export default function MobileBottomNav() {
                     {(user.display_name || "U")[0].toUpperCase()}
                   </div>
                 )}
-                <span className="text-[10px] font-medium leading-tight">Profile</span>
+                <span className="text-[10px] font-medium leading-tight">
+                  Profile
+                </span>
               </button>
 
               {/* Compact Dropdown */}
@@ -231,13 +255,24 @@ export default function MobileBottomNav() {
               href="/login"
               prefetch={true}
               className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${
-                isSubmit ? "text-[#b8ff3d]" : "text-[#8b93a1] hover:text-[#b8ff3d]"
+                isSubmit
+                  ? "text-[#b8ff3d]"
+                  : "text-[#8b93a1] hover:text-[#b8ff3d]"
               }`}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M12 5v14M5 12h14" />
               </svg>
-              <span className="text-[10px] font-medium leading-tight">Submit</span>
+              <span className="text-[10px] font-medium leading-tight">
+                Submit
+              </span>
             </Link>
           )}
         </div>

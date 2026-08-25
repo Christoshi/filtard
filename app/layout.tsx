@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   },
   description:
     "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data across Solana, Base, Ethereum and more.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "Filtard – Community Curated Memecoin Screener",
     description:
@@ -42,9 +46,11 @@ export default function RootLayout({
               href="/"
               className="hidden md:flex items-center gap-2 font-semibold tracking-tight flex-shrink-0"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#b8ff3d] text-sm font-bold text-black">
-                F
-              </span>
+              <img
+                src="/logo.png"
+                alt="Filtard"
+                className="h-7 w-7 rounded-md object-contain"
+              />
               Filtard
             </Link>
 
