@@ -12,6 +12,9 @@ const inter = Inter({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
+
 export const metadata: Metadata = {
   title: {
     default: "Filtard – Community Curated Memecoin Screener",
@@ -27,15 +30,24 @@ export const metadata: Metadata = {
     title: "Filtard – Community Curated Memecoin Screener",
     description:
       "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data.",
-    url: "https://filtard.vercel.app",
+    url: siteUrl,
     siteName: "Filtard",
     type: "website",
+    images: [
+      {
+        url: `${siteUrl}/api/og/site`,
+        width: 1200,
+        height: 630,
+        alt: "Filtard – Community Curated Memecoin Screener",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Filtard – Community Curated Memecoin Screener",
     description:
       "Community-curated memecoin screener. Discover high-signal tokens with theses, ratings, and live data.",
+    images: [`${siteUrl}/api/og/site`],
   },
 };
 

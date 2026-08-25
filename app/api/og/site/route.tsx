@@ -3,11 +3,35 @@ import type { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+async function loadGoogleFont(font: string, weight: number) {
+  const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}&display=swap`;
+  const css = await (await fetch(url)).text();
+  const resource = css.match(
+    /src: url\((.+)\) format\('(opentype|truetype)'\)/
+  );
+
+  if (!resource) {
+    throw new Error(`Failed to load font: ${font} ${weight}`);
+  }
+
+  const response = await fetch(resource[1]);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch font data: ${font} ${weight}`);
+  }
+
+  return response.arrayBuffer();
+}
+
 export async function GET(request: NextRequest) {
-  const domain =
-    request.nextUrl.searchParams.get("domain") ||
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ||
-    "filtard.vercel.app";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
+  const logoUrl = `${siteUrl}/logo.png`;
+
+  const [inter400, inter600, inter700] = await Promise.all([
+    loadGoogleFont("Inter", 400),
+    loadGoogleFont("Inter", 600),
+    loadGoogleFont("Inter", 700),
+  ]);
 
   return new ImageResponse(
     (
@@ -17,107 +41,69 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           backgroundColor: "#07080a",
-          fontFamily: "sans-serif",
+          fontFamily: "Inter",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {/* Lime accent strip */}
-        <div
-          style={{
-            display: "flex",
-            width: 6,
-            height: "100%",
-            backgroundColor: "#b8ff3d",
-          }}
-        />
-
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            flex: 1,
-            height: "100%",
             alignItems: "center",
             justifyContent: "center",
             padding: "48px 64px",
           }}
         >
-          {/* Wordmark */}
+          {/* Logo */}
+          <img
+            src={logoUrl}
+            width={72}
+            height={72}
+            style={{
+              borderRadius: 14,
+              marginBottom: 28,
+            }}
+          />
+
+          {/* FILTARD wordmark – dominant with special spacing */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
+              fontSize: 92,
+              fontWeight: 700,
+              color: "#f4f6f8",
+              letterSpacing: "0.12em",
+              lineHeight: 1,
               marginBottom: 28,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                width: 56,
-                height: 56,
-                borderRadius: 12,
-                backgroundColor: "#b8ff3d",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 32,
-                fontWeight: 800,
-                color: "#07080a",
-                marginRight: 20,
-              }}
-            >
-              F
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 72,
-                fontWeight: 700,
-                color: "#f4f6f8",
-                letterSpacing: "0.04em",
-              }}
-            >
-              FILTARD
-            </div>
+            FILTARD
           </div>
 
-          {/* What it is */}
+          {/* Tagline */}
           <div
             style={{
               display: "flex",
               fontSize: 28,
-              color: "#9ca3af",
-              marginBottom: 16,
+              fontWeight: 400,
+              color: "#8b93a1",
+              letterSpacing: "0.01em",
             }}
           >
             Community-curated memecoin screener
           </div>
-
-          {/* Benefit line */}
-          <div
-            style={{
-              display: "flex",
-              fontSize: 32,
-              color: "#e5e7eb",
-              textAlign: "center",
-              maxWidth: 900,
-              marginBottom: 40,
-            }}
-          >
-            Discover memecoins the trenches find most interesting.
-          </div>
-
-          {/* Domain */}
-          <div
-            style={{
-              display: "flex",
-              fontSize: 22,
-              color: "#6b7280",
-            }}
-          >
-            {domain}
-          </div>
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      fonts: [
+        { name: "Inter", data: inter400, style: "normal", weight: 400 },
+        { name: "Inter", data: inter600, style: "normal", weight: 600 },
+        { name: "Inter", data: inter700, style: "normal", weight: 700 },
+      ],
+    }
   );
 }
