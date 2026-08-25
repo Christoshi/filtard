@@ -12,7 +12,9 @@ export default function MobileBottomNav() {
 
   const [user, setUser] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activePanel, setActivePanel] = useState<"search" | "watchlist" | null>(null);
+  const [activePanel, setActivePanel] = useState<"search" | "watchlist" | null>(
+    null
+  );
 
   const isHome = pathname === "/";
   const isLeaderboard = pathname === "/leaderboard";
@@ -22,7 +24,6 @@ export default function MobileBottomNav() {
     pathname === "/submissions" ||
     pathname === "/profile";
 
-  // Load user
   useEffect(() => {
     async function load() {
       const currentUser = await getCurrentUser();
@@ -31,7 +32,6 @@ export default function MobileBottomNav() {
     load();
   }, [pathname]);
 
-  // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -44,7 +44,6 @@ export default function MobileBottomNav() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  // Clear panel highlight
   useEffect(() => {
     function handleClose() {
       setActivePanel(null);
@@ -109,7 +108,7 @@ export default function MobileBottomNav() {
           <img
             src="/logo.png"
             alt="Filtard"
-            className="h-6 w-6 rounded-md object-contain"
+            className="h-7 w-7 rounded-md object-contain"
           />
           <span className="text-[10px] font-medium leading-tight">Filtard</span>
         </Link>
@@ -206,7 +205,6 @@ export default function MobileBottomNav() {
                 </span>
               </button>
 
-              {/* Compact Dropdown */}
               {menuOpen && (
                 <div className="absolute bottom-14 right-0 w-48 rounded-xl border border-[#1c1f26] bg-[#101215] shadow-xl overflow-hidden z-50">
                   <div className="py-1.5">

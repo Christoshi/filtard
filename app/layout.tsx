@@ -49,7 +49,7 @@ export default function RootLayout({
               <img
                 src="/logo.png"
                 alt="Filtard"
-                className="h-7 w-7 rounded-md object-contain"
+                className="h-9 w-9 rounded-md object-contain"
               />
               Filtard
             </Link>
