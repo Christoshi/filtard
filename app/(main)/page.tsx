@@ -3,18 +3,17 @@ import TokenTable from "../components/TokenTable";
 import type { Metadata } from "next";
 
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
-const domain = siteUrl.replace(/^https?:\/\//, "");
-const ogImage = `${siteUrl}/api/og/site?domain=${encodeURIComponent(domain)}`;
+  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
+const ogImage = `${siteUrl}/api/og/site`;
 
 export const metadata: Metadata = {
-  title: "Filtard – Community Curated Memecoin Screener",
+  title: "Filtard",
   description:
-    "Discover memecoins the trenches find most interesting. Community-curated tokens with theses, ratings, and live data.",
+    "Community-curated memecoins with theses, ratings, and live data.",
   openGraph: {
-    title: "Filtard – Community Curated Memecoin Screener",
+    title: "Filtard",
     description:
-      "Discover memecoins the trenches find most interesting. Community-curated tokens with theses, ratings, and live data.",
+      "Community-curated memecoins with theses, ratings, and live data.",
     url: siteUrl,
     siteName: "Filtard",
     type: "website",
@@ -29,9 +28,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Filtard – Community Curated Memecoin Screener",
+    title: "Filtard",
     description:
-      "Discover memecoins the trenches find most interesting. Community-curated tokens with theses, ratings, and live data.",
+      "Community-curated memecoins with theses, ratings, and live data.",
     images: [ogImage],
   },
 };
@@ -117,7 +116,8 @@ export default async function Home({
             liquidity: s.liquidity != null ? Number(s.liquidity) : null,
             marketCap: s.market_cap != null ? Number(s.market_cap) : null,
             txns24h: s.txns_24h != null ? Number(s.txns_24h) : null,
-            pairCreatedAt: s.pair_created_at != null ? Number(s.pair_created_at) : null,
+            pairCreatedAt:
+              s.pair_created_at != null ? Number(s.pair_created_at) : null,
           }
         : null,
     };

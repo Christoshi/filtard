@@ -1,21 +1,17 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-
 import type { Metadata } from "next";
 
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
-const domain = siteUrl.replace(/^https?:\/\//, "");
-const ogImage = `${siteUrl}/api/og/site?domain=${encodeURIComponent(domain)}`;
+  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
+const ogImage = `${siteUrl}/api/og/site`;
 
 export const metadata: Metadata = {
   title: "Leaderboard",
-  description:
-    "Curator leaderboard on Filtard — discover memecoins the trenches find most interesting.",
+  description: "The curator leaderboard on Filtard.",
   openGraph: {
     title: "Leaderboard | Filtard",
-    description:
-      "Curator leaderboard on Filtard — discover memecoins the trenches find most interesting.",
+    description: "The curator leaderboard on Filtard.",
     url: `${siteUrl}/leaderboard`,
     siteName: "Filtard",
     type: "website",
@@ -31,8 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Leaderboard | Filtard",
-    description:
-      "Curator leaderboard on Filtard — discover memecoins the trenches find most interesting.",
+    description: "The curator leaderboard on Filtard.",
     images: [ogImage],
   },
 };
