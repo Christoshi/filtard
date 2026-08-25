@@ -133,7 +133,7 @@ export default async function Home({
     <div className="w-full">
       <div className="mb-5">
         <p className="text-base text-[#8b93a1]">
-          Community-curated memecoins screener
+          Community-curated memecoin screener
         </p>
       </div>
 
