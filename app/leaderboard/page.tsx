@@ -8,10 +8,10 @@ const ogImage = `${siteUrl}/api/og/site`;
 
 export const metadata: Metadata = {
   title: "Curator leaderboard",
-  description: "Submit memecoins with strong theses and earn points.",
+  description: "Join the curator economy. Submit your highest conviction memecoins, earn points, and climb the leaderboard.",
   openGraph: {
     title: "Curator leaderboard",
-    description: "Submit memecoins with strong theses and earn points.",
+    description: "Join the curator economy. Submit your highest conviction memecoins, earn points, and climb the leaderboard.",
     url: `${siteUrl}/leaderboard`,
     siteName: "Filtard",
     type: "website",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Curator leaderboard",
-    description: "Submit memecoins with strong theses and earn points.",
+    description: "Join the curator economy. Submit your highest conviction memecoins, earn points, and climb the leaderboard.",
     images: [ogImage],
   },
 };
