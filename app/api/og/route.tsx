@@ -64,11 +64,6 @@ export async function GET(request: NextRequest) {
   const changeRaw = searchParams.get("change");
   const mcapRaw = searchParams.get("mcap");
   const imageUrl = searchParams.get("image");
-  const curator = searchParams.get("curator");
-  const domain =
-    searchParams.get("domain") ||
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ||
-    "filtard.com";
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
@@ -109,7 +104,7 @@ export async function GET(request: NextRequest) {
             style={{
               display: "flex",
               width: "100%",
-              justifyContent: "space-between",
+              justifyContent: "flex-start",
               alignItems: "center",
               marginBottom: 32,
             }}
@@ -132,15 +127,6 @@ export async function GET(request: NextRequest) {
               >
                 Filtard
               </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 20,
-                color: "#8b93a1",
-              }}
-            >
-              {domain}
             </div>
           </div>
 
@@ -208,18 +194,6 @@ export async function GET(request: NextRequest) {
                 >
                   {name}
                 </div>
-                {curator ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: 18,
-                      color: "#6b7280",
-                      marginTop: 10,
-                    }}
-                  >
-                    Curated by @{curator}
-                  </div>
-                ) : null}
               </div>
             </div>
 
