@@ -2,14 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getCurrentUser, supabase } from "@/lib/auth";
-
-function safeNextPath(raw: string | null): string {
-  if (!raw) return "/";
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
-  if (raw.includes("://")) return "/";
-  return raw;
-}
+import { getCurrentUser, readAuthNext, safeNextPath, supabase } from "@/lib/auth";
 
 function CallbackHandler() {
   const router = useRouter();
@@ -19,23 +12,15 @@ function CallbackHandler() {
     const handleCallback = async () => {
       await supabase.auth.getSession();
 
-      let stored: string | null = null;
-      if (typeof window !== "undefined") {
-        stored = sessionStorage.getItem("auth_next");
-        sessionStorage.removeItem("auth_next");
-      }
-
-      const next = safeNextPath(stored || searchParams.get("next"));
+      const next = safeNextPath(readAuthNext() || searchParams.get("next"));
 
       const user = await getCurrentUser();
       if (user && !user.display_name) {
-        router.push(
-          `/setup-username?redirect=${encodeURIComponent(next)}`
-        );
+        router.replace(`/setup-username?redirect=${encodeURIComponent(next)}`);
         return;
       }
 
-      router.push(next);
+      router.replace(next);
     };
 
     handleCallback();
