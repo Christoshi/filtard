@@ -195,7 +195,7 @@ export default function StarRating({
         </div>
 
         {myRating != null && !booting && (
-          <span className="text-[11px] text-[#8b93a1]">Your rating</span>
+          <span className="text-[6px] text-[#8b93a1] lowercase">your rating</span>
         )}
       </div>
 
