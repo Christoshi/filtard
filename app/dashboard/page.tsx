@@ -177,6 +177,13 @@ export default function DashboardPage() {
     setProfiles(enriched);
   }
 
+  async function getAccessToken(): Promise<string | null> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
+  }
+
   async function updateRole(userId: string, newRole: string) {
     if (userId === user.id) {
       showToast("You cannot change your own role", "error");
@@ -199,51 +206,71 @@ export default function DashboardPage() {
       return;
     }
 
+    const previousRole = target?.role;
     setProfiles((prev) =>
       prev.map((p) => (p.id === userId ? { ...p, role: newRole } : p))
     );
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({ role: newRole })
-      .eq("id", userId);
-
-    if (error) {
-      showToast("Error updating role: " + error.message, "error");
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      showToast("Not authenticated", "error");
       await loadProfiles();
+      return;
+    }
+
+    const res = await fetch("/api/admin/update-role", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ userId, role: newRole }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      showToast(data?.error || "Error updating role", "error");
+      if (previousRole) {
+        setProfiles((prev) =>
+          prev.map((p) =>
+            p.id === userId ? { ...p, role: previousRole } : p
+          )
+        );
+      } else {
+        await loadProfiles();
+      }
     } else {
       showToast("Role updated");
     }
   }
 
-  async function getCurrentMcap(address: string): Promise<number | null> {
-    try {
-      const res = await fetch(
-        `https://api.dexscreener.com/latest/dex/tokens/${address}`
-      );
-      const data = await res.json();
-      const pair = data?.pairs?.[0];
-      return pair?.marketCap ?? pair?.fdv ?? null;
-    } catch {
-      return null;
+  async function approveTokensViaApi(ids: string[]) {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      return { error: "Not authenticated" };
     }
+
+    const res = await fetch("/api/admin/approve-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ ids }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      return { error: data?.error || `Request failed (${res.status})` };
+    }
+
+    return { error: null };
   }
 
   async function approveToken(id: string) {
-    const token = tokens.find((t) => t.id === id);
-    if (!token) return;
-
-    const mcap = await getCurrentMcap(token.address);
-
-    const { error } = await supabase
-      .from("tokens")
-      .update({
-        status: "approved",
-        approved_by: user?.id,
-        approved_at: new Date().toISOString(),
-        initial_mcap: mcap,
-      })
-      .eq("id", id);
+    const { error } = await approveTokensViaApi([id]);
 
     if (error) {
       showRowFeedback(id, "Error", "error");
@@ -252,13 +279,6 @@ export default function DashboardPage() {
       setSelected((prev) => prev.filter((x) => x !== id));
       setTimeout(() => loadTokens(), 600);
     }
-  }
-
-  async function getAccessToken(): Promise<string | null> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    return session?.access_token ?? null;
   }
 
   async function deleteTokensViaApi(ids: string[]) {
@@ -305,26 +325,15 @@ export default function DashboardPage() {
 
     showToast("Approving...");
 
-    for (const id of selected) {
-      const token = tokens.find((t) => t.id === id);
-      if (!token) continue;
+    const { error } = await approveTokensViaApi(selected);
 
-      const mcap = await getCurrentMcap(token.address);
-
-      await supabase
-        .from("tokens")
-        .update({
-          status: "approved",
-          approved_by: user?.id,
-          approved_at: new Date().toISOString(),
-          initial_mcap: mcap,
-        })
-        .eq("id", id);
+    if (error) {
+      showToast("Bulk approve failed: " + error, "error");
+    } else {
+      showToast(`${selected.length} approved`);
+      setSelected([]);
+      await loadTokens();
     }
-
-    showToast(`${selected.length} approved`);
-    setSelected([]);
-    await loadTokens();
   }
 
   async function bulkDelete() {
@@ -377,7 +386,6 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto relative">
-      {/* Bulk / role toasts only */}
       <div className="fixed top-4 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[100] flex flex-col gap-2 w-[min(100%-2rem,320px)] pointer-events-none">
         {toasts.map((t) => (
           <div
@@ -397,7 +405,6 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveTab("tokens")}
@@ -421,7 +428,6 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* ===================== TOKENS TAB ===================== */}
       {activeTab === "tokens" && (
         <>
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
@@ -622,7 +628,6 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ===================== CURATORS TAB ===================== */}
       {activeTab === "curators" && (
         <div className="border border-[#1c1f26] rounded-2xl overflow-hidden">
           <div className="grid grid-cols-[1fr_120px_120px] gap-4 px-5 py-3.5 bg-[#0c0d10] border-b border-[#1c1f26] text-xs text-[#8b93a1] uppercase tracking-wider">
@@ -700,39 +705,29 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Thesis Modal */}
       {thesisModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70"
             onClick={() =>
               setThesisModal({ open: false, symbol: "", thesis: "" })
             }
           />
-          <div className="relative w-full max-w-2xl max-h-[80vh] rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
-              <h3 className="text-lg font-medium text-white">
-                Thesis — ${thesisModal.symbol}
-              </h3>
+          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-[#1c1f26] bg-[#101215] p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">
+                {thesisModal.symbol} thesis
+              </h2>
               <button
                 onClick={() =>
                   setThesisModal({ open: false, symbol: "", thesis: "" })
                 }
-                className="text-[#8b93a1] hover:text-white transition"
+                className="text-[#8b93a1] hover:text-white text-sm"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                Close
               </button>
             </div>
-            <div className="p-5 overflow-y-auto text-[15px] leading-relaxed text-[#c8cdd5] whitespace-pre-wrap">
+            <div className="text-sm text-[#c8cdd5] whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
               {thesisModal.thesis}
             </div>
           </div>
