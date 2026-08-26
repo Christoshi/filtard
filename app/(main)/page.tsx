@@ -1,9 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import TokenTable from "../components/TokenTable";
 import type { Metadata } from "next";
-import { getSiteUrl } from "@/lib/site";
 
-const siteUrl = getSiteUrl();
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
 const ogImage = `${siteUrl}/api/og/site`;
 
 export const metadata: Metadata = {
@@ -39,16 +39,6 @@ export const metadata: Metadata = {
 
 export const revalidate = 30;
 
-type Token = {
-  id: string;
-  chain: string;
-  address: string;
-  name: string | null;
-  symbol: string | null;
-  image_url: string | null;
-  is_pinned: boolean;
-};
-
 function isNewToken(timestamp: number | null) {
   if (!timestamp) return false;
   const hours = (Date.now() - timestamp) / (1000 * 60 * 60);
@@ -82,6 +72,9 @@ export default async function Home({
         market_cap,
         txns_24h,
         pair_created_at
+      ),
+      ratings (
+        stars
       )
     `
     )
@@ -102,6 +95,19 @@ export default async function Home({
       ? token.token_stats[0]
       : token.token_stats;
 
+    const ratings = Array.isArray(token.ratings) ? token.ratings : [];
+    const ratingAvg =
+      ratings.length > 0
+        ? Number(
+            (
+              ratings.reduce(
+                (sum: number, r: { stars: number }) => sum + Number(r.stars),
+                0
+              ) / ratings.length
+            ).toFixed(1)
+          )
+        : 0;
+
     return {
       id: token.id,
       chain: token.chain,
@@ -110,6 +116,7 @@ export default async function Home({
       symbol: token.symbol,
       image_url: token.image_url,
       is_pinned: token.is_pinned,
+      ratingAvg,
       stats: s
         ? {
             priceUsd: s.price_usd != null ? Number(s.price_usd) : null,
@@ -132,11 +139,12 @@ export default async function Home({
   return (
     <div className="w-full">
       <div className="mb-5">
-        <p className="text-base text-[#8b93a1]">
-          Community-curated memecoin screener with theses, ratings, and live data.
+        <p className="text-sm text-[#8b93a1]">
+          Community-curated memecoin screener with theses, ratings, and live
+          data.
         </p>
       </div>
-      
+
       <TokenTable tokens={finalTokens} currentChain={chain} onlyNew={onlyNew} />
     </div>
   );
