@@ -1107,12 +1107,6 @@ export default function TokenTable({
         </div>
       )}
 
-      {pageTokens.length === 0 && (
-        <div className="border border-[#1c1f26] rounded-xl p-12 text-center text-[#8b93a1]">
-          No tokens found.
-        </div>
-      )}
-
       {pageTokens.length === 0 ? (
         <div className="border border-[#1c1f26] rounded-xl p-12 text-center text-[#8b93a1]">
           No tokens found.
@@ -1242,9 +1236,15 @@ export default function TokenTable({
             })}
           </div>
 
-          {/* ===== MOBILE TABLE ===== */}
-          <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
-            {pageTokens.map((token, index) => {
+      {/* ===== MOBILE TABLE ===== */}
+      <div
+        className={
+          pageTokens.length === 0
+            ? "hidden"
+            : "md:hidden border border-[#1c1f26] rounded-xl overflow-hidden"
+        }
+      >
+        {pageTokens.map((token, index) => {
               const isPinned = !!token.is_pinned;
 
               return (
