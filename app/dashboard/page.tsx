@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, supabase } from "@/lib/auth";
@@ -32,6 +32,12 @@ type Token = {
   } | null;
 };
 
+type Toast = {
+  id: number;
+  text: string;
+  type: "success" | "error";
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -42,13 +48,21 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const [thesisModal, setThesisModal] = useState<{
     open: boolean;
     symbol: string;
     thesis: string;
   }>({ open: false, symbol: "", thesis: "" });
+
+  const showToast = useCallback((text: string, type: "success" | "error" = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, text, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 2500);
+  }, []);
 
   useEffect(() => {
     async function init() {
@@ -129,7 +143,7 @@ export default function DashboardPage() {
 
   async function updateRole(userId: string, newRole: string) {
     if (userId === user.id) {
-      setMessage("You cannot change your own role");
+      showToast("You cannot change your own role", "error");
       return;
     }
 
@@ -143,10 +157,10 @@ export default function DashboardPage() {
       .eq("id", userId);
 
     if (error) {
-      setMessage("Error updating role: " + error.message);
+      showToast("Error updating role: " + error.message, "error");
       await loadProfiles();
     } else {
-      setMessage("Role updated successfully");
+      showToast("Role updated");
     }
   }
 
@@ -180,9 +194,9 @@ export default function DashboardPage() {
       .eq("id", id);
 
     if (error) {
-      setMessage("Error approving token: " + error.message);
+      showToast("Error approving token: " + error.message, "error");
     } else {
-      setMessage("Token approved");
+      showToast("Token approved");
       setSelected((prev) => prev.filter((x) => x !== id));
       await loadTokens();
     }
@@ -225,9 +239,9 @@ export default function DashboardPage() {
     const { error } = await deleteTokensViaApi([id]);
 
     if (error) {
-      setMessage("Error deleting token: " + error);
+      showToast("Error deleting token: " + error, "error");
     } else {
-      setMessage("Token deleted");
+      showToast("Token deleted");
       setSelected((prev) => prev.filter((x) => x !== id));
       await loadTokens();
     }
@@ -237,7 +251,7 @@ export default function DashboardPage() {
     if (selected.length === 0) return;
     if (!confirm(`Approve ${selected.length} tokens?`)) return;
 
-    setMessage("Approving tokens...");
+    showToast("Approving tokens...");
 
     for (const id of selected) {
       const token = tokens.find((t) => t.id === id);
@@ -256,7 +270,7 @@ export default function DashboardPage() {
         .eq("id", id);
     }
 
-    setMessage(`${selected.length} tokens approved`);
+    showToast(`${selected.length} tokens approved`);
     setSelected([]);
     await loadTokens();
   }
@@ -268,9 +282,9 @@ export default function DashboardPage() {
     const { error } = await deleteTokensViaApi(selected);
 
     if (error) {
-      setMessage("Error bulk deleting: " + error);
+      showToast("Error bulk deleting: " + error, "error");
     } else {
-      setMessage(`${selected.length} tokens deleted`);
+      showToast(`${selected.length} tokens deleted`);
       setSelected([]);
       await loadTokens();
     }
@@ -310,7 +324,23 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto relative">
+      {/* Toasts */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[100] flex flex-col gap-2 w-[min(100%-2rem,360px)] pointer-events-none">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className={`pointer-events-auto rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur-md animate-[fadeIn_0.2s_ease-out] ${
+              t.type === "error"
+                ? "bg-[#1a1010]/95 border-red-500/40 text-red-300"
+                : "bg-[#101215]/95 border-[#2a2e38] text-[#f4f6f8]"
+            }`}
+          >
+            {t.text}
+          </div>
+        ))}
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
       </div>
@@ -338,12 +368,6 @@ export default function DashboardPage() {
           Curators
         </button>
       </div>
-
-      {message && (
-        <div className="mb-4 p-3 rounded-xl bg-[#101215] border border-[#1c1f26] text-sm text-center">
-          {message}
-        </div>
-      )}
 
       {/* ===================== TOKENS TAB ===================== */}
       {activeTab === "tokens" && (
