@@ -1497,29 +1497,29 @@ export default function TokenTable({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5 flex-wrap">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                <div className="flex items-center justify-between gap-1 px-2.5 pb-2.5 w-full">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md border border-[#2a2e36] bg-[#0f1115] text-[10px] font-medium whitespace-nowrap">
                     <span className="text-[#8b93a1]">MCAP</span>
-                    <span className="text-[#f4f6f8] ml-1">
+                    <span className="text-[#f4f6f8] ml-0.5">
                       {formatUsd(token.stats?.marketCap ?? null)}
                     </span>
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md border border-[#2a2e36] bg-[#0f1115] text-[10px] font-medium whitespace-nowrap">
                     <span className="text-[#8b93a1]">VOL</span>
-                    <span className="text-[#f4f6f8] ml-1">
+                    <span className="text-[#f4f6f8] ml-0.5">
                       {formatUsd(token.stats?.volume24h ?? null)}
                     </span>
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md border border-[#2a2e36] bg-[#0f1115] text-[10px] font-medium whitespace-nowrap">
                     <span className="text-[#8b93a1]">LIQ</span>
-                    <span className="text-[#f4f6f8] ml-1">
+                    <span className="text-[#f4f6f8] ml-0.5">
                       {formatUsd(token.stats?.liquidity ?? null)}
                     </span>
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap tabular-nums">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md border border-[#2a2e36] bg-[#0f1115] text-[10px] font-medium whitespace-nowrap tabular-nums">
                     ★{token.ratingAvg ?? 0}
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#8b93a1] whitespace-nowrap">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md border border-[#2a2e36] bg-[#0f1115] text-[10px] font-medium text-[#8b93a1] whitespace-nowrap">
                     {formatAge(token.stats?.pairCreatedAt ?? null)}
                   </span>
                 </div>
