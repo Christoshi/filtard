@@ -32,6 +32,7 @@ type SortKey =
   | "volume24h"
   | "txns24h"
   | "liquidity"
+  | "rating"
   | "age";
 
 type SortDirection = "asc" | "desc";
@@ -622,6 +623,10 @@ export default function TokenTable({
         case "liquidity":
           aVal = a.stats?.liquidity ?? -1;
           bVal = b.stats?.liquidity ?? -1;
+          break;
+        case "rating":
+          aVal = a.ratingAvg ?? 0;
+          bVal = b.ratingAvg ?? 0;
           break;
         case "age":
           aVal = a.stats?.pairCreatedAt ?? 0;
@@ -1329,8 +1334,12 @@ export default function TokenTable({
             Liq{" "}
             <SortIcon active={sortKey === "liquidity"} direction={sortDir} />
           </div>
-          <div className="px-3 py-3 text-right border-r border-[#2a2e38] flex items-center justify-end">
-            ★
+          <div
+            className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+            onClick={() => handleSort("rating")}
+          >
+            ★{" "}
+            <SortIcon active={sortKey === "rating"} direction={sortDir} />
           </div>
           <div
             className="px-3 py-3 text-right cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
