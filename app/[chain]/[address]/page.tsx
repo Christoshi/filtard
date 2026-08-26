@@ -9,6 +9,7 @@ import WatchlistStar from "@/app/components/WatchlistStar";
 import ThesisCard from "@/app/components/ThesisCard";
 import ViewTracker from "@/app/components/ViewTracker";
 import DexChartEmbed from "@/app/components/DexChartEmbed";
+import TokenLiveStats from "@/app/components/TokenLiveStats";
 
 export const revalidate = 20;
 
@@ -411,36 +412,16 @@ export default async function TokenPage({
         </div>
 
         <div className="flex flex-wrap gap-2 text-sm w-full lg:w-auto">
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
-            <div className="text-[10px] text-[#8b93a1]">Price</div>
-            <div className="font-medium">{formatUsd(stats.priceUsd)}</div>
-          </div>
-
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
-            <div className="text-[10px] text-[#8b93a1]">24h</div>
-            <div
-              className={`font-medium ${
-                (stats.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
-              }`}
-            >
-              {formatPct(stats.change24h)}
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
-            <div className="text-[10px] text-[#8b93a1]">Volume</div>
-            <div className="font-medium">{formatUsd(stats.volume24h)}</div>
-          </div>
-
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
-            <div className="text-[10px] text-[#8b93a1]">Liquidity</div>
-            <div className="font-medium">{formatUsd(stats.liquidity)}</div>
-          </div>
-
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]">
-            <div className="text-[10px] text-[#8b93a1]">Mcap</div>
-            <div className="font-medium">{formatUsd(stats.marketCap)}</div>
-          </div>
+          <TokenLiveStats
+            address={address}
+            initial={{
+              priceUsd: stats.priceUsd,
+              change24h: stats.change24h,
+              volume24h: stats.volume24h,
+              liquidity: stats.liquidity,
+              marketCap: stats.marketCap,
+            }}
+          />
 
           <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[70px] lg:flex-none lg:min-w-[80px]">
             <div className="flex items-center gap-1.5">
