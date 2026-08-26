@@ -18,9 +18,9 @@ export default function Footer() {
  />
  Filtard
  </Link>
- <p className="text-sm text-[#8b93a1] max-w-xs">
- Community-curated memecoin screener
- </p>
+   <p className="text-sm text-[#8b93a1] max-w-xs">
+  Community-curated memecoin screener with theses, ratings, and live data.
+  </p>
  </div>
 
  {/* Social + Links */}
