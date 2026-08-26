@@ -21,7 +21,7 @@ export default function AboutPage() {
  </p>
  <p className="text-[#9ca3af] leading-relaxed">
  Our goal is to help you discover new and existing memecoins you can
- trade or hold with confidence.
+ trade or hold with confidence. But nothing on filtard.com is financial advice.
  </p>
  </section>
 
@@ -50,10 +50,10 @@ export default function AboutPage() {
  </div>
  </section>
 
-  {/* How to play */}
+  {/* Ideal Filtard coins */}
  <section className="mb-12">
  <h2 className="text-lg font-semibold text-[#f4f6f8] mb-4 tracking-tight">
- How to play Filtard coins
+ The ideal Filtard coins
  </h2>
  <div className="space-y-4 text-[#9ca3af] leading-relaxed">
  <p>
@@ -61,16 +61,15 @@ export default function AboutPage() {
  bagworking.
  </p>
  <p>
- The idea is to help you discover valuable memecoins you truly like
- or relate to, so you can have fun while making money.
+ The idea is to help you discover inetresting or valuable memecoins that resonates, so you can have fun while making money.
  </p>
  <p>
  Coins you can buy and sleep on with confidence, knowing you invested
  in something with a higher probability of survival.
  </p>
  <p className="text-[#f4f6f8]">
- Filtard coins are intended as highest-conviction plays you can hold
- with confidence and bullpost with pride, not the usual quick flips.
+ The ideal Filtard coins are  high-conviction plays you can hold
+ with confidence and bullpost with pride, not the usual quick flips that can rug the next minute.
  </p>
  </div>
  </section>
@@ -93,13 +92,13 @@ export default function AboutPage() {
  beyond money.
  </p>
  <p>
- At the time, I was already running several successful offline
- businesses, mainly in the IT services sector. I’m a Business
- Administration graduate, but entrepreneurship has always come
+ At the time, I was already running a successful offline
+ business, in the IT services sector. I’m a Business
+ Administration graduate, and entrepreneurship has always come
  naturally to me. I started my first business at 18, before
- university, and continued building businesses throughout my
- university years before eventually opening my own company. It was
- during that time that I met the friend who introduced me to Bitcoin.
+ university, and continued running side gigs and small  businesses throughout my
+ university years before eventually starting my company. It was
+ during that time I met this friend who introduced me to Bitcoin.
  </p>
  <p>
  After about a year of playing around with Bitcoin — mostly investing
