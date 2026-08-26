@@ -4,6 +4,14 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/auth";
 
+function safeNextPath(raw: string | null): string {
+  if (!raw) return "/";
+  // Only allow same-site relative paths
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  if (raw.includes("://")) return "/";
+  return raw;
+}
+
 function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -15,7 +23,7 @@ function CallbackHandler() {
         console.error(error);
       }
 
-      const next = searchParams.get("next") || "/admin";
+      const next = safeNextPath(searchParams.get("next"));
       router.push(next);
     };
 

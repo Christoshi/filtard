@@ -18,7 +18,8 @@ export default function TermsPage() {
       <section className="mb-10">
         <p className="text-[#9ca3af] leading-relaxed">
           By accessing or using Filtard (“the Service”), you agree to these
-          Terms of Service. If you do not agree, do not use the Service.
+          Terms of Service. If you do not agree, do not use the Service. You
+          must be at least 18 years old to use the Service.
         </p>
       </section>
 
@@ -28,8 +29,9 @@ export default function TermsPage() {
         </h2>
         <p className="text-[#9ca3af] leading-relaxed">
           Filtard is a community-curated memecoin screener that allows users to
-          browse, submit, rate, and discuss tokens. The Service is provided for
-          informational and community purposes only.
+          browse, submit, rate, and discuss tokens. The Service is for
+          informational and community purposes only. It is not a broker,
+          exchange, or investment advisor.
         </p>
       </section>
 
@@ -39,8 +41,7 @@ export default function TermsPage() {
         </h2>
         <p className="text-[#9ca3af] leading-relaxed">
           You may sign in using third-party providers (Google or X). You are
-          responsible for maintaining the security of your account and for all
-          activity that occurs under it.
+          responsible for your account and activity under it.
         </p>
       </section>
 
@@ -49,11 +50,10 @@ export default function TermsPage() {
           3. User Content
         </h2>
         <p className="text-[#9ca3af] leading-relaxed">
-          You retain ownership of any content you submit (including theses,
-          ratings, and profile information). By submitting content, you grant
-          Filtard a non-exclusive, worldwide, royalty-free license to display,
-          distribute, and use that content in connection with operating the
-          Service.
+          You retain ownership of content you submit (theses, ratings, profile
+          information). By submitting, you grant Filtard a non-exclusive,
+          worldwide, royalty-free license to display and use that content to
+          operate the Service. We may remove content that violates these Terms.
         </p>
       </section>
 
@@ -62,48 +62,58 @@ export default function TermsPage() {
           4. Prohibited Conduct
         </h2>
         <p className="text-[#9ca3af] leading-relaxed">
-          You agree not to use the Service for any illegal purpose, to submit
-          false or misleading information, to spam, harass other users, or to
-          attempt to disrupt or abuse the platform.
+          You agree not to use the Service for illegal purposes, to submit false
+          or misleading information, to spam, harass others, or to disrupt or
+          abuse the platform.
         </p>
       </section>
 
       <section className="mb-10">
         <h2 className="text-lg font-semibold text-[#f4f6f8] mb-3 tracking-tight">
-          5. Disclaimer
+          5. No financial advice; risk
         </h2>
         <p className="text-[#9ca3af] leading-relaxed">
           Filtard is provided “as is” without warranties of any kind. We do not
-          provide financial, investment, or trading advice. All token data,
-          theses, and ratings are for informational purposes only. You are solely
-          responsible for your own decisions.
+          provide financial, investment, or trading advice. Token data, theses,
+          ratings, and rankings are informational only and may be wrong or
+          outdated. Cryptocurrency is highly volatile and you can lose money.
+          You are solely responsible for your decisions.
         </p>
       </section>
 
       <section className="mb-10">
         <h2 className="text-lg font-semibold text-[#f4f6f8] mb-3 tracking-tight">
-          6. Changes
+          6. Limitation of liability
         </h2>
         <p className="text-[#9ca3af] leading-relaxed">
-          We may update these Terms from time to time. Continued use of the
-          Service after changes are posted constitutes acceptance of the updated
-          Terms.
+          To the fullest extent allowed by law, Filtard and its operators are
+          not liable for any loss or damage arising from your use of the
+          Service or reliance on any content on it.
+        </p>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-lg font-semibold text-[#f4f6f8] mb-3 tracking-tight">
+          7. Changes
+        </h2>
+        <p className="text-[#9ca3af] leading-relaxed">
+          We may update these Terms from time to time. Continued use after
+          changes are posted means you accept the updated Terms.
         </p>
       </section>
 
       <section className="mb-4">
         <h2 className="text-lg font-semibold text-[#f4f6f8] mb-3 tracking-tight">
-          7. Contact
+          8. Contact
         </h2>
         <p className="text-[#9ca3af] leading-relaxed">
-          For questions about these Terms, contact us at{" "}
+          Questions:{" "}
           <a
             href="mailto:contact@filtard.com"
             className="text-[#f4f6f8] hover:text-[#b8ff3d] transition"
           >
             contact@filtard.com
           </a>
-          .
         </p>
       </section>
     </div>

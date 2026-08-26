@@ -27,7 +27,7 @@ export async function getCurrentUser() {
 }
 
 export async function signInWithGoogle(redirectTo?: string) {
-  const next = redirectTo || "/admin";
+  const next = redirectTo || "/";
   return await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -37,7 +37,7 @@ export async function signInWithGoogle(redirectTo?: string) {
 }
 
 export async function signInWithX(redirectTo?: string) {
-  const next = redirectTo || "/admin";
+  const next = redirectTo || "/";
   return await supabase.auth.signInWithOAuth({
     provider: "x",
     options: {

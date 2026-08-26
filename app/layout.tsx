@@ -13,10 +13,12 @@ const inter = Inter({
  display: "swap",
 });
 
-const siteUrl =
- process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
+import { getSiteUrl } from "@/lib/site";
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
+ metadataBase: new URL(siteUrl),
  title: {
  default: "Filtard",
  template: "%s | Filtard",

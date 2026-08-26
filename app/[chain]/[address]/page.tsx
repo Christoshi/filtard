@@ -229,8 +229,10 @@ export async function generateMetadata({
 
   const plainThesis = rawThesis ? toPlainText(rawThesis) : null;
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.vercel.app";
+  import { getSiteUrl } from "@/lib/site";
+  // (put import at top of file with other imports)
+
+  const siteUrl = getSiteUrl();
   const domain = siteUrl.replace(/^https?:\/\//, "");
 
   const ogParams = new URLSearchParams({

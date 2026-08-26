@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import TokenTable from "@/app/components/TokenTable";
 import TipButton from "@/app/components/TipButton";
+import { isReservedUsername } from "@/lib/reserved";
 
 export const revalidate = 30;
 
@@ -98,19 +99,7 @@ export default async function CuratorPage({
 }) {
   const { username } = await params;
 
-  const reserved = [
-    "admin",
-    "dashboard",
-    "login",
-    "profile",
-    "submissions",
-    "setup-username",
-    "auth",
-    "api",
-    "token",
-    "curator",
-  ];
-  if (reserved.includes(username.toLowerCase())) {
+  if (isReservedUsername(username)) {
     notFound();
   }
 

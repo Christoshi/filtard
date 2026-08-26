@@ -7,7 +7,7 @@ import { signInWithGoogle, signInWithX } from "@/lib/auth";
 function LoginForm() {
   const [loading, setLoading] = useState<"google" | "x" | null>(null);
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/admin";
+  const redirect = searchParams.get("redirect") || "/";
 
   async function handleGoogle() {
     setLoading("google");

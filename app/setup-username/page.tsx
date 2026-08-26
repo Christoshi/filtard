@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getCurrentUser, supabase } from "@/lib/auth";
+import { isReservedUsername } from "@/lib/reserved";
 
 function SetupUsernameForm() {
   const router = useRouter();
@@ -49,6 +50,12 @@ function SetupUsernameForm() {
 
     if (!/^[a-z0-9_]+$/.test(clean)) {
       setError("Only letters, numbers and underscores allowed");
+      setLoading(false);
+      return;
+    }
+
+        if (isReservedUsername(clean)) {
+      setError("This username is reserved");
       setLoading(false);
       return;
     }

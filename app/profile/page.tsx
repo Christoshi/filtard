@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, supabase } from "@/lib/auth";
+import { isReservedUsername } from "@/lib/reserved";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -139,6 +140,12 @@ export default function ProfilePage() {
 
     if (!/^[a-z0-9_]+$/.test(cleanName)) {
       setError("Only letters, numbers and underscores allowed");
+      setSaving(false);
+      return;
+    }
+
+        if (isReservedUsername(cleanName)) {
+      setError("This username is reserved");
       setSaving(false);
       return;
     }
