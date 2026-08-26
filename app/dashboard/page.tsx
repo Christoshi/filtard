@@ -144,7 +144,7 @@ export default function DashboardPage() {
       .eq("id", userId);
 
     if (error) {
-      setMessage("Error updating role");
+      setMessage("Error updating role: " + error.message);
       await loadProfiles();
     } else {
       setMessage("Role updated successfully");
@@ -181,7 +181,7 @@ export default function DashboardPage() {
       .eq("id", id);
 
     if (error) {
-      setMessage("Error approving token");
+      setMessage("Error approving token: " + error.message);
     } else {
       setMessage("Token approved");
       setSelected((prev) => prev.filter((x) => x !== id));
@@ -189,13 +189,40 @@ export default function DashboardPage() {
     }
   }
 
+  /** Delete related rows first, then the token */
+  async function deleteRelatedRows(tokenIds: string[]) {
+    // Order matters only if there are deeper FKs; these are all children of tokens
+    const tables = ["ratings", "token_views", "token_stats"] as const;
+
+    for (const table of tables) {
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .in("token_id", tokenIds);
+
+      if (error) {
+        return error;
+      }
+    }
+
+    return null;
+  }
+
   async function deleteToken(id: string) {
     if (!confirm("Are you sure you want to delete this token?")) return;
 
+    // 1. Remove related rows
+    const relatedError = await deleteRelatedRows([id]);
+    if (relatedError) {
+      setMessage("Error deleting related data: " + relatedError.message);
+      return;
+    }
+
+    // 2. Remove the token
     const { error } = await supabase.from("tokens").delete().eq("id", id);
 
     if (error) {
-      setMessage("Error deleting token");
+      setMessage("Error deleting token: " + error.message);
     } else {
       setMessage("Token deleted");
       setSelected((prev) => prev.filter((x) => x !== id));
@@ -235,10 +262,18 @@ export default function DashboardPage() {
     if (selected.length === 0) return;
     if (!confirm(`Delete ${selected.length} tokens permanently?`)) return;
 
+    // 1. Remove related rows
+    const relatedError = await deleteRelatedRows(selected);
+    if (relatedError) {
+      setMessage("Error deleting related data: " + relatedError.message);
+      return;
+    }
+
+    // 2. Remove the tokens
     const { error } = await supabase.from("tokens").delete().in("id", selected);
 
     if (error) {
-      setMessage("Error bulk deleting");
+      setMessage("Error bulk deleting: " + error.message);
     } else {
       setMessage(`${selected.length} tokens deleted`);
       setSelected([]);
@@ -566,7 +601,9 @@ export default function DashboardPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setThesisModal({ open: false, symbol: "", thesis: "" })}
+            onClick={() =>
+              setThesisModal({ open: false, symbol: "", thesis: "" })
+            }
           />
           <div className="relative w-full max-w-2xl max-h-[80vh] rounded-2xl border border-[#2a2e38] bg-[#0a0b0e] shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#1c1f26]">
@@ -574,10 +611,19 @@ export default function DashboardPage() {
                 Thesis — ${thesisModal.symbol}
               </h3>
               <button
-                onClick={() => setThesisModal({ open: false, symbol: "", thesis: "" })}
+                onClick={() =>
+                  setThesisModal({ open: false, symbol: "", thesis: "" })
+                }
                 className="text-[#8b93a1] hover:text-white transition"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
