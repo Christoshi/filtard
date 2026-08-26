@@ -19,17 +19,14 @@ function CallbackHandler() {
     const handleCallback = async () => {
       await supabase.auth.getSession();
 
-      const fromQuery = safeNextPath(searchParams.get("next"));
-      let fromStorage: string | null = null;
+      let stored: string | null = null;
       if (typeof window !== "undefined") {
-        fromStorage = sessionStorage.getItem("auth_next");
+        stored = sessionStorage.getItem("auth_next");
         sessionStorage.removeItem("auth_next");
       }
 
-      const stored = safeNextPath(fromStorage);
-      const next = stored !== "/" ? stored : fromQuery;
+      const next = safeNextPath(stored || searchParams.get("next"));
 
-      // New users must pick a username first — keep the final destination
       const user = await getCurrentUser();
       if (user && !user.display_name) {
         router.push(
