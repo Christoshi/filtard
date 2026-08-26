@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, supabase } from "@/lib/auth";
@@ -32,6 +32,11 @@ type Token = {
   } | null;
 };
 
+type RowFeedback = {
+  text: string;
+  type: "success" | "error";
+};
+
 type Toast = {
   id: number;
   text: string;
@@ -48,7 +53,13 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rowFeedback, setRowFeedback] = useState<Record<string, RowFeedback>>(
+    {}
+  );
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const feedbackTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {}
+  );
 
   const [thesisModal, setThesisModal] = useState<{
     open: boolean;
@@ -56,13 +67,36 @@ export default function DashboardPage() {
     thesis: string;
   }>({ open: false, symbol: "", thesis: "" });
 
-  const showToast = useCallback((text: string, type: "success" | "error" = "success") => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, text, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 2500);
-  }, []);
+  const isSuperAdmin = user?.role === "super_admin";
+
+  const showRowFeedback = useCallback(
+    (id: string, text: string, type: "success" | "error" = "success") => {
+      if (feedbackTimers.current[id]) {
+        clearTimeout(feedbackTimers.current[id]);
+      }
+      setRowFeedback((prev) => ({ ...prev, [id]: { text, type } }));
+      feedbackTimers.current[id] = setTimeout(() => {
+        setRowFeedback((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+        delete feedbackTimers.current[id];
+      }, 2000);
+    },
+    []
+  );
+
+  const showToast = useCallback(
+    (text: string, type: "success" | "error" = "success") => {
+      const id = Date.now();
+      setToasts((prev) => [...prev, { id, text, type }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 2500);
+    },
+    []
+  );
 
   useEffect(() => {
     async function init() {
@@ -88,7 +122,8 @@ export default function DashboardPage() {
   async function loadTokens() {
     const { data, error } = await supabase
       .from("tokens")
-      .select(`
+      .select(
+        `
         id,
         chain,
         address,
@@ -103,7 +138,8 @@ export default function DashboardPage() {
           id,
           display_name
         )
-      `)
+      `
+      )
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -144,6 +180,22 @@ export default function DashboardPage() {
   async function updateRole(userId: string, newRole: string) {
     if (userId === user.id) {
       showToast("You cannot change your own role", "error");
+      return;
+    }
+
+    const target = profiles.find((p) => p.id === userId);
+    if (target?.role === "super_admin") {
+      showToast("Super admin role cannot be changed", "error");
+      return;
+    }
+
+    if (newRole === "admin" && !isSuperAdmin) {
+      showToast("Only a super admin can assign the admin role", "error");
+      return;
+    }
+
+    if (newRole === "super_admin") {
+      showToast("Cannot assign super admin role", "error");
       return;
     }
 
@@ -194,11 +246,11 @@ export default function DashboardPage() {
       .eq("id", id);
 
     if (error) {
-      showToast("Error approving token: " + error.message, "error");
+      showRowFeedback(id, "Error", "error");
     } else {
-      showToast("Token approved");
+      showRowFeedback(id, "Approved", "success");
       setSelected((prev) => prev.filter((x) => x !== id));
-      await loadTokens();
+      setTimeout(() => loadTokens(), 600);
     }
   }
 
@@ -239,11 +291,11 @@ export default function DashboardPage() {
     const { error } = await deleteTokensViaApi([id]);
 
     if (error) {
-      showToast("Error deleting token: " + error, "error");
+      showRowFeedback(id, "Error", "error");
     } else {
-      showToast("Token deleted");
+      showRowFeedback(id, "Deleted", "success");
       setSelected((prev) => prev.filter((x) => x !== id));
-      await loadTokens();
+      setTimeout(() => loadTokens(), 600);
     }
   }
 
@@ -251,7 +303,7 @@ export default function DashboardPage() {
     if (selected.length === 0) return;
     if (!confirm(`Approve ${selected.length} tokens?`)) return;
 
-    showToast("Approving tokens...");
+    showToast("Approving...");
 
     for (const id of selected) {
       const token = tokens.find((t) => t.id === id);
@@ -270,7 +322,7 @@ export default function DashboardPage() {
         .eq("id", id);
     }
 
-    showToast(`${selected.length} tokens approved`);
+    showToast(`${selected.length} approved`);
     setSelected([]);
     await loadTokens();
   }
@@ -282,9 +334,9 @@ export default function DashboardPage() {
     const { error } = await deleteTokensViaApi(selected);
 
     if (error) {
-      showToast("Error bulk deleting: " + error, "error");
+      showToast("Bulk delete failed: " + error, "error");
     } else {
-      showToast(`${selected.length} tokens deleted`);
+      showToast(`${selected.length} deleted`);
       setSelected([]);
       await loadTokens();
     }
@@ -325,12 +377,12 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto relative">
-      {/* Toasts */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[100] flex flex-col gap-2 w-[min(100%-2rem,360px)] pointer-events-none">
+      {/* Bulk / role toasts only */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[100] flex flex-col gap-2 w-[min(100%-2rem,320px)] pointer-events-none">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur-md animate-[fadeIn_0.2s_ease-out] ${
+            className={`pointer-events-auto rounded-xl border px-4 py-2.5 text-sm shadow-lg backdrop-blur-md ${
               t.type === "error"
                 ? "bg-[#1a1010]/95 border-red-500/40 text-red-300"
                 : "bg-[#101215]/95 border-[#2a2e38] text-[#f4f6f8]"
@@ -446,107 +498,125 @@ export default function DashboardPage() {
                 <div className="text-right">Actions</div>
               </div>
 
-              {filteredTokens.map((token) => (
-                <div
-                  key={token.id}
-                  className="grid grid-cols-[auto_1fr_auto] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
-                >
-                  <div className="w-5">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(token.id)}
-                      onChange={() => toggleSelect(token.id)}
-                      className="rounded border-[#3a3f4b] bg-[#101215]"
-                    />
-                  </div>
+              {filteredTokens.map((token) => {
+                const fb = rowFeedback[token.id];
 
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    {token.image_url ? (
-                      <img
-                        src={token.image_url}
-                        alt=""
-                        className="h-11 w-11 rounded-full object-cover flex-shrink-0"
+                return (
+                  <div
+                    key={token.id}
+                    className="grid grid-cols-[auto_1fr_auto] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
+                  >
+                    <div className="w-5">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(token.id)}
+                        onChange={() => toggleSelect(token.id)}
+                        className="rounded border-[#3a3f4b] bg-[#101215]"
                       />
-                    ) : (
-                      <div className="h-11 w-11 rounded-full bg-[#1c1f26] flex-shrink-0" />
-                    )}
+                    </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Link
-                          href={`/${token.chain}/${token.address}`}
-                          className="font-medium hover:text-[#b8ff3d] transition"
-                        >
-                          {token.symbol || "???"}
-                        </Link>
-                        <span className="text-[11px] text-[#8b93a1] border border-[#1c1f26] px-1.5 rounded">
-                          {token.chain}
-                        </span>
-                        <span
-                          className={`text-[11px] px-1.5 py-0.5 rounded ${
-                            token.status === "approved"
-                              ? "bg-green-500/15 text-green-400"
-                              : "bg-yellow-500/15 text-yellow-400"
-                          }`}
-                        >
-                          {token.status}
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      {token.image_url ? (
+                        <img
+                          src={token.image_url}
+                          alt=""
+                          className="h-11 w-11 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="h-11 w-11 rounded-full bg-[#1c1f26] flex-shrink-0" />
+                      )}
 
-                      <div className="text-sm text-[#8b93a1] truncate mt-0.5">
-                        {token.name || token.address}
-                      </div>
-
-                      <div className="text-xs text-[#5c6573] mt-1">
-                        Submitted by{" "}
-                        {token.profiles?.display_name ? (
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Link
-                            href={`/${token.profiles.display_name}`}
-                            className="text-[#b8ff3d] hover:underline"
+                            href={`/${token.chain}/${token.address}`}
+                            className="font-medium hover:text-[#b8ff3d] transition"
                           >
-                            {token.profiles.display_name}
+                            {token.symbol || "???"}
                           </Link>
-                        ) : (
-                          "Unknown"
-                        )}{" "}
-                        · {new Date(token.created_at).toLocaleDateString()}
+                          <span className="text-[11px] text-[#8b93a1] border border-[#1c1f26] px-1.5 rounded">
+                            {token.chain}
+                          </span>
+                          <span
+                            className={`text-[11px] px-1.5 py-0.5 rounded ${
+                              token.status === "approved"
+                                ? "bg-green-500/15 text-green-400"
+                                : "bg-yellow-500/15 text-yellow-400"
+                            }`}
+                          >
+                            {token.status}
+                          </span>
+                        </div>
+
+                        <div className="text-sm text-[#8b93a1] truncate mt-0.5">
+                          {token.name || token.address}
+                        </div>
+
+                        <div className="text-xs text-[#5c6573] mt-1">
+                          Submitted by{" "}
+                          {token.profiles?.display_name ? (
+                            <Link
+                              href={`/${token.profiles.display_name}`}
+                              className="text-[#b8ff3d] hover:underline"
+                            >
+                              {token.profiles.display_name}
+                            </Link>
+                          ) : (
+                            "Unknown"
+                          )}{" "}
+                          · {new Date(token.created_at).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex gap-2 flex-shrink-0">
-                    {token.thesis && (
-                      <button
-                        onClick={() =>
-                          setThesisModal({
-                            open: true,
-                            symbol: token.symbol || "Token",
-                            thesis: token.thesis || "",
-                          })
-                        }
-                        className="px-3 py-1.5 rounded-lg border border-[#2a2e38] text-[#8b93a1] text-sm hover:text-white hover:border-[#3a3f4b] transition"
-                      >
-                        View Thesis
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-2 flex-shrink-0 min-w-[140px]">
+                      {fb ? (
+                        <span
+                          className={`text-sm font-medium px-3 py-1.5 rounded-lg ${
+                            fb.type === "error"
+                              ? "text-red-400 bg-red-500/10"
+                              : "text-[#b8ff3d] bg-[#b8ff3d]/10"
+                          }`}
+                        >
+                          {fb.text}
+                        </span>
+                      ) : (
+                        <>
+                          {token.thesis && (
+                            <button
+                              onClick={() =>
+                                setThesisModal({
+                                  open: true,
+                                  symbol: token.symbol || "Token",
+                                  thesis: token.thesis || "",
+                                })
+                              }
+                              className="px-3 py-1.5 rounded-lg border border-[#2a2e38] text-[#8b93a1] text-sm hover:text-white hover:border-[#3a3f4b] transition"
+                            >
+                              View Thesis
+                            </button>
+                          )}
 
-                    {token.status === "pending" && (
-                      <button
-                        onClick={() => approveToken(token.id)}
-                        className="px-3.5 py-1.5 rounded-lg bg-[#b8ff3d] text-black text-sm font-medium hover:bg-[#a3e635] transition"
-                      >
-                        Approve
-                      </button>
-                    )}
-                    <button
-                      onClick={() => deleteToken(token.id)}
-                      className="px-3.5 py-1.5 rounded-lg border border-red-500/40 text-red-400 text-sm hover:bg-red-500/10 transition"
-                    >
-                      Delete
-                    </button>
+                          {token.status === "pending" && (
+                            <button
+                              onClick={() => approveToken(token.id)}
+                              className="px-3.5 py-1.5 rounded-lg bg-[#b8ff3d] text-black text-sm font-medium hover:bg-[#a3e635] transition"
+                            >
+                              Approve
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteToken(token.id)}
+                            className="px-3.5 py-1.5 rounded-lg border border-red-500/40 text-red-400 text-sm hover:bg-red-500/10 transition"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </>
@@ -566,51 +636,66 @@ export default function DashboardPage() {
               No curators yet
             </div>
           ) : (
-            profiles.map((profile) => (
-              <div
-                key={profile.id}
-                className="grid grid-cols-[1fr_120px_120px] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  {profile.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt=""
-                      className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-[#1c1f26] flex items-center justify-center text-sm font-medium flex-shrink-0">
-                      {(profile.display_name || "U")[0].toUpperCase()}
+            profiles.map((profile) => {
+              const isLocked = profile.role === "super_admin";
+
+              return (
+                <div
+                  key={profile.id}
+                  className="grid grid-cols-[1fr_120px_120px] gap-4 items-center px-5 py-4 border-b border-[#1c1f26] last:border-0 hover:bg-[#14171d] transition"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {profile.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt=""
+                        className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-[#1c1f26] flex items-center justify-center text-sm font-medium flex-shrink-0">
+                        {(profile.display_name || "U")[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <Link
+                        href={`/${profile.display_name}`}
+                        className="font-medium hover:text-[#b8ff3d] transition"
+                      >
+                        {profile.display_name || "Anonymous"}
+                      </Link>
                     </div>
-                  )}
-                  <div className="min-w-0">
-                    <Link
-                      href={`/${profile.display_name}`}
-                      className="font-medium hover:text-[#b8ff3d] transition"
-                    >
-                      {profile.display_name || "Anonymous"}
-                    </Link>
+                  </div>
+
+                  <div className="text-center font-medium">
+                    {profile.token_count}
+                  </div>
+
+                  <div className="text-right">
+                    {isLocked ? (
+                      <span className="inline-block rounded-lg border border-[#1c1f26] bg-[#0c0d10] px-2.5 py-1.5 text-sm text-[#8b93a1]">
+                        super_admin
+                      </span>
+                    ) : (
+                      <select
+                        value={profile.role}
+                        onChange={(e) =>
+                          updateRole(profile.id, e.target.value)
+                        }
+                        disabled={profile.id === user?.id}
+                        className="rounded-lg border border-[#1c1f26] bg-[#101215] px-2 py-1.5 text-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="user">user</option>
+                        <option value="curator">curator</option>
+                        {isSuperAdmin && <option value="admin">admin</option>}
+                        {!isSuperAdmin && profile.role === "admin" && (
+                          <option value="admin">admin</option>
+                        )}
+                      </select>
+                    )}
                   </div>
                 </div>
-
-                <div className="text-center font-medium">
-                  {profile.token_count}
-                </div>
-
-                <div className="text-right">
-                  <select
-                    value={profile.role}
-                    onChange={(e) => updateRole(profile.id, e.target.value)}
-                    className="rounded-lg border border-[#1c1f26] bg-[#101215] px-2 py-1.5 text-sm focus:outline-none"
-                  >
-                    <option value="user">user</option>
-                    <option value="curator">curator</option>
-                    <option value="admin">admin</option>
-                    <option value="super_admin">super_admin</option>
-                  </select>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
