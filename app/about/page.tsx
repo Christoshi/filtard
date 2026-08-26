@@ -64,12 +64,11 @@ export default function AboutPage() {
  The idea is to help you discover interesting or valuable memecoins that resonate, so you can have fun while making money.
  </p>
  <p>
- Coins you can buy and sleep on with confidence, knowing you invested
+ Coins you can buy and sleep on, knowing you invested
  in something with a higher probability of survival.
  </p>
  <p className="text-[#f4f6f8]">
- The ideal Filtard coins are  high-conviction plays you can hold
- with confidence and bullpost with pride, not the usual quick flips that can rug the next minute.
+ The ideal Filtard coins are  high-conviction plays you can hold, DCA into, and bullpost with pride, not the usual quick flips that can rug the next minute.
  </p>
  </div>
  </section>
