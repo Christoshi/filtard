@@ -25,31 +25,6 @@ export default function AboutPage() {
  </p>
  </section>
 
- {/* How to play */}
- <section className="mb-12">
- <h2 className="text-lg font-semibold text-[#f4f6f8] mb-4 tracking-tight">
- How to play Filtard coins
- </h2>
- <div className="space-y-4 text-[#9ca3af] leading-relaxed">
- <p>
- We aim to list coins you’ll be comfortable buying, holding, and
- bagworking.
- </p>
- <p>
- The idea is to help you discover valuable memecoins you truly like
- or relate to, so you can have fun while making money.
- </p>
- <p>
- Coins you can buy and sleep on with confidence, knowing you invested
- in something with a higher probability of survival.
- </p>
- <p className="text-[#f4f6f8]">
- Filtard coins are intended as highest-conviction plays you can hold
- with confidence and bullpost with pride — not the usual quick flips.
- </p>
- </div>
- </section>
-
  {/* How we curate */}
  <section className="mb-12">
  <h2 className="text-lg font-semibold text-[#f4f6f8] mb-4 tracking-tight">
@@ -71,6 +46,31 @@ export default function AboutPage() {
  </p>
  <p>
  The goal is to remove the 95% noise and give you the 5% raw alpha.
+ </p>
+ </div>
+ </section>
+
+  {/* How to play */}
+ <section className="mb-12">
+ <h2 className="text-lg font-semibold text-[#f4f6f8] mb-4 tracking-tight">
+ How to play Filtard coins
+ </h2>
+ <div className="space-y-4 text-[#9ca3af] leading-relaxed">
+ <p>
+ We aim to list coins you’ll be comfortable buying, holding, and
+ bagworking.
+ </p>
+ <p>
+ The idea is to help you discover valuable memecoins you truly like
+ or relate to, so you can have fun while making money.
+ </p>
+ <p>
+ Coins you can buy and sleep on with confidence, knowing you invested
+ in something with a higher probability of survival.
+ </p>
+ <p className="text-[#f4f6f8]">
+ Filtard coins are intended as highest-conviction plays you can hold
+ with confidence and bullpost with pride, not the usual quick flips.
  </p>
  </div>
  </section>
@@ -137,14 +137,6 @@ export default function AboutPage() {
  </div>
  </section>
 
- <div className="pt-4 border-t border-[#1c1f26]">
- <Link
- href="/"
- className="text-sm text-[#8b93a1] hover:text-[#b8ff3d] transition"
- >
- ← Back to screener
- </Link>
- </div>
  </div>
  );
 }
