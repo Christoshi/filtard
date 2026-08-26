@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CopyButton from "@/app/copy-button";
 import { supabase } from "@/lib/supabase";
+import { getSiteUrl } from "@/lib/site";
 import Link from "next/link";
 import StarRating from "@/app/components/StarRating";
 import WatchlistStar from "@/app/components/WatchlistStar";
@@ -57,7 +58,6 @@ async function getTokenStats(address: string): Promise<LiveStats | null> {
 }
 
 async function getTokenFromDb(chain: string, address: string) {
-  // Case-insensitive address match (fixes Robinhood / EVM checksum issues)
   let { data } = await supabase
     .from("tokens")
     .select(
@@ -229,9 +229,6 @@ export async function generateMetadata({
 
   const plainThesis = rawThesis ? toPlainText(rawThesis) : null;
 
-  import { getSiteUrl } from "@/lib/site";
-  // (put import at top of file with other imports)
-
   const siteUrl = getSiteUrl();
   const domain = siteUrl.replace(/^https?:\/\//, "");
 
@@ -289,18 +286,15 @@ export default async function TokenPage({
 }) {
   const { chain, address } = await params;
 
-  // Parallel main fetches
   const [liveStats, dbToken] = await Promise.all([
     getTokenStats(address),
     getTokenFromDb(chain, address),
   ]);
 
-  // Only 404 when the token is not in our DB AND DexScreener also has nothing
   if (!dbToken && !liveStats) {
     notFound();
   }
 
-  // Merge: prefer live DexScreener, fall back to cache / DB
   const cached = Array.isArray(dbToken?.token_stats)
     ? dbToken?.token_stats[0]
     : dbToken?.token_stats;
@@ -330,7 +324,6 @@ export default async function TokenPage({
     socials: liveStats?.socials || [],
   };
 
-  // Parallel secondary fetches
   const [ratings, viewCount, editor] = await Promise.all([
     dbToken?.id
       ? getTokenRatings(dbToken.id)
@@ -371,7 +364,6 @@ export default async function TokenPage({
     <div className="w-full px-4 sm:px-6">
       {dbToken?.id && <ViewTracker tokenId={dbToken.id} />}
 
-      {/* ===== TOP SECTION ===== */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center gap-5 lg:gap-6 mb-6">
         <div className="flex justify-center lg:justify-start">
           <div className="flex items-center gap-4">
