@@ -1113,219 +1113,222 @@ export default function TokenTable({
         </div>
       )}
 
-      {/* ===== DESKTOP TABLE ===== */}
-      <div
-        className={`hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden ${
-          pageTokens.length === 0 ? "!hidden" : ""
-        }`}
-      >
-        <div className="grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs font-bold text-[#f4f6f8] uppercase tracking-wider border-b border-[#1c1f26] bg-[#1c1f26]">
-          <div className="px-1 py-3 text-center">#</div>
-          <div
-            className="px-3 py-3 border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center gap-1"
-            onClick={() => handleSort("symbol")}
-          >
-            Token <SortIcon active={sortKey === "symbol"} direction={sortDir} />
-          </div>
-          <div
-            className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
-            onClick={() => handleSort("marketCap")}
-          >
-            Mcap <SortIcon active={sortKey === "marketCap"} direction={sortDir} />
-          </div>
-          <div
-            className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
-            onClick={() => handleSort("priceUsd")}
-          >
-            Price <SortIcon active={sortKey === "priceUsd"} direction={sortDir} />
-          </div>
-          <div
-            className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
-            onClick={() => handleSort("change24h")}
-          >
-            24h <SortIcon active={sortKey === "change24h"} direction={sortDir} />
-          </div>
-          <div
-            className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
-            onClick={() => handleSort("volume24h")}
-          >
-            Volume <SortIcon active={sortKey === "volume24h"} direction={sortDir} />
-          </div>
-          <div
-            className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
-            onClick={() => handleSort("liquidity")}
-          >
-            Liq <SortIcon active={sortKey === "liquidity"} direction={sortDir} />
-          </div>
-          <div
-            className="px-3 py-3 text-right cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
-            onClick={() => handleSort("age")}
-          >
-            Age <SortIcon active={sortKey === "age"} direction={sortDir} />
-          </div>
+      {pageTokens.length === 0 ? (
+        <div className="border border-[#1c1f26] rounded-xl p-12 text-center text-[#8b93a1]">
+          No tokens found.
         </div>
-
-        {pageTokens.length > 0 &&
-          pageTokens.map((token, index) => {
-            const isPinned = !!token.is_pinned;
-
-            return (
-              <Link
-                key={token.id}
-                href={`/${token.chain}/${token.address}`}
-                className={`grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 items-center transition ${
-                  isPinned
-                    ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
-                    : "hover:bg-[#14171d]"
-                } ${index !== pageTokens.length - 1 && !isPinned ? "border-b border-[#1c1f26]" : ""}`}
+      ) : (
+        <>
+          {/* ===== DESKTOP TABLE ===== */}
+          <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
+            <div className="grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs font-bold text-[#f4f6f8] uppercase tracking-wider border-b border-[#1c1f26] bg-[#1c1f26]">
+              <div className="px-1 py-3 text-center">#</div>
+              <div
+                className="px-3 py-3 border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center gap-1"
+                onClick={() => handleSort("symbol")}
               >
-                <div className="px-1 py-3 text-center text-sm text-[#8b93a1]">
-                  {isPinned ? (
-                    <span className="text-[#b8ff3d] text-xs font-medium">P</span>
-                  ) : (
-                    startIndex + index + 1
-                  )}
-                </div>
+                Token <SortIcon active={sortKey === "symbol"} direction={sortDir} />
+              </div>
+              <div
+                className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+                onClick={() => handleSort("marketCap")}
+              >
+                Mcap <SortIcon active={sortKey === "marketCap"} direction={sortDir} />
+              </div>
+              <div
+                className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+                onClick={() => handleSort("priceUsd")}
+              >
+                Price <SortIcon active={sortKey === "priceUsd"} direction={sortDir} />
+              </div>
+              <div
+                className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+                onClick={() => handleSort("change24h")}
+              >
+                24h <SortIcon active={sortKey === "change24h"} direction={sortDir} />
+              </div>
+              <div
+                className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+                onClick={() => handleSort("volume24h")}
+              >
+                Volume <SortIcon active={sortKey === "volume24h"} direction={sortDir} />
+              </div>
+              <div
+                className="px-3 py-3 text-right border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+                onClick={() => handleSort("liquidity")}
+              >
+                Liq <SortIcon active={sortKey === "liquidity"} direction={sortDir} />
+              </div>
+              <div
+                className="px-3 py-3 text-right cursor-pointer select-none hover:text-white flex items-center justify-end gap-1"
+                onClick={() => handleSort("age")}
+              >
+                Age <SortIcon active={sortKey === "age"} direction={sortDir} />
+              </div>
+            </div>
 
-                <div className="px-3 py-3 border-r border-[#1c1f26] flex items-center gap-3 min-w-0">
-                  {token.image_url ? (
-                    <Image
-                      src={token.image_url}
-                      alt=""
-                      width={36}
-                      height={36}
-                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
-                  )}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium truncate">{token.symbol || "???"}</span>
-                      {isPinned && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
-                          Partnership
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[#8b93a1] truncate">
-                      {token.name || token.address.slice(0, 10) + "…"}
-                    </div>
-                  </div>
-                </div>
+            {pageTokens.map((token, index) => {
+              const isPinned = !!token.is_pinned;
 
-                <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
-                  {formatUsd(token.stats?.marketCap ?? null)}
-                </div>
-                <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
-                  {formatUsd(token.stats?.priceUsd ?? null)}
-                </div>
-                <div
-                  className={`px-3 py-3 text-right text-[15px] border-r border-[#1c1f26] ${
-                    (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
-                  }`}
+              return (
+                <Link
+                  key={token.id}
+                  href={`/${token.chain}/${token.address}`}
+                  className={`grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 items-center transition ${
+                    isPinned
+                      ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
+                      : "hover:bg-[#14171d]"
+                  } ${index !== pageTokens.length - 1 && !isPinned ? "border-b border-[#1c1f26]" : ""}`}
                 >
-                  {formatPct(token.stats?.change24h ?? null)}
-                </div>
-                <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
-                  {formatUsd(token.stats?.volume24h ?? null)}
-                </div>
-                <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
-                  {formatUsd(token.stats?.liquidity ?? null)}
-                </div>
-                <div className="px-3 py-3 text-right text-[15px] text-[#8b93a1]">
-                  {formatAge(token.stats?.pairCreatedAt ?? null)}
-                </div>
-              </Link>
-            );
-          })}
-      </div>
+                  <div className="px-1 py-3 text-center text-sm text-[#8b93a1]">
+                    {isPinned ? (
+                      <span className="text-[#b8ff3d] text-xs font-medium">P</span>
+                    ) : (
+                      startIndex + index + 1
+                    )}
+                  </div>
 
-      {/* ===== MOBILE TABLE ===== */}
-      <div
-        className={`md:hidden border border-[#1c1f26] rounded-xl overflow-hidden ${
-          pageTokens.length === 0 ? "hidden" : ""
-        }`}
-      >
-        {pageTokens.length > 0 &&
-          pageTokens.map((token, index) => {
-            const isPinned = !!token.is_pinned;
-
-            return (
-              <Link
-                key={token.id}
-                href={`/${token.chain}/${token.address}`}
-                className={`block transition ${
-                  isPinned
-                    ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
-                    : "hover:bg-[#14171d]"
-                } ${index !== pageTokens.length - 1 && !isPinned ? "border-b border-[#1c1f26]" : ""}`}
-              >
-                <div className="flex items-center gap-2.5 px-3 py-2.5">
-                  {token.image_url ? (
-                    <Image
-                      src={token.image_url}
-                      alt=""
-                      width={36}
-                      height={36}
-                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-[14px] truncate">
-                        {token.symbol || "???"}
-                      </span>
-                      {isPinned && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
-                          Partnership
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[12px] text-[#8b93a1] truncate">
-                      {token.name || token.address.slice(0, 10) + "…"}
+                  <div className="px-3 py-3 border-r border-[#1c1f26] flex items-center gap-3 min-w-0">
+                    {token.image_url ? (
+                      <Image
+                        src={token.image_url}
+                        alt=""
+                        width={36}
+                        height={36}
+                        className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium truncate">{token.symbol || "???"}</span>
+                        {isPinned && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
+                            Partnership
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[#8b93a1] truncate">
+                        {token.name || token.address.slice(0, 10) + "…"}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0">
-                    <div className="font-medium text-[14px]">
-                      {formatUsd(token.stats?.priceUsd ?? null)}
-                    </div>
-                    <div
-                      className={`text-[12px] ${
-                        (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
-                      }`}
-                    >
-                      {formatPct(token.stats?.change24h ?? null)}
-                    </div>
+                  <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
+                    {formatUsd(token.stats?.marketCap ?? null)}
                   </div>
-                </div>
-
-                <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
-                    <span className="text-[#8b93a1]">MCAP</span>
-                    <span className="text-[#f4f6f8] ml-1">{formatUsd(token.stats?.marketCap ?? null)}</span>
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
-                    <span className="text-[#8b93a1]">VOL</span>
-                    <span className="text-[#f4f6f8] ml-1">{formatUsd(token.stats?.volume24h ?? null)}</span>
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
-                    <span className="text-[#8b93a1]">LIQ</span>
-                    <span className="text-[#f4f6f8] ml-1">{formatUsd(token.stats?.liquidity ?? null)}</span>
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#8b93a1] whitespace-nowrap">
+                  <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
+                    {formatUsd(token.stats?.priceUsd ?? null)}
+                  </div>
+                  <div
+                    className={`px-3 py-3 text-right text-[15px] border-r border-[#1c1f26] ${
+                      (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
+                    }`}
+                  >
+                    {formatPct(token.stats?.change24h ?? null)}
+                  </div>
+                  <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
+                    {formatUsd(token.stats?.volume24h ?? null)}
+                  </div>
+                  <div className="px-3 py-3 text-right text-[15px] border-r border-[#1c1f26]">
+                    {formatUsd(token.stats?.liquidity ?? null)}
+                  </div>
+                  <div className="px-3 py-3 text-right text-[15px] text-[#8b93a1]">
                     {formatAge(token.stats?.pairCreatedAt ?? null)}
-                  </span>
-                </div>
-              </Link>
-            );
-          })
-        )}
-      </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* ===== MOBILE TABLE ===== */}
+          <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
+            {pageTokens.map((token, index) => {
+              const isPinned = !!token.is_pinned;
+
+              return (
+                <Link
+                  key={token.id}
+                  href={`/${token.chain}/${token.address}`}
+                  className={`block transition ${
+                    isPinned
+                      ? "bg-[#b8ff3d]/[0.04] border-y border-[#b8ff3d]/20"
+                      : "hover:bg-[#14171d]"
+                  } ${index !== pageTokens.length - 1 && !isPinned ? "border-b border-[#1c1f26]" : ""}`}
+                >
+                  <div className="flex items-center gap-2.5 px-3 py-2.5">
+                    {token.image_url ? (
+                      <Image
+                        src={token.image_url}
+                        alt=""
+                        width={36}
+                        height={36}
+                        className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-[#1c1f26] flex-shrink-0" />
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-[14px] truncate">
+                          {token.symbol || "???"}
+                        </span>
+                        {isPinned && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
+                            Partnership
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[12px] text-[#8b93a1] truncate">
+                        {token.name || token.address.slice(0, 10) + "…"}
+                      </div>
+                    </div>
+
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-medium text-[14px]">
+                        {formatUsd(token.stats?.priceUsd ?? null)}
+                      </div>
+                      <div
+                        className={`text-[12px] ${
+                          (token.stats?.change24h ?? 0) < 0 ? "text-red-400" : "text-green-400"
+                        }`}
+                      >
+                        {formatPct(token.stats?.change24h ?? null)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-1.5 px-3 pb-2.5">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                      <span className="text-[#8b93a1]">MCAP</span>
+                      <span className="text-[#f4f6f8] ml-1">
+                        {formatUsd(token.stats?.marketCap ?? null)}
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                      <span className="text-[#8b93a1]">VOL</span>
+                      <span className="text-[#f4f6f8] ml-1">
+                        {formatUsd(token.stats?.volume24h ?? null)}
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium whitespace-nowrap">
+                      <span className="text-[#8b93a1]">LIQ</span>
+                      <span className="text-[#f4f6f8] ml-1">
+                        {formatUsd(token.stats?.liquidity ?? null)}
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg border border-[#2a2e36] bg-[#0f1115] text-[11px] font-medium text-[#8b93a1] whitespace-nowrap">
+                      {formatAge(token.stats?.pairCreatedAt ?? null)}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
