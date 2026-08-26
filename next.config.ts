@@ -51,3 +51,13 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+  async redirects() {
+    return [
+      {
+        source: "/admin",
+        destination: "/submit",
+        permanent: true,
+      },
+    ];
+  },

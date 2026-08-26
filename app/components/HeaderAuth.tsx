@@ -106,7 +106,7 @@ export default function HeaderAuth() {
                   </Link>
                 )}
                 <Link
-                  href="/admin"
+                  href="/submit"
                   onClick={() => setOpen(false)}
                   className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
                 >
@@ -152,7 +152,7 @@ export default function HeaderAuth() {
       </Link>
 
       <Link
-        href="/login"
+        href="/login?redirect=/submit"
         className="text-sm bg-[#b8ff3d] text-black px-3.5 py-1.5 rounded-md font-medium hover:bg-[#a3e635] transition"
       >
         Submit

@@ -20,7 +20,7 @@ export default function MobileBottomNav() {
   const isLeaderboard = pathname === "/leaderboard";
   const isSubmit =
     pathname === "/login" ||
-    pathname === "/admin" ||
+    pathname === "/submit" ||
     pathname === "/submissions" ||
     pathname === "/profile";
 
@@ -220,7 +220,7 @@ export default function MobileBottomNav() {
                       </Link>
                     )}
                     <Link
-                      href="/admin"
+                      href="/submit"
                       onClick={() => setMenuOpen(false)}
                       className="block px-4 py-2.5 text-sm text-[#f4f6f8] hover:bg-[#1c1f26] transition"
                     >
