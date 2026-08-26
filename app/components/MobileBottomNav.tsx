@@ -252,7 +252,7 @@ export default function MobileBottomNav() {
             </>
           ) : (
             <Link
-              href="/login"
+              href="/login?redirect=/submit"
               prefetch={true}
               className={`flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${
                 isSubmit

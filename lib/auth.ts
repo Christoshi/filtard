@@ -1,6 +1,9 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
-export { supabase };
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type UserRole = "user" | "curator" | "admin" | "super_admin";
 
@@ -28,6 +31,9 @@ export async function getCurrentUser() {
 
 export async function signInWithGoogle(redirectTo?: string) {
   const next = redirectTo || "/";
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("auth_next", next);
+  }
   return await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -38,6 +44,9 @@ export async function signInWithGoogle(redirectTo?: string) {
 
 export async function signInWithX(redirectTo?: string) {
   const next = redirectTo || "/";
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("auth_next", next);
+  }
   return await supabase.auth.signInWithOAuth({
     provider: "x",
     options: {

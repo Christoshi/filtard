@@ -2,11 +2,10 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/auth";
+import { getCurrentUser, supabase } from "@/lib/auth";
 
 function safeNextPath(raw: string | null): string {
   if (!raw) return "/";
-  // Only allow same-site relative paths
   if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
   if (raw.includes("://")) return "/";
   return raw;
@@ -18,12 +17,27 @@ function CallbackHandler() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const { error } = await supabase.auth.getSession();
-      if (error) {
-        console.error(error);
+      await supabase.auth.getSession();
+
+      const fromQuery = safeNextPath(searchParams.get("next"));
+      let fromStorage: string | null = null;
+      if (typeof window !== "undefined") {
+        fromStorage = sessionStorage.getItem("auth_next");
+        sessionStorage.removeItem("auth_next");
       }
 
-      const next = safeNextPath(searchParams.get("next"));
+      const stored = safeNextPath(fromStorage);
+      const next = stored !== "/" ? stored : fromQuery;
+
+      // New users must pick a username first — keep the final destination
+      const user = await getCurrentUser();
+      if (user && !user.display_name) {
+        router.push(
+          `/setup-username?redirect=${encodeURIComponent(next)}`
+        );
+        return;
+      }
+
       router.push(next);
     };
 
