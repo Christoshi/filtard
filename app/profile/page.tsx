@@ -162,6 +162,21 @@ export default function ProfilePage() {
       return;
     }
 
+    const cleanSol = draftSol.trim();
+    const cleanEvm = draftEvm.trim();
+
+    if (cleanSol && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(cleanSol)) {
+      setError("Invalid Solana wallet address");
+      setSaving(false);
+      return;
+    }
+
+    if (cleanEvm && !/^0x[a-fA-F0-9]{40}$/.test(cleanEvm)) {
+      setError("Invalid EVM wallet address (must start with 0x)");
+      setSaving(false);
+      return;
+    }
+
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
@@ -170,8 +185,8 @@ export default function ProfilePage() {
         twitter_url: draftTwitter.trim() || null,
         telegram_url: draftTelegram.trim() || null,
         discord_url: draftDiscord.trim() || null,
-        sol_wallet: draftSol.trim() || null,
-        evm_wallet: draftEvm.trim() || null,
+        sol_wallet: cleanSol || null,
+        evm_wallet: cleanEvm || null,
       })
       .eq("id", user.id);
 
@@ -187,8 +202,8 @@ export default function ProfilePage() {
     setTwitterUrl(draftTwitter);
     setTelegramUrl(draftTelegram);
     setDiscordUrl(draftDiscord);
-    setSolWallet(draftSol);
-    setEvmWallet(draftEvm);
+    setSolWallet(cleanSol);
+    setEvmWallet(cleanEvm);
 
     setMessage("Profile updated");
     setSaving(false);
