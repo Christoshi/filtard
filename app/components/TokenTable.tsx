@@ -1107,8 +1107,18 @@ export default function TokenTable({
         </div>
       )}
 
+      {pageTokens.length === 0 && (
+        <div className="border border-[#1c1f26] rounded-xl p-12 text-center text-[#8b93a1]">
+          No tokens found.
+        </div>
+      )}
+
       {/* ===== DESKTOP TABLE ===== */}
-      <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
+      <div
+        className={`hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden ${
+          pageTokens.length === 0 ? "!hidden" : ""
+        }`}
+      >
         <div className="grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.8fr] gap-0 text-xs font-bold text-[#f4f6f8] uppercase tracking-wider border-b border-[#1c1f26] bg-[#1c1f26]">
           <div className="px-1 py-3 text-center">#</div>
           <div
@@ -1155,9 +1165,7 @@ export default function TokenTable({
           </div>
         </div>
 
-        {pageTokens.length === 0 ? (
-          <div className="p-12 text-center text-[#8b93a1]">No tokens found.</div>
-        ) : (
+        {pageTokens.length > 0 &&
           pageTokens.map((token, index) => {
             const isPinned = !!token.is_pinned;
 
@@ -1230,15 +1238,16 @@ export default function TokenTable({
                 </div>
               </Link>
             );
-          })
-        )}
+          })}
       </div>
 
       {/* ===== MOBILE TABLE ===== */}
-      <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
-        {pageTokens.length === 0 ? (
-          <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
-        ) : (
+      <div
+        className={`md:hidden border border-[#1c1f26] rounded-xl overflow-hidden ${
+          pageTokens.length === 0 ? "hidden" : ""
+        }`}
+      >
+        {pageTokens.length > 0 &&
           pageTokens.map((token, index) => {
             const isPinned = !!token.is_pinned;
 

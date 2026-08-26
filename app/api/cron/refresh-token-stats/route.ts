@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
   const supabase = createClient(supabaseUrl, serviceKey);
 
   try {
-    // 1. Load approved tokens
     const { data: tokens, error: tokensError } = await supabase
       .from("tokens")
       .select("id, chain, address")
@@ -41,7 +40,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ updated: 0, message: "No approved tokens" });
     }
 
-    // 2. Load existing stats so we never overwrite real data with null
     const { data: existingStats } = await supabase
       .from("token_stats")
       .select("*")
@@ -54,17 +52,27 @@ export async function GET(request: NextRequest) {
       (existingStats || []).map((row) => [row.token_id, row])
     );
 
-    // 3. Batch fetch from DexScreener
     const statsMap = await getTokenStatsBatch(
       tokens.map((t) => ({ chain: t.chain, address: t.address })),
       0
     );
 
-    // 4. Merge: only keep new values when they are not null
+    let freshCount = 0;
+    let keptPreviousCount = 0;
+    const missingAddresses: string[] = [];
+
     const rows = tokens.map((t) => {
       const key = `${t.chain.toLowerCase()}:${t.address.toLowerCase()}`;
       const fresh = statsMap.get(key);
       const prev = existingMap.get(t.id);
+
+      const gotFresh = fresh?.priceUsd != null || fresh?.marketCap != null;
+      if (gotFresh) {
+        freshCount += 1;
+      } else {
+        keptPreviousCount += 1;
+        missingAddresses.push(`${t.chain}:${t.address}`);
+      }
 
       return {
         token_id: t.id,
@@ -88,7 +96,6 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // 5. Upsert merged rows
     const { error: upsertError } = await supabase
       .from("token_stats")
       .upsert(rows, { onConflict: "token_id" });
@@ -98,10 +105,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: upsertError.message }, { status: 500 });
     }
 
-    return NextResponse.json({
+    const summary = {
       updated: rows.length,
+      freshFromDex: freshCount,
+      keptPrevious: keptPreviousCount,
+      missingSample: missingAddresses.slice(0, 10),
       message: "token_stats refreshed (null-safe)",
-    });
+    };
+
+    if (keptPreviousCount > 0) {
+      console.warn(
+        `cron refresh: ${keptPreviousCount}/${rows.length} tokens had no fresh Dex data`,
+        missingAddresses.slice(0, 10)
+      );
+    } else {
+      console.log(`cron refresh: all ${rows.length} tokens got fresh data`);
+    }
+
+    return NextResponse.json(summary);
   } catch (err: any) {
     console.error("cron refresh error:", err);
     return NextResponse.json(
