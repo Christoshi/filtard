@@ -214,6 +214,52 @@ export default function TokenTable({
   const [applied, setApplied] = useState<FilterState>(DEFAULT_FILTERS);
   const [draft, setDraft] = useState<FilterState>(DEFAULT_FILTERS);
 
+    const [liveTokens, setLiveTokens] = useState(tokens);
+
+  useEffect(() => {
+    setLiveTokens(tokens);
+  }, [tokens]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function poll() {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+      try {
+        const res = await fetch("/api/token-stats", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled || !data?.stats) return;
+
+        setLiveTokens((prev) =>
+          prev.map((t) => {
+            const s = data.stats[t.id];
+            if (!s) return t;
+            return { ...t, stats: s };
+          })
+        );
+      } catch {
+        // ignore
+      }
+    }
+
+    poll();
+    const interval = setInterval(poll, 30_000);
+
+    function onVisibility() {
+      if (document.visibilityState === "visible") poll();
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+
   useEffect(() => {
     const saved = localStorage.getItem("filtard-watchlist");
     if (saved) {
@@ -323,7 +369,7 @@ export default function TokenTable({
   ].filter(Boolean).length;
 
   const filteredAndSorted = useMemo(() => {
-    let list = [...tokens];
+    let list = [...liveTokens];
 
     if (showWatchlistOnly) {
       list = list.filter((t) => watchlist.includes(t.id));
@@ -516,7 +562,7 @@ export default function TokenTable({
     });
 
     return [...pinned, ...rest];
-  }, [tokens, search, sortKey, sortDir, showWatchlistOnly, watchlist, activeFilters]);
+  }, [liveTokens, search, sortKey, sortDir, showWatchlistOnly, watchlist, activeFilters]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
   const startIndex = (page - 1) * PAGE_SIZE;
