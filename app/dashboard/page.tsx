@@ -44,7 +44,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  // Thesis modal
   const [thesisModal, setThesisModal] = useState<{
     open: boolean;
     symbol: string;
@@ -189,40 +188,44 @@ export default function DashboardPage() {
     }
   }
 
-  /** Delete related rows first, then the token */
-  async function deleteRelatedRows(tokenIds: string[]) {
-    // Order matters only if there are deeper FKs; these are all children of tokens
-    const tables = ["ratings", "token_views", "token_stats"] as const;
+  async function getAccessToken(): Promise<string | null> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
+  }
 
-    for (const table of tables) {
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .in("token_id", tokenIds);
-
-      if (error) {
-        return error;
-      }
+  async function deleteTokensViaApi(ids: string[]) {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      return { error: "Not authenticated" };
     }
 
-    return null;
+    const res = await fetch("/api/admin/delete-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ ids }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      return { error: data?.error || `Request failed (${res.status})` };
+    }
+
+    return { error: null };
   }
 
   async function deleteToken(id: string) {
     if (!confirm("Are you sure you want to delete this token?")) return;
 
-    // 1. Remove related rows
-    const relatedError = await deleteRelatedRows([id]);
-    if (relatedError) {
-      setMessage("Error deleting related data: " + relatedError.message);
-      return;
-    }
-
-    // 2. Remove the token
-    const { error } = await supabase.from("tokens").delete().eq("id", id);
+    const { error } = await deleteTokensViaApi([id]);
 
     if (error) {
-      setMessage("Error deleting token: " + error.message);
+      setMessage("Error deleting token: " + error);
     } else {
       setMessage("Token deleted");
       setSelected((prev) => prev.filter((x) => x !== id));
@@ -262,18 +265,10 @@ export default function DashboardPage() {
     if (selected.length === 0) return;
     if (!confirm(`Delete ${selected.length} tokens permanently?`)) return;
 
-    // 1. Remove related rows
-    const relatedError = await deleteRelatedRows(selected);
-    if (relatedError) {
-      setMessage("Error deleting related data: " + relatedError.message);
-      return;
-    }
-
-    // 2. Remove the tokens
-    const { error } = await supabase.from("tokens").delete().in("id", selected);
+    const { error } = await deleteTokensViaApi(selected);
 
     if (error) {
-      setMessage("Error bulk deleting: " + error.message);
+      setMessage("Error bulk deleting: " + error);
     } else {
       setMessage(`${selected.length} tokens deleted`);
       setSelected([]);
