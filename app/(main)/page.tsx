@@ -133,10 +133,10 @@ export default async function Home({
     <div className="w-full">
       <div className="mb-5">
         <p className="text-base text-[#8b93a1]">
-          Community-curated memecoin screener
+          Community-curated memecoin screener with theses, ratings, and live data.
         </p>
       </div>
-
+      
       <TokenTable tokens={finalTokens} currentChain={chain} onlyNew={onlyNew} />
     </div>
   );
