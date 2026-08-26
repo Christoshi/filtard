@@ -21,7 +21,7 @@ export default function AboutPage() {
  </p>
  <p className="text-[#9ca3af] leading-relaxed">
  Our goal is to help you discover new and existing memecoins you can
- trade or hold with confidence. But nothing on filtard.com is financial advice.
+ trade or hold with confidence. But nothing on this site is financial advice.
  </p>
  </section>
 
@@ -61,7 +61,7 @@ export default function AboutPage() {
  bagworking.
  </p>
  <p>
- The idea is to help you discover inetresting or valuable memecoins that resonates, so you can have fun while making money.
+ The idea is to help you discover interesting or valuable memecoins that resonate, so you can have fun while making money.
  </p>
  <p>
  Coins you can buy and sleep on with confidence, knowing you invested
