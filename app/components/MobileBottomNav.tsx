@@ -110,7 +110,9 @@ export default function MobileBottomNav() {
             alt="Filtard"
             className="h-7 w-7 rounded-md object-contain"
           />
-          <span className="text-[10px] font-medium leading-tight">Filtard</span>
+<span className="text-[10px] font-medium leading-tight tracking-[0.05em]">
+  Filtard
+</span>
         </Link>
 
         {/* Search */}
