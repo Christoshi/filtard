@@ -62,21 +62,19 @@ export default function MobileBottomNav() {
   useEffect(() => {
     const viewport = window.visualViewport;
     if (!viewport) return;
+    const vp: VisualViewport = viewport;
 
     function update() {
-      const covered = Math.max(
-        0,
-        window.innerHeight - viewport.height - viewport.offsetTop
-      );
+      const covered = Math.max(0, window.innerHeight - vp.height - vp.offsetTop);
       setBottomOffset(covered);
     }
 
     update();
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
+    vp.addEventListener("resize", update);
+    vp.addEventListener("scroll", update);
     return () => {
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
+      vp.removeEventListener("resize", update);
+      vp.removeEventListener("scroll", update);
     };
   }, []);
 
