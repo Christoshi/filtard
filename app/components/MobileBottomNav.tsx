@@ -60,22 +60,11 @@ export default function MobileBottomNav() {
   }, [isHome]);
 
   useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-    const vp: VisualViewport = viewport;
-
-    function update() {
-      const covered = Math.max(0, window.innerHeight - vp.height - vp.offsetTop);
-      setBottomOffset(covered);
-    }
-
-    update();
-    vp.addEventListener("resize", update);
-    vp.addEventListener("scroll", update);
-    return () => {
-      vp.removeEventListener("resize", update);
-      vp.removeEventListener("scroll", update);
-    };
+    const ua = navigator.userAgent || "";
+    const inApp = /Twitter|TwitterAndroid|FBAN|FBAV|Instagram|Line\//i.test(
+      ua
+    );
+    setBottomOffset(inApp ? 56 : 0);
   }, []);
 
   function goHome(e: React.MouseEvent) {
