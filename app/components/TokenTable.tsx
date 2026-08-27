@@ -960,7 +960,12 @@ export default function TokenTable({
                   Clear all
                 </button>
                 <button
-                  onClick={handleCancel}
+                  onClick={() => {
+                    setDraft({ ...DEFAULT_FILTERS });
+                    setApplied({ ...DEFAULT_FILTERS });
+                    setPage(1);
+                    setShowFilters(false);
+                  }}
                   className="text-[#8b93a1] hover:text-white transition"
                 >
                   <svg
