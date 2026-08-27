@@ -60,23 +60,23 @@ export default function MobileBottomNav() {
   }, [isHome]);
 
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
 
     function update() {
       const covered = Math.max(
         0,
-        window.innerHeight - vv.height - vv.offsetTop
+        window.innerHeight - viewport.height - viewport.offsetTop
       );
       setBottomOffset(covered);
     }
 
     update();
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
     return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
     };
   }, []);
 
