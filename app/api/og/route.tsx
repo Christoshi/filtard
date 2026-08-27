@@ -4,22 +4,19 @@ import type { NextRequest } from "next/server";
 export const runtime = "edge";
 
 async function loadGoogleFont(font: string, weight: number) {
-  const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}&display=swap`;
-  const css = await (await fetch(url)).text();
-  const resource = css.match(
-    /src: url\((.+)\) format\('(opentype|truetype)'\)/
-  );
-
-  if (!resource) {
-    throw new Error(`Failed to load font: ${font} ${weight}`);
+  try {
+    const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}&display=swap`;
+    const css = await (await fetch(url)).text();
+    const resource = css.match(
+      /src: url\((.+)\) format\('(opentype|truetype)'\)/
+    );
+    if (!resource) return null;
+    const response = await fetch(resource[1]);
+    if (!response.ok) return null;
+    return response.arrayBuffer();
+  } catch {
+    return null;
   }
-
-  const response = await fetch(resource[1]);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch font data: ${font} ${weight}`);
-  }
-
-  return response.arrayBuffer();
 }
 
 function formatPrice(raw: string | null): string {
@@ -76,6 +73,12 @@ export async function GET(request: NextRequest) {
     loadGoogleFont("Inter", 600),
     loadGoogleFont("Inter", 700),
   ]);
+
+  const fonts = [
+    inter400 && { name: "Inter", data: inter400, style: "normal" as const, weight: 400 as const },
+    inter600 && { name: "Inter", data: inter600, style: "normal" as const, weight: 600 as const },
+    inter700 && { name: "Inter", data: inter700, style: "normal" as const, weight: 700 as const },
+  ].filter(Boolean) as { name: string; data: ArrayBuffer; style: "normal"; weight: 400 | 600 | 700 }[];
 
   return new ImageResponse(
     (
@@ -332,11 +335,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Cache-Control": "public, max-age=3600",
       },
-      fonts: [
-        { name: "Inter", data: inter400, style: "normal", weight: 400 },
-        { name: "Inter", data: inter600, style: "normal", weight: 600 },
-        { name: "Inter", data: inter700, style: "normal", weight: 700 },
-      ],
+      fonts,
     }
   );
 }
