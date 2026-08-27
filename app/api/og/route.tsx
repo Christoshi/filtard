@@ -65,9 +65,7 @@ export async function GET(request: NextRequest) {
   const mcapRaw = searchParams.get("mcap");
   const imageUrl = searchParams.get("image");
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
-  const logoUrl = `${siteUrl}/logo.png`;
+  const logoUrl = "https://www.filtard.com/logo.png";
 
   const price = formatPrice(priceRaw);
   const change = formatChange(changeRaw);
@@ -331,6 +329,9 @@ export async function GET(request: NextRequest) {
     {
       width: 1200,
       height: 630,
+      headers: {
+        "Cache-Control": "public, max-age=3600",
+      },
       fonts: [
         { name: "Inter", data: inter400, style: "normal", weight: 400 },
         { name: "Inter", data: inter600, style: "normal", weight: 600 },

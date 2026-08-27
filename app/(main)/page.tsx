@@ -1,9 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import TokenTable from "../components/TokenTable";
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/site";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
+const siteUrl = getSiteUrl();
 const ogImage = `${siteUrl}/api/og/site`;
 
 export const metadata: Metadata = {
