@@ -61,7 +61,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.className}>
-      <body className="min-h-screen bg-[#07080a] text-[#f4f6f8] pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-0 flex flex-col">
+      <body className="min-h-screen bg-[#07080a] text-[#f4f6f8] pb-20 md:pb-0 flex flex-col">
         <header className="sticky top-0 z-50 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
           <div className="flex items-center px-3 py-2.5 md:px-6 md:py-3 gap-3">
             <Link

@@ -15,7 +15,6 @@ export default function MobileBottomNav() {
   const [activePanel, setActivePanel] = useState<"search" | "watchlist" | null>(
     null
   );
-  const [bottomOffset, setBottomOffset] = useState(0);
 
   const isHome = pathname === "/";
   const isLeaderboard = pathname === "/leaderboard";
@@ -58,14 +57,6 @@ export default function MobileBottomNav() {
       setActivePanel(null);
     }
   }, [isHome]);
-
-  useEffect(() => {
-    const ua = navigator.userAgent || "";
-    const inApp = /Twitter|TwitterAndroid|FBAN|FBAV|Instagram|Line\//i.test(
-      ua
-    );
-    setBottomOffset(inApp ? 56 : 0);
-  }, []);
 
   function goHome(e: React.MouseEvent) {
     window.dispatchEvent(new Event("filtard-close-all"));
