@@ -96,10 +96,7 @@ export default function MobileBottomNav() {
   }
 
   return (
-    <nav
-      className="md:hidden fixed left-0 right-0 z-50 border-t border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md"
-      style={{ bottom: bottomOffset }}
-    >
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
       <div className="flex items-center justify-around h-16 px-1 relative">
         {/* Home */}
         <Link
