@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `${siteUrl}/api/og/site`,
+        url: `${siteUrl}/og/home.png`,
         width: 1200,
         height: 630,
         alt: "Filtard",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     title: "Filtard",
     description:
       "Community-curated memecoins with theses, ratings, and live data.",
-    images: [`${siteUrl}/api/og/site`],
+    images: [`${siteUrl}/og/home.png`],
   },
 };
 

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site";
 
 const siteUrl = getSiteUrl();
-const ogImage = `${siteUrl}/api/og/site`;
+const ogImage = `${siteUrl}/og/home.png`;
 
 export const metadata: Metadata = {
   title: {
