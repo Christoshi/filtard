@@ -411,22 +411,24 @@ export default async function TokenPage({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-sm w-full lg:w-auto">
-          <TokenLiveStats
-            address={address}
-            initial={{
-              priceUsd: stats.priceUsd,
-              change24h: stats.change24h,
-              volume24h: stats.volume24h,
-              liquidity: stats.liquidity,
-              marketCap: stats.marketCap,
-            }}
-          />
+        <div className="flex flex-col gap-2 text-sm w-full lg:w-auto">
+          <div className="grid grid-cols-3 gap-2 lg:flex lg:flex-wrap">
+            <TokenLiveStats
+              address={address}
+              initial={{
+                priceUsd: stats.priceUsd,
+                change24h: stats.change24h,
+                volume24h: stats.volume24h,
+                liquidity: stats.liquidity,
+                marketCap: stats.marketCap,
+              }}
+            />
 
-          <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[70px] lg:flex-none lg:min-w-[80px]">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-[#8b93a1]">CA</span>
-              <CopyButton text={address} />
+            <div className="rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-0 lg:flex-none lg:min-w-[80px]">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-[#8b93a1]">CA</span>
+                <CopyButton text={address} />
+              </div>
             </div>
           </div>
 

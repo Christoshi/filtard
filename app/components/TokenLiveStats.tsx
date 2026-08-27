@@ -102,7 +102,7 @@ export default function TokenLiveStats({
   }, [address]);
 
   const card =
-    "rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 flex-1 min-w-[85px] lg:flex-none lg:min-w-[90px]";
+    "rounded-lg border border-[#1c1f26] bg-[#101215] px-3 py-2 min-w-0 lg:flex-none lg:min-w-[90px]";
 
   return (
     <>
