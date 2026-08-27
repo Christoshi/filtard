@@ -878,6 +878,19 @@ export default function TokenTable({
                 : mutedBtn + " text-xs px-3 py-1.5"
             }
           >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
             New
           </Link>
 
@@ -888,6 +901,21 @@ export default function TokenTable({
               " text-xs px-3 py-1.5"
             }
           >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="4" y1="8" x2="20" y2="8" />
+              <line x1="8" y1="4" x2="8" y2="12" />
+              <line x1="4" y1="16" x2="20" y2="16" />
+              <line x1="16" y1="12" x2="16" y2="20" />
+            </svg>
             Filters
             {activeFilterCount > 0 && (
               <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#b8ff3d] text-[10px] font-bold text-black">
@@ -1350,7 +1378,11 @@ export default function TokenTable({
         </div>
 
         {pageTokens.length === 0 ? (
-          <div className="p-12 text-center text-[#8b93a1]">No tokens found.</div>
+          <div className="p-12 text-center text-[#8b93a1]">
+            {showWatchlistOnly
+              ? "your watchlists will live here"
+              : "No tokens found."}
+          </div>
         ) : (
           pageTokens.map((token, index) => {
             const isPinned = !!token.is_pinned;
@@ -1442,7 +1474,11 @@ export default function TokenTable({
       {/* ===== MOBILE TABLE ===== */}
       <div className="md:hidden border border-[#1c1f26] rounded-xl overflow-hidden">
         {pageTokens.length === 0 ? (
-          <div className="p-10 text-center text-[#8b93a1]">No tokens found.</div>
+          <div className="p-10 text-center text-[#8b93a1]">
+            {showWatchlistOnly
+              ? "your watchlists will live here"
+              : "No tokens found."}
+          </div>
         ) : (
           pageTokens.map((token, index) => {
             const isPinned = !!token.is_pinned;

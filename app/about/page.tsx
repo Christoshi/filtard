@@ -68,7 +68,7 @@ export default function AboutPage() {
  in something with a higher probability of survival.
  </p>
  <p className="text-[#f4f6f8]">
- The ideal Filtard coins are  high-conviction plays you can hold, DCA into, and bullpost with pride, not the usual quick flips that can rug the next minute.
+ The ideal Filtard coins are  high-conviction plays you can hold, DCA into, and bullpost with pride. Not the usual quick flips that can rug the next minute.
  </p>
  </div>
  </section>
