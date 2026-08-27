@@ -15,6 +15,7 @@ export default function MobileBottomNav() {
   const [activePanel, setActivePanel] = useState<"search" | "watchlist" | null>(
     null
   );
+  const [bottomOffset, setBottomOffset] = useState(0);
 
   const isHome = pathname === "/";
   const isLeaderboard = pathname === "/leaderboard";
@@ -58,6 +59,27 @@ export default function MobileBottomNav() {
     }
   }, [isHome]);
 
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    function update() {
+      const covered = Math.max(
+        0,
+        window.innerHeight - vv.height - vv.offsetTop
+      );
+      setBottomOffset(covered);
+    }
+
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
   function goHome(e: React.MouseEvent) {
     window.dispatchEvent(new Event("filtard-close-all"));
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -96,7 +118,10 @@ export default function MobileBottomNav() {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
+    <nav
+      className="md:hidden fixed left-0 right-0 z-50 border-t border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md"
+      style={{ bottom: bottomOffset }}
+    >
       <div className="flex items-center justify-around h-16 px-1 relative">
         {/* Home */}
         <Link
