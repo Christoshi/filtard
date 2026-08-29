@@ -39,10 +39,11 @@ export const metadata: Metadata = {
 
 export const revalidate = 30;
 
-function isNewToken(timestamp: number | null) {
-  if (!timestamp) return false;
-  const hours = (Date.now() - timestamp) / (1000 * 60 * 60);
-  return hours <= 72;
+function isRecentlyListed(createdAt: string | null) {
+  if (!createdAt) return false;
+  const ts = new Date(createdAt).getTime();
+  if (!Number.isFinite(ts)) return false;
+  return (Date.now() - ts) / (1000 * 60 * 60) <= 72;
 }
 
 export default async function Home({
@@ -64,6 +65,7 @@ export default async function Home({
       symbol,
       image_url,
       is_pinned,
+      created_at,
       token_stats (
         price_usd,
         change_24h,
@@ -116,6 +118,7 @@ export default async function Home({
       symbol: token.symbol,
       image_url: token.image_url,
       is_pinned: token.is_pinned,
+      created_at: token.created_at ?? null,
       ratingAvg,
       stats: s
         ? {
@@ -133,7 +136,7 @@ export default async function Home({
   });
 
   const finalTokens = onlyNew
-    ? tokensWithStats.filter((t) => isNewToken(t.stats?.pairCreatedAt ?? null))
+    ? tokensWithStats.filter((t) => isRecentlyListed(t.created_at ?? null))
     : tokensWithStats;
 
   return (

@@ -373,13 +373,16 @@ export default function ThesisCard({
               </button>
 
               <a
-                href="https://fomo.family/r/christoshi_"
+                href="https://fomo.family/r/filtard"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-md bg-[#b8ff3d] px-3 py-1.5 text-xs font-medium text-black hover:bg-[#a3e635] transition"
               >
                 Trade on Fomo
               </a>
+              <span className="text-[10px] text-[#8b93a1] leading-none">
+                (get 10% off fees)
+              </span>
             </div>
           </>
         )}
