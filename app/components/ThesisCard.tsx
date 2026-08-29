@@ -380,9 +380,6 @@ export default function ThesisCard({
               >
                 Trade on Fomo
               </a>
-              <span className="text-[10px] text-[#8b93a1] leading-none">
-                (get 10% off fees)
-              </span>
             </div>
           </>
         )}
