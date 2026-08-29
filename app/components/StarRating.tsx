@@ -194,13 +194,12 @@ export default function StarRating({
           })}
         </div>
 
+        <span className="text-[11px] text-[#8b93a1]">
+          {count > 0
+            ? `${count} rating${count === 1 ? "" : "s"}`
+            : "No ratings yet"}
+        </span>
       </div>
-
-      <p className="text-[11px] text-[#8b93a1] leading-none pl-[2.25rem]">
-        {count > 0
-          ? `${count} rating${count === 1 ? "" : "s"}`
-          : "No ratings yet"}
-      </p>
 
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>

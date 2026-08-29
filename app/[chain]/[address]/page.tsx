@@ -411,8 +411,8 @@ export default async function TokenPage({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 text-sm w-full lg:w-auto">
-          <div className="grid grid-cols-3 gap-2 lg:flex lg:flex-wrap">
+        <div className="flex flex-col gap-2 text-sm w-full lg:w-auto lg:flex-row lg:flex-wrap lg:items-stretch">
+          <div className="grid grid-cols-3 gap-2 lg:contents">
             <TokenLiveStats
               address={address}
               initial={{
@@ -433,7 +433,7 @@ export default async function TokenPage({
           </div>
 
           {socialLinks.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto lg:flex-none">
               {socialLinks.map((link, i) => {
                 const type = link.type.toLowerCase();
                 let icon = null;
