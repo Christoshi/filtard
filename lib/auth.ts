@@ -1,12 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
+import type { UserRole } from "@/lib/roles";
 import { getSiteUrl } from "@/lib/site";
+
+export type { UserRole };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export type UserRole = "user" | "curator" | "admin" | "super_admin";
 
 const AUTH_NEXT_KEY = "auth_next";
 

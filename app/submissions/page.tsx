@@ -63,7 +63,7 @@ export default function SubmissionsPage() {
           You haven’t submitted any tokens yet.
           <div className="mt-4">
             <Link
-              href="/admin"
+              href="/submit"
               className="text-[#b8ff3d] hover:underline"
             >
               Submit your first token →

@@ -139,3 +139,46 @@ export async function getTokenStatsBatch(
 
   return result;
 }
+
+export type DexTokenMeta = {
+  name: string | null;
+  symbol: string | null;
+  imageUrl: string | null;
+  marketCap: number | null;
+};
+
+const emptyDexTokenMeta: DexTokenMeta = {
+  name: null,
+  symbol: null,
+  imageUrl: null,
+  marketCap: null,
+};
+
+export async function getDexTokenMeta(address: string): Promise<DexTokenMeta> {
+  const trimmed = address.trim();
+  if (!trimmed) return emptyDexTokenMeta;
+
+  try {
+    const res = await fetch(
+      `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(trimmed)}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return emptyDexTokenMeta;
+
+    const data = await res.json();
+    const pair = Array.isArray(data?.pairs) ? data.pairs[0] : null;
+    if (!pair) return emptyDexTokenMeta;
+
+    const rawCap = pair.marketCap ?? pair.fdv ?? null;
+    const marketCap = rawCap != null ? Number(rawCap) : null;
+
+    return {
+      name: pair.baseToken?.name || null,
+      symbol: pair.baseToken?.symbol || null,
+      imageUrl: pair.info?.imageUrl || null,
+      marketCap: marketCap != null && Number.isFinite(marketCap) ? marketCap : null,
+    };
+  } catch {
+    return emptyDexTokenMeta;
+  }
+}
