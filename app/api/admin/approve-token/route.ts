@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDexTokenMeta } from "@/lib/dexscreener";
 import { isAuthFailure, requireStaff } from "@/lib/server-auth";
+import { announceApprovedToken } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,9 @@ export async function POST(request: NextRequest) {
 
     const { data: tokens, error: fetchError } = await auth.admin
       .from("tokens")
-      .select("id, address")
+      .select(
+        "id, chain, address, name, symbol, image_url, thesis, status, submitted_by"
+      )
       .in("id", ids);
 
     if (fetchError) {
@@ -39,11 +42,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No tokens found" }, { status: 404 });
     }
 
+    const curatorIds = [
+      ...new Set(
+        tokens
+          .map((token) => token.submitted_by)
+          .filter((id): id is string => Boolean(id))
+      ),
+    ];
+    const curatorNames = new Map<string, string | null>();
+
+    if (curatorIds.length > 0) {
+      const { data: profiles } = await auth.admin
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", curatorIds);
+
+      for (const profile of profiles || []) {
+        curatorNames.set(profile.id, profile.display_name ?? null);
+      }
+    }
+
     const approvedAt = new Date().toISOString();
     let approved = 0;
 
     for (const token of tokens) {
       const meta = await getDexTokenMeta(token.address);
+      const becameApproved = token.status !== "approved";
       const { error } = await auth.admin
         .from("tokens")
         .update({
@@ -61,14 +85,27 @@ export async function POST(request: NextRequest) {
         );
       }
       approved += 1;
+
+      if (!becameApproved) continue;
+
+      await announceApprovedToken(auth.admin, token.id, {
+        name: token.name || meta.name,
+        symbol: token.symbol || meta.symbol,
+        chain: token.chain,
+        address: token.address,
+        thesis: token.thesis,
+        marketCap: meta.marketCap,
+        curatorName: token.submitted_by
+          ? (curatorNames.get(token.submitted_by) ?? null)
+          : null,
+        imageUrl: token.image_url || meta.imageUrl,
+      });
     }
 
     return NextResponse.json({ success: true, approved });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
     console.error("approve-token error:", err);
-    return NextResponse.json(
-      { error: err?.message || "Unknown error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
