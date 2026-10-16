@@ -3,6 +3,7 @@ import { isSubmitChain } from "@/lib/chains";
 import { getDexTokenMeta } from "@/lib/dexscreener";
 import { publishesImmediately } from "@/lib/roles";
 import { isAuthFailure, requireUser } from "@/lib/server-auth";
+import { announceApprovedToken } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,11 @@ export async function POST(request: NextRequest) {
       row.initial_mcap = meta.marketCap;
     }
 
-    const { error } = await auth.admin.from("tokens").insert(row);
+    const { data: inserted, error } = await auth.admin
+      .from("tokens")
+      .insert(row)
+      .select("id")
+      .single();
 
     if (error) {
       const duplicate =
@@ -86,6 +91,25 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (live && inserted?.id) {
+      const { data: profile } = await auth.admin
+        .from("profiles")
+        .select("display_name")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+
+      await announceApprovedToken(auth.admin, inserted.id, {
+        name: meta.name,
+        symbol: meta.symbol,
+        chain,
+        address,
+        thesis,
+        marketCap: meta.marketCap,
+        curatorName: profile?.display_name ?? null,
+        imageUrl: meta.imageUrl,
+      });
     }
 
     return NextResponse.json({
