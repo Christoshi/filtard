@@ -1,60 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { isAuthFailure, requireStaff } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const auth = await requireStaff(request);
+    if (isAuthFailure(auth)) return auth.response;
 
-    if (!serviceKey) {
-      return NextResponse.json(
-        { error: "SUPABASE_SERVICE_ROLE_KEY not set" },
-        { status: 500 }
-      );
-    }
-
-    // Verify the caller is logged in
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const accessToken = authHeader.slice(7);
-
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: `Bearer ${accessToken}` } },
-    });
-
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Service client (bypasses RLS)
-    const admin = createClient(supabaseUrl, serviceKey);
-
-    // Confirm admin role
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (
-      !profile ||
-      (profile.role !== "admin" && profile.role !== "super_admin")
-    ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const ids: string[] = Array.isArray(body?.ids)
       ? body.ids
       : body?.id
@@ -69,7 +23,7 @@ export async function POST(request: NextRequest) {
     const childTables = ["ratings", "token_views", "token_stats"] as const;
 
     for (const table of childTables) {
-      const { error } = await admin.from(table).delete().in("token_id", ids);
+      const { error } = await auth.admin.from(table).delete().in("token_id", ids);
       if (error) {
         return NextResponse.json(
           { error: `Failed deleting ${table}: ${error.message}` },
@@ -79,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Delete tokens
-    const { error: tokenError } = await admin
+    const { error: tokenError } = await auth.admin
       .from("tokens")
       .delete()
       .in("id", ids);

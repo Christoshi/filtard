@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, supabase } from "@/lib/auth";
+import { isStaffRole } from "@/lib/roles";
 
 type Profile = {
   id: string;
@@ -23,6 +24,7 @@ type Token = {
   symbol: string | null;
   image_url: string | null;
   status: string;
+  is_pinned: boolean;
   created_at: string;
   submitted_by: string | null;
   thesis: string | null;
@@ -51,6 +53,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"tokens" | "curators">("tokens");
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
   const [search, setSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [profilesError, setProfilesError] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [rowFeedback, setRowFeedback] = useState<Record<string, RowFeedback>>(
@@ -98,6 +102,31 @@ export default function DashboardPage() {
     []
   );
 
+  const loadProfiles = useCallback(async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const accessToken = session?.access_token ?? null;
+
+    if (!accessToken) {
+      setProfilesError("Not authenticated");
+      return;
+    }
+
+    const res = await fetch("/api/admin/profiles", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setProfilesError(data?.error || "Could not load users");
+      return;
+    }
+
+    setProfilesError("");
+    setProfiles(Array.isArray(data?.profiles) ? data.profiles : []);
+  }, []);
+
   useEffect(() => {
     async function init() {
       const currentUser = await getCurrentUser();
@@ -106,18 +135,19 @@ export default function DashboardPage() {
         return;
       }
 
-      if (currentUser.role !== "admin" && currentUser.role !== "super_admin") {
-        router.push("/admin");
+      setUser(currentUser);
+
+      if (!isStaffRole(currentUser.role)) {
+        setLoading(false);
         return;
       }
 
-      setUser(currentUser);
       await Promise.all([loadTokens(), loadProfiles()]);
       setLoading(false);
     }
 
     init();
-  }, [router]);
+  }, [router, loadProfiles]);
 
   async function loadTokens() {
     const { data, error } = await supabase
@@ -131,6 +161,7 @@ export default function DashboardPage() {
         symbol,
         image_url,
         status,
+        is_pinned,
         created_at,
         submitted_by,
         thesis,
@@ -145,36 +176,6 @@ export default function DashboardPage() {
     if (!error && data) {
       setTokens(data as any);
     }
-  }
-
-  async function loadProfiles() {
-    const { data: profilesData } = await supabase
-      .from("profiles")
-      .select("id, display_name, role, twitter_url, telegram_url, avatar_url")
-      .order("display_name");
-
-    if (!profilesData) return;
-
-    const { data: tokenCounts } = await supabase
-      .from("tokens")
-      .select("submitted_by")
-      .eq("status", "approved");
-
-    const countMap: Record<string, number> = {};
-    tokenCounts?.forEach((t) => {
-      if (t.submitted_by) {
-        countMap[t.submitted_by] = (countMap[t.submitted_by] || 0) + 1;
-      }
-    });
-
-    const enriched = profilesData
-      .map((p) => ({
-        ...p,
-        token_count: countMap[p.id] || 0,
-      }))
-      .filter((p) => p.token_count > 0);
-
-    setProfiles(enriched);
   }
 
   async function getAccessToken(): Promise<string | null> {
@@ -193,6 +194,11 @@ export default function DashboardPage() {
     const target = profiles.find((p) => p.id === userId);
     if (target?.role === "super_admin") {
       showToast("Super admin role cannot be changed", "error");
+      return;
+    }
+
+    if (target?.role === "admin" && !isSuperAdmin) {
+      showToast("Only a super admin can change an admin", "error");
       return;
     }
 
@@ -305,6 +311,44 @@ export default function DashboardPage() {
     return { error: null };
   }
 
+  async function togglePin(id: string, currentlyPinned: boolean) {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      showRowFeedback(id, "Error", "error");
+      return;
+    }
+
+    const nextPinned = !currentlyPinned;
+    setTokens((prev) =>
+      prev.map((token) => {
+        if (token.id === id) return { ...token, is_pinned: nextPinned };
+        if (nextPinned) return { ...token, is_pinned: false };
+        return token;
+      })
+    );
+
+    const res = await fetch("/api/admin/pin-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ id, pinned: nextPinned }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      showRowFeedback(id, "Error", "error");
+      showToast(data?.error || "Could not update pin", "error");
+      await loadTokens();
+      return;
+    }
+
+    showRowFeedback(id, nextPinned ? "Pinned" : "Unpinned", "success");
+    setTimeout(() => loadTokens(), 600);
+  }
+
   async function deleteToken(id: string) {
     if (!confirm("Are you sure you want to delete this token?")) return;
 
@@ -365,6 +409,12 @@ export default function DashboardPage() {
     }
   }
 
+  const visibleProfiles = profiles.filter((profile) => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (profile.display_name || "").toLowerCase().includes(q);
+  });
+
   const filteredTokens = tokens.filter((t) => {
     if (filter !== "all" && t.status !== filter) return false;
     const q = search.toLowerCase();
@@ -380,6 +430,17 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <p className="text-[#8b93a1]">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isStaffRole(user?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-3">
+        <p className="text-[#f4f6f8]">Admins only</p>
+        <Link href="/" className="text-sm text-[#b8ff3d] hover:underline">
+          Home
+        </Link>
       </div>
     );
   }
@@ -552,6 +613,11 @@ export default function DashboardPage() {
                           >
                             {token.status}
                           </span>
+                          {token.is_pinned && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#b8ff3d]/10 text-[#8b93a1]">
+                              Partnership
+                            </span>
+                          )}
                         </div>
 
                         <div className="text-sm text-[#8b93a1] truncate mt-0.5">
@@ -570,7 +636,7 @@ export default function DashboardPage() {
                           ) : (
                             "Unknown"
                           )}{" "}
-                          · {new Date(token.created_at).toLocaleDateString()}
+                          on {new Date(token.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
@@ -603,6 +669,14 @@ export default function DashboardPage() {
                             </button>
                           )}
 
+                          <button
+                            onClick={() =>
+                              togglePin(token.id, !!token.is_pinned)
+                            }
+                            className="px-3.5 py-1.5 rounded-lg border border-[#2a2e38] text-[#8b93a1] text-sm hover:text-white hover:border-[#3a3f4b] transition"
+                          >
+                            {token.is_pinned ? "Unpin" : "Pin"}
+                          </button>
                           {token.status === "pending" && (
                             <button
                               onClick={() => approveToken(token.id)}
@@ -629,20 +703,41 @@ export default function DashboardPage() {
       )}
 
       {activeTab === "curators" && (
-        <div className="border border-[#1c1f26] rounded-2xl overflow-hidden">
+        <div>
+          <div className="mb-4">
+            <label className="block text-sm text-[#8b93a1] mb-1.5" htmlFor="user-search">
+              Username
+            </label>
+            <input
+              id="user-search"
+              type="text"
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              placeholder="Search username"
+              className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] px-4 py-2.5 text-sm placeholder:text-[#5c6573] focus:outline-none focus:border-[#3a3f4b]"
+            />
+          </div>
+
+          <div className="border border-[#1c1f26] rounded-2xl overflow-hidden">
           <div className="grid grid-cols-[1fr_120px_120px] gap-4 px-5 py-3.5 bg-[#0c0d10] border-b border-[#1c1f26] text-xs text-[#8b93a1] uppercase tracking-wider">
-            <div>Curator</div>
+            <div>User</div>
             <div className="text-center">Tokens</div>
             <div className="text-right">Role</div>
           </div>
 
-          {profiles.length === 0 ? (
+          {profilesError ? (
+            <div className="p-16 text-center text-red-400">{profilesError}</div>
+          ) : profiles.length === 0 ? (
+            <div className="p-16 text-center text-[#8b93a1]">No users yet</div>
+          ) : visibleProfiles.length === 0 ? (
             <div className="p-16 text-center text-[#8b93a1]">
-              No curators yet
+              No matching users
             </div>
           ) : (
-            profiles.map((profile) => {
-              const isLocked = profile.role === "super_admin";
+            visibleProfiles.map((profile) => {
+              const isLocked =
+                profile.role === "super_admin" ||
+                (profile.role === "admin" && !isSuperAdmin);
 
               return (
                 <div
@@ -678,11 +773,12 @@ export default function DashboardPage() {
                   <div className="text-right">
                     {isLocked ? (
                       <span className="inline-block rounded-lg border border-[#1c1f26] bg-[#0c0d10] px-2.5 py-1.5 text-sm text-[#8b93a1]">
-                        super_admin
+                        {profile.role}
                       </span>
                     ) : (
                       <select
                         value={profile.role}
+                        aria-label={`Role for ${profile.display_name || "user"}`}
                         onChange={(e) =>
                           updateRole(profile.id, e.target.value)
                         }
@@ -702,6 +798,7 @@ export default function DashboardPage() {
               );
             })
           )}
+          </div>
         </div>
       )}
 

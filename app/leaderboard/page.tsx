@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import type { Metadata } from "next";
+import CuratorBadge from "@/app/components/CuratorBadge";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://filtard.com";
@@ -40,6 +41,7 @@ type CuratorScore = {
   avatar_url: string | null;
   twitter_url: string | null;
   telegram_url: string | null;
+  role: string | null;
   tokens: number;
   multiplier: number;
   points: number;
@@ -86,7 +88,7 @@ async function getLeaderboard(): Promise<CuratorScore[]> {
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, display_name, avatar_url, twitter_url, telegram_url")
+    .select("id, display_name, avatar_url, twitter_url, telegram_url, role")
     .in("id", curatorIds);
 
   if (!profiles) return [];
@@ -117,6 +119,7 @@ async function getLeaderboard(): Promise<CuratorScore[]> {
       avatar_url: profile.avatar_url,
       twitter_url: profile.twitter_url,
       telegram_url: profile.telegram_url,
+      role: profile.role ?? null,
       tokens: tokenCount,
       multiplier: Number(avgMultiplier.toFixed(2)),
       points: Math.round(points),
@@ -220,12 +223,15 @@ export default async function LeaderboardPage() {
                           {(curator.display_name || "U")[0].toUpperCase()}
                         </div>
                       )}
-                      <Link
-                        href={`/${curator.display_name}`}
-                        className="font-medium text-sm hover:text-[#b8ff3d] transition truncate"
-                      >
-                        {curator.display_name || "Anonymous"}
-                      </Link>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <Link
+                          href={`/${curator.display_name}`}
+                          className="font-medium text-sm hover:text-[#b8ff3d] transition truncate"
+                        >
+                          {curator.display_name || "Anonymous"}
+                        </Link>
+                        {curator.role === "curator" && <CuratorBadge />}
+                      </div>
                     </div>
 
                     {/* Tokens */}

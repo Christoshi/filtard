@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import CopyButton from "@/app/copy-button";
 import { supabase } from "@/lib/supabase";
 import { getSiteUrl } from "@/lib/site";
+import CuratorBadge from "@/app/components/CuratorBadge";
 import Link from "next/link";
 import StarRating from "@/app/components/StarRating";
 import WatchlistStar from "@/app/components/WatchlistStar";
@@ -85,7 +86,8 @@ async function getTokenFromDb(chain: string, address: string) {
       profiles!submitted_by (
         id,
         display_name,
-        avatar_url
+        avatar_url,
+        role
       )
     `
     )
@@ -120,7 +122,8 @@ async function getTokenFromDb(chain: string, address: string) {
         profiles!submitted_by (
           id,
           display_name,
-          avatar_url
+          avatar_url,
+          role
         )
       `
       )
@@ -386,14 +389,17 @@ export default async function TokenPage({
               <p className="text-sm text-[#8b93a1] truncate">{stats.name}</p>
 
               {curator && curator.display_name && (
-                <p className="text-sm text-[#8b93a1] mt-1">
-                  Curated by{" "}
-                  <Link
-                    href={`/${curator.display_name}`}
-                    className="text-[#b8ff3d] hover:underline"
-                  >
-                    {curator.display_name}
-                  </Link>
+                <p className="text-sm text-[#8b93a1] mt-1 flex flex-wrap items-center gap-2">
+                  <span>
+                    Curated by{" "}
+                    <Link
+                      href={`/${curator.display_name}`}
+                      className="text-[#b8ff3d] hover:underline"
+                    >
+                      {curator.display_name}
+                    </Link>
+                  </span>
+                  {curator.role === "curator" && <CuratorBadge />}
                 </p>
               )}
 

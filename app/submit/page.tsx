@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, supabase } from "@/lib/auth";
+import { SUBMIT_CHAINS } from "@/lib/chains";
+import { isStaffRole } from "@/lib/roles";
 import Link from "next/link";
 
-export default function AdminPage() {
+export default function SubmitPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -38,58 +40,56 @@ export default function AdminPage() {
     setLoading(true);
     setMessage("");
 
-    let symbol: string | null = null;
-
     try {
-      const res = await fetch(
-        `https://api.dexscreener.com/latest/dex/tokens/${address.trim()}`
-      );
-      const data = await res.json();
-      const pair = data?.pairs?.[0];
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
 
-      const name = pair?.baseToken?.name || null;
-      symbol = pair?.baseToken?.symbol || null;
-      const image_url = pair?.info?.imageUrl || null;
+      if (!accessToken) {
+        setMessage("Error: Not authenticated");
+        setLoading(false);
+        return;
+      }
 
-      const isAdmin = user.role === "admin" || user.role === "super_admin";
-      const status = isAdmin ? "approved" : "pending";
-
-      const { error } = await supabase.from("tokens").insert({
-        chain: chain.toLowerCase(),
-        address: address.trim(),
-        name,
-        symbol,
-        image_url,
-        status,
-        submitted_by: user.id,
-        thesis: thesis.trim(),
-        confidence: confidence,
+      const res = await fetch("/api/tokens/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          chain,
+          address: address.trim(),
+          thesis: thesis.trim(),
+          confidence,
+        }),
       });
 
-      if (error) {
-        const isDuplicate =
-          error.code === "23505" ||
-          error.message?.toLowerCase().includes("duplicate") ||
-          error.message?.includes("tokens_chain_address_key");
+      const data = await res.json().catch(() => ({}));
+      const symbol = data?.symbol || "Token";
 
-        if (isDuplicate) {
-          setMessage(`${symbol || "Token"} already added`);
+      if (!res.ok) {
+        if (res.status === 409 || data?.error === "already_added") {
+          setMessage(data?.message || `${symbol} already added`);
         } else {
-          setMessage("Error: " + error.message);
+          setMessage("Error: " + (data?.error || "Could not submit"));
         }
+      } else if (data?.status === "approved") {
+        setMessage(`Successfully added ${symbol}!`);
+        setAddress("");
+        setThesis("");
+        setConfidence(50);
+        setConfirmed(false);
       } else {
-        if (isAdmin) {
-          setMessage(`Successfully added ${symbol || "token"}!`);
-        } else {
-          setMessage(`${symbol || "Token"} submitted for approval!`);
-        }
+        setMessage(`${symbol} submitted for approval!`);
         setAddress("");
         setThesis("");
         setConfidence(50);
         setConfirmed(false);
       }
-    } catch (err) {
-      setMessage("Error fetching token data");
+    } catch {
+      setMessage("Error: Could not submit");
     }
 
     setLoading(false);
@@ -156,12 +156,11 @@ export default function AdminPage() {
                 onChange={(e) => setChain(e.target.value)}
                 className="w-full rounded-xl border border-[#1c1f26] bg-[#101215] px-4 py-3 text-sm text-white focus:outline-none focus:border-[#b8ff3d]/50 transition"
               >
-                <option value="solana">Solana</option>
-                <option value="base">Base</option>
-                <option value="ethereum">Ethereum</option>
-                <option value="bsc">BSC</option>
-                <option value="arbitrum">Arbitrum</option>
-                <option value="robinhood">Robinhood</option>
+                {SUBMIT_CHAINS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -264,7 +263,7 @@ $MADE is tied to an AI agent experiment that routes trading fees...`}
             </p>
           )}
 
-          {(user.role === "admin" || user.role === "super_admin") && (
+          {isStaffRole(user.role) && (
             <div className="mt-8 text-center">
               <Link
                 href="/dashboard"

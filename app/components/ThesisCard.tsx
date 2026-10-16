@@ -294,8 +294,8 @@ export default function ThesisCard({
             Last edited{" "}
             <span title={new Date(thesisUpdatedAt).toLocaleString()}>
               {formatRelativeTime(thesisUpdatedAt)}
-            </span>
-            {" · by "}
+            </span>{" "}
+            by{" "}
             <Link
               href={`/${thesisUpdatedByName || thesisUpdatedByDisplay}`}
               className="text-[#b8ff3d]/80 hover:text-[#b8ff3d] transition"
