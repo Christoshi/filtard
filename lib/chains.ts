@@ -12,8 +12,3 @@ const CHAIN_VALUES = new Set<string>(SUBMIT_CHAINS.map((chain) => chain.value));
 export function isSubmitChain(value: string): boolean {
   return CHAIN_VALUES.has(value);
 }
-
-export function chainLabel(value: string): string {
-  const found = SUBMIT_CHAINS.find((chain) => chain.value === value.toLowerCase());
-  return found?.label || value;
-}
