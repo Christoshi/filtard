@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -238,6 +238,8 @@ export default function TokenTable({
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const desktopControlsRef = useRef<HTMLDivElement>(null);
+  const desktopHeaderRef = useRef<HTMLDivElement>(null);
 
   const [applied, setApplied] = useState<FilterState>(DEFAULT_FILTERS);
   const [draft, setDraft] = useState<FilterState>(DEFAULT_FILTERS);
@@ -247,6 +249,22 @@ export default function TokenTable({
   useEffect(() => {
     setLiveTokens(tokens);
   }, [tokens]);
+
+  useLayoutEffect(() => {
+    const controls = desktopControlsRef.current;
+    const header = desktopHeaderRef.current;
+    if (!controls || !header) return;
+
+    const update = () => {
+      const height = controls.getBoundingClientRect().height;
+      header.style.top = `calc(3rem + ${height}px)`;
+    };
+    update();
+
+    const observer = new ResizeObserver(update);
+    observer.observe(controls);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -684,7 +702,10 @@ export default function TokenTable({
   return (
     <div className="w-full">
       {/* ===== DESKTOP CONTROLS ===== */}
-      <div className="hidden md:flex flex-wrap items-center gap-3 sticky top-12 z-40 -mx-6 px-6 py-3 mb-5 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md">
+      <div
+        ref={desktopControlsRef}
+        className="hidden md:flex flex-wrap items-center gap-3 sticky top-12 z-40 -mx-6 px-6 py-3 mb-5 border-b border-[#1c1f26] bg-[#07080a]/95 backdrop-blur-md"
+      >
         <div className="relative">
           <details className="group">
             <summary className={`${mutedBtn} cursor-pointer list-none`}>
@@ -1323,8 +1344,12 @@ export default function TokenTable({
       )}
 
       {/* ===== DESKTOP TABLE ===== */}
-      <div className="hidden md:block border border-[#1c1f26] rounded-xl overflow-hidden">
-        <div className="grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.7fr_0.8fr] gap-0 text-xs font-bold text-[#f4f6f8] uppercase tracking-wider border-b border-[#1c1f26] bg-[#1c1f26]">
+      <div className="hidden md:block border border-[#1c1f26] rounded-xl">
+        <div
+          ref={desktopHeaderRef}
+          className="sticky z-30 grid grid-cols-[40px_2.2fr_1fr_1fr_1fr_1fr_0.9fr_0.7fr_0.8fr] gap-0 text-xs font-bold text-[#f4f6f8] uppercase tracking-wider border-b border-[#2a2e38] bg-[#1c1f26] rounded-t-xl"
+          style={{ top: "3rem" }}
+        >
           <div className="px-1 py-3 text-center">#</div>
           <div
             className="px-3 py-3 border-r border-[#2a2e38] cursor-pointer select-none hover:text-white flex items-center gap-1"
