@@ -1,6 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import type { UserRole } from "@/lib/roles";
+import { safeNextPath } from "@/lib/safe-next";
 import { getSiteUrl } from "@/lib/site";
+
+export { safeNextPath };
 
 export type { UserRole };
 
@@ -10,36 +13,6 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AUTH_NEXT_KEY = "auth_next";
-
-export function safeNextPath(raw: string | null | undefined): string {
-  if (!raw) return "/";
-
-  let path = raw.trim();
-  try {
-    path = decodeURIComponent(path);
-  } catch {
-    return "/";
-  }
-
-  if (!path.startsWith("/") || path.startsWith("//") || path.includes("://")) {
-    return "/";
-  }
-
-  if (path === "/admin" || path.startsWith("/admin/")) {
-    return "/submit";
-  }
-
-  if (
-    path === "/login" ||
-    path.startsWith("/login?") ||
-    path === "/auth/callback" ||
-    path.startsWith("/auth/callback?")
-  ) {
-    return "/";
-  }
-
-  return path;
-}
 
 function getOAuthCallbackUrl() {
   if (typeof window !== "undefined") {

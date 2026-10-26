@@ -5,6 +5,7 @@ import "./globals.css";
 import Link from "next/link";
 import HeaderAuth from "./components/HeaderAuth";
 import MainNav from "./components/MainNav";
+import XHandoffPoller from "./components/XHandoffPoller";
 import MobileBottomNav from "./components/MobileBottomNav";
 import TopTicker from "./components/TopTicker";
 import Footer from "./components/Footer";
@@ -98,6 +99,7 @@ export default function RootLayout({
         <Footer />
 
         <MobileBottomNav />
+        <XHandoffPoller />
         <Analytics />
       </body>
     </html>

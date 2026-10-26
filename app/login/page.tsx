@@ -1,13 +1,79 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithX } from "@/lib/auth";
+import { isPhoneUserAgent } from "@/lib/phone-ua";
+import { safeNextPath } from "@/lib/safe-next";
+import { X_HANDOFF_EVENT } from "@/lib/x-handoff";
+
+type PreparedXLogin = { url: string } | { waiting: true } | null;
+
+let phoneLoginInflight: Promise<PreparedXLogin> | null = null;
+let phoneLoginInflightNext: string | null = null;
+
+function preparePhoneXLogin(nextPath: string): Promise<PreparedXLogin> {
+  if (phoneLoginInflight && phoneLoginInflightNext === nextPath) {
+    return phoneLoginInflight;
+  }
+
+  phoneLoginInflightNext = nextPath;
+  const request = (async () => {
+    try {
+      const response = await fetch("/auth/inapp/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify({ next: nextPath }),
+      });
+      if (!response.ok) return null;
+      const body = (await response.json()) as {
+        url?: unknown;
+        waiting?: unknown;
+      };
+      if (typeof body.url === "string" && body.url.startsWith("https://")) {
+        return { url: body.url };
+      }
+      if (body.waiting === true) return { waiting: true as const };
+      return null;
+    } catch {
+      return null;
+    } finally {
+      window.dispatchEvent(new Event(X_HANDOFF_EVENT));
+    }
+  })();
+
+  phoneLoginInflight = request;
+  void request.finally(() => {
+    if (phoneLoginInflight === request) {
+      phoneLoginInflight = null;
+      phoneLoginInflightNext = null;
+    }
+  });
+  return request;
+}
 
 function LoginForm() {
   const [loading, setLoading] = useState<"google" | "x" | null>(null);
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
+  const authorizeUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isPhoneUserAgent(navigator.userAgent)) return;
+
+    let cancelled = false;
+    void preparePhoneXLogin(redirect).then((prepared) => {
+      if (!cancelled && prepared && "url" in prepared) {
+        authorizeUrlRef.current = prepared.url;
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [redirect]);
 
   async function handleGoogle() {
     setLoading("google");
@@ -16,6 +82,19 @@ function LoginForm() {
 
   async function handleX() {
     setLoading("x");
+    if (isPhoneUserAgent(navigator.userAgent)) {
+      const prepared = authorizeUrlRef.current
+        ? { url: authorizeUrlRef.current }
+        : await preparePhoneXLogin(redirect);
+      if (prepared && "url" in prepared) {
+        window.location.assign(prepared.url);
+        return;
+      }
+      if (prepared && "waiting" in prepared) return;
+      const next = encodeURIComponent(safeNextPath(redirect));
+      window.location.assign(`/auth/inapp/go?next=${next}`);
+      return;
+    }
     await signInWithX(redirect);
   }
 
