@@ -35,7 +35,7 @@ function preparePhoneXLogin(nextPath: string): Promise<PreparedXLogin> {
       if (typeof body.url === "string" && body.url.startsWith("https://")) {
         return { url: body.url };
       }
-      if (body.waiting === true) return { waiting: true };
+      if (body.waiting === true) return { waiting: true as const };
       return null;
     } catch {
       return null;
