@@ -9,6 +9,7 @@ import MobileBottomNav from "./components/MobileBottomNav";
 import TopTicker from "./components/TopTicker";
 import Footer from "./components/Footer";
 import RewardsStrip from "./components/RewardsStrip";
+import XHandoffPoller from "./components/XHandoffPoller";
 import { getSiteUrl } from "@/lib/site";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -98,6 +99,7 @@ export default function RootLayout({
         <Footer />
 
         <MobileBottomNav />
+        <XHandoffPoller />
         <Analytics />
       </body>
     </html>
