@@ -109,3 +109,51 @@ export async function announceApprovedToken(
     console.error("telegram announce failed:", err);
   }
 }
+
+export function buildRewardMessage(title: string, slug: string): string {
+  const heading = title.replace(/\s+/g, " ").trim();
+  const url = `${getSiteUrl()}/rewards/${slug}`;
+  return `${heading}\n\n${url}`;
+}
+
+/**
+ * Claim the one announcement slot, then post. A lost claim or a Telegram
+ * error is logged and swallowed so publishing the reward still succeeds.
+ */
+export async function announceRewardPost(
+  admin: SupabaseClient,
+  postId: string,
+  title: string,
+  slug: string
+): Promise<void> {
+  try {
+    if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID?.trim()) {
+      console.error(
+        "telegram reward skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not set"
+      );
+      return;
+    }
+
+    const { data, error } = await admin
+      .from("reward_posts")
+      .update({ telegram_posted_at: new Date().toISOString() })
+      .eq("id", postId)
+      .eq("published", true)
+      .is("telegram_posted_at", null)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      console.error("telegram reward skipped:", error.message);
+      return;
+    }
+    if (!data) return;
+
+    const sent = await sendPlainMessage(buildRewardMessage(title, slug));
+    if (!sent.ok) {
+      console.error("telegram reward sendMessage failed:", sent.error);
+    }
+  } catch (err: unknown) {
+    console.error("telegram reward announce failed:", err);
+  }
+}

@@ -13,6 +13,7 @@ export const RESERVED_USERNAMES = [
   "privacy",
   "terms",
   "leaderboard",
+  "rewards",
   "solana",
   "base",
   "ethereum",

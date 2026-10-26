@@ -73,6 +73,12 @@ export default function Footer() {
  </p>
  <div className="flex flex-col gap-2">
  <Link
+ href="/rewards"
+ className="text-sm text-[#8b93a1] hover:text-[#b8ff3d] transition"
+ >
+ Rewards
+ </Link>
+ <Link
  href="/about"
  className="text-sm text-[#8b93a1] hover:text-[#b8ff3d] transition"
  >
