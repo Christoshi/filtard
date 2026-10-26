@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import {
   isRewardExpired,
   isRewardSlug,
+  REWARD_SPOTLIGHT_LIMIT,
   type RewardCardData,
   type RewardDetail,
 } from "@/lib/rewards";
@@ -82,7 +83,9 @@ const cachedPublishedRewards = unstable_cache(
 const cachedSpotlightRewards = unstable_cache(
   async () => {
     const posts = await fetchPublishedRewards();
-    return posts.filter((post) => !isRewardExpired(post.expires_at)).slice(0, 3);
+    return posts
+      .filter((post) => !isRewardExpired(post.expires_at))
+      .slice(0, REWARD_SPOTLIGHT_LIMIT + 1);
   },
   ["reward-spotlight"],
   { revalidate: 60, tags: ["rewards"] }

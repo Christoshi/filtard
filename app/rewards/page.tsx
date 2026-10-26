@@ -8,10 +8,10 @@ const ogImage = `${siteUrl}/og/home.png`;
 
 export const metadata: Metadata = {
   title: "Rewards",
-  description: "Rewards and offers from Filtard.",
+  description: "Rewards, airdrops, and special offers for you.",
   openGraph: {
     title: "Rewards",
-    description: "Rewards and offers from Filtard.",
+    description: "Rewards, airdrops, and special offers for you.",
     url: `${siteUrl}/rewards`,
     siteName: "Filtard",
     type: "website",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Rewards",
-    description: "Rewards and offers from Filtard.",
+    description: "Rewards, airdrops, and special offers for you.",
     images: [ogImage],
   },
 };
@@ -44,7 +44,7 @@ export default async function RewardsPage() {
           Rewards
         </h1>
         <p className="mt-1.5 text-sm text-[#8b93a1]">
-          Rewards and offers from Filtard
+          Rewards, airdrops, and special offers for you.
         </p>
       </div>
 

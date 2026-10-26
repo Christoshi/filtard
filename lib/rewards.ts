@@ -1,5 +1,8 @@
 export const REWARD_COVERS_BUCKET = "reward-covers";
 
+/** Cards shown in the strip above the footer. */
+export const REWARD_SPOTLIGHT_LIMIT = 3;
+
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export type RewardPost = {
@@ -54,6 +57,43 @@ export function slugifyTitle(title: string): string {
 
 export function isRewardSlug(slug: string): boolean {
   return slug.length > 0 && slug.length <= 80 && SLUG_RE.test(slug);
+}
+
+function normalizePathname(pathname: string): string {
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+}
+
+/**
+ * Posts for the footer strip on this path.
+ * The listing page gets none. A reward detail page drops that post and
+ * keeps the next candidate so the strip can still fill.
+ */
+export function spotlightPostsForPath<T extends { slug: string }>(
+  posts: readonly T[],
+  pathname: string,
+  limit = REWARD_SPOTLIGHT_LIMIT
+): T[] {
+  const path = normalizePathname(pathname);
+  if (path === "/rewards") return [];
+
+  let slug: string | null = null;
+  const prefix = "/rewards/";
+  if (path.startsWith(prefix)) {
+    const rest = path.slice(prefix.length);
+    if (rest.length > 0 && !rest.includes("/")) {
+      try {
+        slug = decodeURIComponent(rest);
+      } catch {
+        slug = rest;
+      }
+    }
+  }
+
+  const filtered = slug ? posts.filter((post) => post.slug !== slug) : posts;
+  return filtered.slice(0, limit);
 }
 
 export function isRewardExpired(
