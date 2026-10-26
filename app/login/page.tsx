@@ -1,13 +1,78 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithX } from "@/lib/auth";
+import { isPhoneUserAgent } from "@/lib/phone-ua";
+import { isXAuthorizeUrl } from "@/lib/x-authorize-url";
+import {
+  X_HANDOFF_CLEARED,
+  applyHandedOffSession,
+  clearXHandoffPending,
+  hasXHandoffPending,
+  markXHandoffPending,
+  readStoredAuthorizeUrl,
+} from "@/lib/x-handoff-client";
 
 function LoginForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState<"google" | "x" | null>(null);
+  const [prefetchNonce, setPrefetchNonce] = useState(0);
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
+  const startError = searchParams.get("error") === "x";
+  const freshUrl = useRef<string | null>(null);
+  const restarts = useRef(0);
+
+  useEffect(() => {
+    if (!isPhoneUserAgent(navigator.userAgent)) return;
+
+    if (hasXHandoffPending() && readStoredAuthorizeUrl()) return;
+
+    const controller = new AbortController();
+    let cancelled = false;
+
+    async function prefetch() {
+      try {
+        const res = await fetch("/auth/inapp/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ redirect }),
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { url?: unknown };
+        if (cancelled || typeof data.url !== "string") return;
+        if (!isXAuthorizeUrl(data.url)) return;
+        freshUrl.current = data.url;
+        markXHandoffPending(data.url);
+      } catch {
+        // Aborted, or the network failed. The tap falls back to /auth/inapp/go.
+      }
+    }
+
+    void prefetch();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [prefetchNonce, redirect]);
+
+  useEffect(() => {
+    if (!isPhoneUserAgent(navigator.userAgent)) return;
+
+    const onCleared = () => {
+      freshUrl.current = null;
+      setLoading((current) => (current === "x" ? null : current));
+      if (restarts.current >= 1) return;
+      restarts.current += 1;
+      setPrefetchNonce((nonce) => nonce + 1);
+    };
+
+    window.addEventListener(X_HANDOFF_CLEARED, onCleared);
+    return () => window.removeEventListener(X_HANDOFF_CLEARED, onCleared);
+  }, []);
 
   async function handleGoogle() {
     setLoading("google");
@@ -15,8 +80,61 @@ function LoginForm() {
   }
 
   async function handleX() {
+    if (!isPhoneUserAgent(navigator.userAgent)) {
+      setLoading("x");
+      await signInWithX(redirect);
+      return;
+    }
+
     setLoading("x");
-    await signInWithX(redirect);
+    if (freshUrl.current && isXAuthorizeUrl(freshUrl.current)) {
+      markXHandoffPending(freshUrl.current);
+      window.location.assign(freshUrl.current);
+      return;
+    }
+
+    const stored = readStoredAuthorizeUrl();
+    if (stored) {
+      try {
+        const res = await fetch("/auth/inapp/poll", {
+          method: "POST",
+          cache: "no-store",
+        });
+        const data = (await res.json()) as {
+          status?: string;
+          access_token?: string;
+          refresh_token?: string;
+          next?: string;
+        };
+        if (
+          data.status === "complete" &&
+          data.access_token &&
+          data.refresh_token
+        ) {
+          await applyHandedOffSession(router, {
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            next: data.next,
+          });
+          return;
+        }
+        if (data.status === "pending" || data.status === "exchanging") {
+          markXHandoffPending(stored);
+          window.location.assign(stored);
+          return;
+        }
+      } catch {
+        // Fall through and start a new handoff.
+      }
+      clearXHandoffPending();
+      freshUrl.current = null;
+    }
+
+    markXHandoffPending();
+    const params = new URLSearchParams();
+    if (redirect && redirect !== "/") params.set("redirect", redirect);
+    const query = params.toString();
+    window.location.assign(query ? `/auth/inapp/go?${query}` : "/auth/inapp/go");
   }
 
   return (
@@ -26,9 +144,15 @@ function LoginForm() {
         <p className="text-sm text-[#8b93a1] mt-2">
           Only required if you want to rate or submit a token
         </p>
+        {startError && loading !== "x" && (
+          <p className="text-sm text-[#f4f6f8] mt-4">
+            Could not start X login. Try again.
+          </p>
+        )}
       </div>
 
       <button
+        type="button"
         onClick={handleGoogle}
         disabled={!!loading}
         className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#1c1f26] bg-[#101215] py-3 hover:bg-[#1c1f26] transition disabled:opacity-50"
@@ -55,6 +179,7 @@ function LoginForm() {
       </button>
 
       <button
+        type="button"
         onClick={handleX}
         disabled={!!loading}
         className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#1c1f26] bg-[#101215] py-3 hover:bg-[#1c1f26] transition disabled:opacity-50"
@@ -66,6 +191,7 @@ function LoginForm() {
       </button>
 
       <button
+        type="button"
         disabled
         className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#1c1f26] bg-[#101215] py-3 opacity-50 cursor-not-allowed"
       >
