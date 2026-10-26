@@ -55,3 +55,76 @@
     transform: translateY(0);
   }
 }
+
+.reward-content,
+.reward-editor .ProseMirror {
+  color: #c8cdd5;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.reward-editor .ProseMirror {
+  min-height: 220px;
+  padding: 0.9rem 1rem 1.1rem;
+  outline: none;
+}
+
+.reward-content h2,
+.reward-editor .ProseMirror h2 {
+  margin: 1.25rem 0 0.45rem;
+  color: #f4f6f8;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.reward-content h3,
+.reward-editor .ProseMirror h3 {
+  margin: 1rem 0 0.4rem;
+  color: #f4f6f8;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.reward-content p,
+.reward-editor .ProseMirror p {
+  margin: 0.55rem 0;
+}
+
+.reward-content ul,
+.reward-editor .ProseMirror ul {
+  margin: 0.55rem 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.reward-content ol,
+.reward-editor .ProseMirror ol {
+  margin: 0.55rem 0;
+  padding-left: 1.25rem;
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+
+.reward-content li,
+.reward-editor .ProseMirror li {
+  margin: 0.2rem 0;
+}
+
+.reward-content a,
+.reward-editor .ProseMirror a {
+  color: #b8ff3d;
+  text-decoration: underline;
+}
+
+.reward-content strong,
+.reward-editor .ProseMirror strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.reward-content em,
+.reward-editor .ProseMirror em {
+  font-style: italic;
+}

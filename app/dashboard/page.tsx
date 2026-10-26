@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, supabase } from "@/lib/auth";
 import { isStaffRole } from "@/lib/roles";
+
+const RewardsAdmin = dynamic(() => import("./rewards-admin"), {
+  loading: () => <p className="text-sm text-[#8b93a1]">Loading...</p>,
+});
 
 type Profile = {
   id: string;
@@ -50,7 +55,9 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [tokens, setTokens] = useState<Token[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [activeTab, setActiveTab] = useState<"tokens" | "curators">("tokens");
+  const [activeTab, setActiveTab] = useState<
+    "tokens" | "curators" | "rewards"
+  >("tokens");
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
   const [search, setSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
@@ -487,6 +494,16 @@ export default function DashboardPage() {
         >
           Curators
         </button>
+        <button
+          onClick={() => setActiveTab("rewards")}
+          className={`px-4 py-2 rounded-xl text-sm border transition ${
+            activeTab === "rewards"
+              ? "bg-[#b8ff3d] text-black border-[#b8ff3d]"
+              : "border-[#1c1f26] text-[#8b93a1] hover:border-[#3a3f4b]"
+          }`}
+        >
+          Rewards
+        </button>
       </div>
 
       {activeTab === "tokens" && (
@@ -701,6 +718,8 @@ export default function DashboardPage() {
           )}
         </>
       )}
+
+      {activeTab === "rewards" && <RewardsAdmin />}
 
       {activeTab === "curators" && (
         <div>

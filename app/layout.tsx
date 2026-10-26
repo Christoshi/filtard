@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import HeaderAuth from "./components/HeaderAuth";
+import MainNav from "./components/MainNav";
 import MobileBottomNav from "./components/MobileBottomNav";
 import TopTicker from "./components/TopTicker";
 import Footer from "./components/Footer";
+import RewardsStrip from "./components/RewardsStrip";
 import { getSiteUrl } from "@/lib/site";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -76,6 +79,8 @@ export default function RootLayout({
               Filtard
             </Link>
 
+            <MainNav />
+
             <TopTicker />
 
             <div className="hidden md:block">
@@ -85,6 +90,10 @@ export default function RootLayout({
         </header>
 
         <main className="px-3 py-4 md:px-6 md:py-6 flex-1">{children}</main>
+
+        <Suspense fallback={null}>
+          <RewardsStrip />
+        </Suspense>
 
         <Footer />
 

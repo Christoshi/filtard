@@ -19,6 +19,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/rewards`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: "monthly",
@@ -66,5 +72,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     })) || [];
 
-  return [...staticPages, ...tokenPages, ...profilePages];
+  let rewardPages: MetadataRoute.Sitemap = [];
+  try {
+    const { data: rewards, error: rewardsError } = await supabase
+      .from("reward_posts")
+      .select("slug, updated_at")
+      .eq("published", true);
+
+    if (!rewardsError && rewards) {
+      rewardPages = rewards.map((post) => ({
+        url: `${baseUrl}/rewards/${post.slug}`,
+        lastModified: new Date(post.updated_at || Date.now()),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      }));
+    }
+  } catch (err) {
+    console.error("sitemap rewards:", err);
+  }
+
+  return [...staticPages, ...rewardPages, ...tokenPages, ...profilePages];
 }
