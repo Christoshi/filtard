@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { getCurrentUser, signOut } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { DesktopRewardsLink } from "./MainNav";
 
 export default function HeaderAuth() {
   const [user, setUser] = useState<any>(null);
@@ -61,7 +62,12 @@ export default function HeaderAuth() {
   );
 
   if (loading) {
-    return <div className="w-9 h-9" />;
+    return (
+      <div className="flex items-center gap-2.5 flex-shrink-0">
+        <div className="w-9 h-9" />
+        <DesktopRewardsLink />
+      </div>
+    );
   }
 
   if (user) {
@@ -76,6 +82,8 @@ export default function HeaderAuth() {
         >
           {TrophyIcon}
         </Link>
+
+        <DesktopRewardsLink />
 
         <div className="relative" ref={dropdownRef}>
           <button
@@ -150,6 +158,8 @@ export default function HeaderAuth() {
       >
         {TrophyIcon}
       </Link>
+
+      <DesktopRewardsLink />
 
       <Link
         href="/login?redirect=/submit"
